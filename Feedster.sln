@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.32804.182
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feedster.Web", "Feedster.Web\Feedster.Web.csproj", "{2EE311E0-99F8-408D-8291-130CA5D91CDB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feedster.DAL", "Feedster.DAL\Feedster.DAL.csproj", "{B87CA8A3-BEC2-4134-8F0A-FE4F07576A95}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{2EE311E0-99F8-408D-8291-130CA5D91CDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EE311E0-99F8-408D-8291-130CA5D91CDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EE311E0-99F8-408D-8291-130CA5D91CDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B87CA8A3-BEC2-4134-8F0A-FE4F07576A95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B87CA8A3-BEC2-4134-8F0A-FE4F07576A95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B87CA8A3-BEC2-4134-8F0A-FE4F07576A95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B87CA8A3-BEC2-4134-8F0A-FE4F07576A95}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

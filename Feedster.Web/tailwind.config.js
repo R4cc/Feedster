@@ -6,7 +6,7 @@ module.exports = {
         './wwwroot/index.html',
         './**/*.razor',
     ],
-    darkMode: 'media',
+    darkMode: 'class',
     theme: {
         extend: {
             colors: {

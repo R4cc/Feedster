@@ -1,5 +1,5 @@
+using Feedster.DAL.Data;
 using Feedster.Web.Areas.Identity;
-using Feedster.Web.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
