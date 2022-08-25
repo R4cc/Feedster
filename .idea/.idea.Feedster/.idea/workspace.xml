@@ -82,7 +82,8 @@
       <workItem from="1661413178127" duration="6071000" />
       <workItem from="1661419340286" duration="4026000" />
       <workItem from="1661426909949" duration="33000" />
-      <workItem from="1661427281818" duration="1282000" />
+      <workItem from="1661427281818" duration="1915000" />
+      <workItem from="1661431275705" duration="5064000" />
     </task>
     <servers />
   </component>
@@ -91,5 +92,37 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/Feedster.DAL/Services/RssFetchService.cs</url>
+          <line>32</line>
+          <properties documentPath="C:\Users\adm2109\Documents\github\feedster\Feedster.DAL\Services\RssFetchService.cs" initialLine="32" containingFunctionPresentation="method 'RefreshFeeds'">
+            <startOffsets>
+              <option value="978" />
+            </startOffsets>
+            <endOffsets>
+              <option value="1017" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/Feedster.DAL/Services/RssFetchService.cs</url>
+          <line>54</line>
+          <properties documentPath="C:\Users\adm2109\Documents\github\feedster\Feedster.DAL\Services\RssFetchService.cs" initialLine="54" containingFunctionPresentation="method 'FetchFeedArticles'">
+            <startOffsets>
+              <option value="1798" />
+            </startOffsets>
+            <endOffsets>
+              <option value="2493" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

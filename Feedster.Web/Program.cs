@@ -1,4 +1,6 @@
 using Feedster.DAL.Data;
+using Feedster.DAL.Repositories;
+using Feedster.DAL.Services;
 using Feedster.Web.Areas.Identity;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -19,6 +21,9 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+builder.Services.AddTransient<FeedRepository>();
+builder.Services.AddTransient<ArticleRepository>();
+builder.Services.AddTransient<RssFetchService>();
 
 var app = builder.Build();
 

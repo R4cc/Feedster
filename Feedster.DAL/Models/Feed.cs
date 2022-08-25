@@ -6,5 +6,5 @@ public class Feed
     public string Name { get; set; }
     public List<Tag> Tags { get; set; } = new();
     public string RssUrl { get; set; }
-    public List<Article> Articles { get; set; }
+    public List<Article> Articles { get; set; } = new();
 }
