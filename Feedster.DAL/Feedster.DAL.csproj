@@ -7,10 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="CodeHollow.FeedReader" Version="1.2.4" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.8" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.8" />
-      <PackageReference Include="SimpleFeedReader" Version="1.0.9" />
+      <PackageReference Include="System.ServiceModel.Syndication" Version="4.7.0" />
     </ItemGroup>
 
 </Project>

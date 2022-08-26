@@ -1,6 +1,9 @@
 ﻿@page "/"
 @using Feedster.DAL.Services
+@using Feed = Feedster.DAL.Models.Feed
+@using Feedster.DAL.Repositories
 @inject RssFetchService _fetchService
+@inject FeedRepository _feedRepo
 
 <PageTitle>Index</PageTitle>
 
@@ -8,34 +11,33 @@
 
 <button class="btn btn-primary" @onclick=Load>LOAD</button>
 
-<div class="container" style="display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.2em; row-gap: 2.5em;">
-    <div class="col" style="max-width: 25em; min-width: 25em">
-        <a href="#" class="block p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-            <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Noteworthy technology acquisitions 2021</h5>
-            <p class="font-normal text-gray-700 dark:text-gray-400">Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.</p>
-        </a>
+@if(_feeds is not null){
+    <div class="container" style="display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.2em; row-gap: 2.5em;">
+        @foreach (var _feed in _feeds)
+        {
+            @foreach (var article in _feed.Articles)
+            {
+                <div class="col" style="max-width: 25em; min-width: 25em">
+                    <a href="#" class="block p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
+                        <p class="font-normal text-gray-700 dark:text-gray-400">@article.Description</p>
+                        <img src="@article.ImageUrl" alt="lol you are blind">
+                        <p>FEED: @article.FeedId</p>
+                    </a>
+                </div>
+            }
+        }
     </div>
-    <div class="col" style="max-width: 25em; min-width: 25em">
-        <a href="#" class="block p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-            <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Noteworthy technology acquisitions 2021</h5>
-            <p class="font-normal text-gray-700 dark:text-gray-400">Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.</p>
-        </a>
-    </div>
-    <div class="col" style="max-width: 25em; min-width: 25em">
-        <a href="#" class="block p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-            <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Noteworthy technology acquisitions 2021</h5>
-            <p class="font-normal text-gray-700 dark:text-gray-400">Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.</p>
-        </a>
-    </div>
-    <div class="col" style="max-width: 25em; min-width: 25em">
-        <a href="#" class="block p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-            <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Noteworthy technology acquisitions 2021</h5>
-            <p class="font-normal text-gray-700 dark:text-gray-400">Here are the biggest enterprise technology acquisitions of 2021 so far, in reverse chronological order.</p>
-        </a>
-    </div>
-</div>
+}
 
 @code {
+
+    private List<Feed> _feeds;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _feeds = await _feedRepo.GetAll();
+    }
 
     private async Task Load()
     {
