@@ -12,5 +12,5 @@ public class Article
     public string? ImageUrl { get; set; }
     public string? ImagePath { get; set; }
     public DateTime? PublicationDate { get; set; }
-    public List<Category> Categories { get; set; } = new();
+    public string[] Tags { get; set; }
 }

@@ -17,6 +17,21 @@ namespace Feedster.DAL.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.8");
 
+            modelBuilder.Entity("FeedGroup", b =>
+                {
+                    b.Property<int>("FeedsFeedId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GroupsGroupId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("FeedsFeedId", "GroupsGroupId");
+
+                    b.HasIndex("GroupsGroupId");
+
+                    b.ToTable("FeedGroup");
+                });
+
             modelBuilder.Entity("Feedster.DAL.Models.Article", b =>
                 {
                     b.Property<int>("ArticleId")
@@ -44,6 +59,10 @@ namespace Feedster.DAL.Migrations
                     b.Property<DateTime?>("PublicationDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Title")
                         .HasColumnType("TEXT");
 
@@ -52,26 +71,6 @@ namespace Feedster.DAL.Migrations
                     b.HasIndex("FeedId");
 
                     b.ToTable("Articles");
-                });
-
-            modelBuilder.Entity("Feedster.DAL.Models.Category", b =>
-                {
-                    b.Property<int>("CategoryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("ArticleId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("CategoryId");
-
-                    b.HasIndex("ArticleId");
-
-                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Feedster.DAL.Models.Feed", b =>
@@ -113,9 +112,9 @@ namespace Feedster.DAL.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Feedster.DAL.Models.Tag", b =>
+            modelBuilder.Entity("Feedster.DAL.Models.Group", b =>
                 {
-                    b.Property<int>("TagId")
+                    b.Property<int>("GroupId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -123,24 +122,26 @@ namespace Feedster.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("TagId");
+                    b.HasKey("GroupId");
 
-                    b.ToTable("Tags");
-                });
+                    b.ToTable("Groups");
 
-            modelBuilder.Entity("FeedTag", b =>
-                {
-                    b.Property<int>("FeedsFeedId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TagsTagId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("FeedsFeedId", "TagsTagId");
-
-                    b.HasIndex("TagsTagId");
-
-                    b.ToTable("FeedTag");
+                    b.HasData(
+                        new
+                        {
+                            GroupId = 1,
+                            Name = "Tech News"
+                        },
+                        new
+                        {
+                            GroupId = 2,
+                            Name = "Local News"
+                        },
+                        new
+                        {
+                            GroupId = 3,
+                            Name = "Security And Privacy"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -339,6 +340,21 @@ namespace Feedster.DAL.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("FeedGroup", b =>
+                {
+                    b.HasOne("Feedster.DAL.Models.Feed", null)
+                        .WithMany()
+                        .HasForeignKey("FeedsFeedId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Feedster.DAL.Models.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupsGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Feedster.DAL.Models.Article", b =>
                 {
                     b.HasOne("Feedster.DAL.Models.Feed", "Feed")
@@ -348,28 +364,6 @@ namespace Feedster.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Feed");
-                });
-
-            modelBuilder.Entity("Feedster.DAL.Models.Category", b =>
-                {
-                    b.HasOne("Feedster.DAL.Models.Article", null)
-                        .WithMany("Categories")
-                        .HasForeignKey("ArticleId");
-                });
-
-            modelBuilder.Entity("FeedTag", b =>
-                {
-                    b.HasOne("Feedster.DAL.Models.Feed", null)
-                        .WithMany()
-                        .HasForeignKey("FeedsFeedId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Feedster.DAL.Models.Tag", null)
-                        .WithMany()
-                        .HasForeignKey("TagsTagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -421,11 +415,6 @@ namespace Feedster.DAL.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Feedster.DAL.Models.Article", b =>
-                {
-                    b.Navigation("Categories");
                 });
 
             modelBuilder.Entity("Feedster.DAL.Models.Feed", b =>

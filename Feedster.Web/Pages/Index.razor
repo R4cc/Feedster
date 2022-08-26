@@ -17,18 +17,22 @@
             @foreach (var article in _articles.OrderByDescending(a => a.PublicationDate))
             {
                 <div class="mb-4 ">
-                    <a href="@article.ArticleLink" class="hover:bg-gray-200 block p-6 max-w-screen-sm bg-white rounded-lg border border-gray-200 shadow-xl hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-                        <a class="text-sm top-0">@article.Feed.Name • @(article.PublicationDate)</a>
-                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
-                        <p class="font-normal text-gray-700 dark:text-gray-400">@article.Description</p>
+                    <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class="hover:-translate-y-1 hover:scale-105 transition hover:bg-gray-200 block p-6 bg-gray-100 max-w-screen-sm rounded-lg border border-gray-400 shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                         @if (!String.IsNullOrEmpty(article.ImageUrl))
                         {
-                            <img src="@article.ImageUrl" class="rounded max-w-50" alt="article image">
+                            <img src="@article.ImageUrl" class="rounded max-w-50 mb-2" alt="article image">
                         }
-                        @if(article.Categories.Count() != 0){
-                            @foreach (var cat in article.Categories)
+                        <p class="text-sm top-0 mb-2">@article.Feed.Name • @(article.PublicationDate)</p>
+                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
+                        @if (article.Description is not null)
+                        {
+                            <p class="mb-2 font-normal text-gray-700 dark:text-gray-400">@article.Description</p>
+                        }
+                        @if(article.Tags.Count() != 0)
+                        {
+                            @foreach (var cat in article.Tags.Distinct())
                             {
-                                <a class="rounded bg-gray-200 me-1">#@cat.Name</a>
+                                <a class="p-2 text-sm text-gray-500 rounded bg-gray-200 me-1">#@cat</a>
                             }
                         }
                     </a>

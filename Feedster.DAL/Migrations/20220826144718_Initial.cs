@@ -63,16 +63,16 @@ namespace Feedster.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tags",
+                name: "Group",
                 columns: table => new
                 {
-                    TagId = table.Column<int>(type: "INTEGER", nullable: false)
+                    GroupId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tags", x => x.TagId);
+                    table.PrimaryKey("PK_Group", x => x.GroupId);
                 });
 
             migrationBuilder.CreateTable(
@@ -194,7 +194,8 @@ namespace Feedster.DAL.Migrations
                     ArticleLink = table.Column<string>(type: "TEXT", nullable: true),
                     ImageUrl = table.Column<string>(type: "TEXT", nullable: true),
                     ImagePath = table.Column<string>(type: "TEXT", nullable: true),
-                    PublicationDate = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    PublicationDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    Tags = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -208,26 +209,26 @@ namespace Feedster.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FeedTag",
+                name: "FeedGroup",
                 columns: table => new
                 {
                     FeedsFeedId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TagsTagId = table.Column<int>(type: "INTEGER", nullable: false)
+                    TagsGroupId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FeedTag", x => new { x.FeedsFeedId, x.TagsTagId });
+                    table.PrimaryKey("PK_FeedGroup", x => new { x.FeedsFeedId, x.TagsGroupId });
                     table.ForeignKey(
-                        name: "FK_FeedTag_Feeds_FeedsFeedId",
+                        name: "FK_FeedGroup_Feeds_FeedsFeedId",
                         column: x => x.FeedsFeedId,
                         principalTable: "Feeds",
                         principalColumn: "FeedId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_FeedTag_Tags_TagsTagId",
-                        column: x => x.TagsTagId,
-                        principalTable: "Tags",
-                        principalColumn: "TagId",
+                        name: "FK_FeedGroup_Group_TagsGroupId",
+                        column: x => x.TagsGroupId,
+                        principalTable: "Group",
+                        principalColumn: "GroupId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -289,9 +290,9 @@ namespace Feedster.DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_FeedTag_TagsTagId",
-                table: "FeedTag",
-                column: "TagsTagId");
+                name: "IX_FeedGroup_TagsGroupId",
+                table: "FeedGroup",
+                column: "TagsGroupId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -315,7 +316,7 @@ namespace Feedster.DAL.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "FeedTag");
+                name: "FeedGroup");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -327,7 +328,7 @@ namespace Feedster.DAL.Migrations
                 name: "Feeds");
 
             migrationBuilder.DropTable(
-                name: "Tags");
+                name: "Group");
         }
     }
 }

@@ -11,13 +11,28 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Feedster.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220826082944_Initial")]
+    [Migration("20220826144718_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.8");
+
+            modelBuilder.Entity("FeedGroup", b =>
+                {
+                    b.Property<int>("FeedsFeedId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TagsGroupId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("FeedsFeedId", "TagsGroupId");
+
+                    b.HasIndex("TagsGroupId");
+
+                    b.ToTable("FeedGroup");
+                });
 
             modelBuilder.Entity("Feedster.DAL.Models.Article", b =>
                 {
@@ -44,6 +59,10 @@ namespace Feedster.DAL.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("PublicationDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
@@ -95,9 +114,9 @@ namespace Feedster.DAL.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Feedster.DAL.Models.Tag", b =>
+            modelBuilder.Entity("Feedster.DAL.Models.Group", b =>
                 {
-                    b.Property<int>("TagId")
+                    b.Property<int>("GroupId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -105,24 +124,9 @@ namespace Feedster.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("TagId");
+                    b.HasKey("GroupId");
 
-                    b.ToTable("Tags");
-                });
-
-            modelBuilder.Entity("FeedTag", b =>
-                {
-                    b.Property<int>("FeedsFeedId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TagsTagId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("FeedsFeedId", "TagsTagId");
-
-                    b.HasIndex("TagsTagId");
-
-                    b.ToTable("FeedTag");
+                    b.ToTable("Group");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -321,6 +325,21 @@ namespace Feedster.DAL.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("FeedGroup", b =>
+                {
+                    b.HasOne("Feedster.DAL.Models.Feed", null)
+                        .WithMany()
+                        .HasForeignKey("FeedsFeedId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Feedster.DAL.Models.Group", null)
+                        .WithMany()
+                        .HasForeignKey("TagsGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Feedster.DAL.Models.Article", b =>
                 {
                     b.HasOne("Feedster.DAL.Models.Feed", "Feed")
@@ -330,21 +349,6 @@ namespace Feedster.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Feed");
-                });
-
-            modelBuilder.Entity("FeedTag", b =>
-                {
-                    b.HasOne("Feedster.DAL.Models.Feed", null)
-                        .WithMany()
-                        .HasForeignKey("FeedsFeedId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Feedster.DAL.Models.Tag", null)
-                        .WithMany()
-                        .HasForeignKey("TagsTagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

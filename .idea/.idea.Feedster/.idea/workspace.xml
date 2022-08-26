@@ -19,11 +19,6 @@
       </list>
     </option>
   </component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/0a674ba8495a44fb87b65b6c876863c710c00/a1/4070356a/FeedItem.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/0a674ba8495a44fb87b65b6c876863c710c00/f0/d57e0895/BaseFeedItem.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/23ac3741ace945aa8fb09ed04ff9815e83498/b0/ccb2c971/Enumerable.cs" root0="SKIP_HIGHLIGHTING" />
-  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -36,22 +31,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "XThreadsFramesViewSplitterKey": "0.62886596",
-    "list.type.of.created.stylesheet": "CSS",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;XThreadsFramesViewSplitterKey&quot;: &quot;0.62886596&quot;,
+    &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "sqlite"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;sqlite&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected=".NET Launch Settings Profile.Feedster.Web">
     <configuration name="Feedster.Web" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/Feedster.Web/Feedster.Web.csproj" />
@@ -98,6 +94,8 @@
       <workItem from="1661426909949" duration="33000" />
       <workItem from="1661427281818" duration="1915000" />
       <workItem from="1661431275705" duration="23651000" />
+      <workItem from="1661521749679" duration="154000" />
+      <workItem from="1661521916206" duration="3775000" />
     </task>
     <servers />
   </component>
@@ -112,28 +110,15 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/Feedster.Web/Program.cs</url>
-          <line>39</line>
-          <properties documentPath="C:\Users\adm2109\Documents\github\feedster\Feedster.Web\Program.cs" initialLine="39" containingFunctionPresentation="">
-            <startOffsets>
-              <option value="1559" />
-            </startOffsets>
-            <endOffsets>
-              <option value="1560" />
-            </endOffsets>
-          </properties>
+          <line>40</line>
+          <properties documentPath="C:\Users\adm2109\Documents\github\feedster\Feedster.Web\Program.cs" initialLine="39" containingFunctionPresentation="" />
           <option name="timeStamp" value="45" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/Feedster.Web/Pages/Index.razor</url>
-          <line>28</line>
+          <line>32</line>
           <properties documentPath="C:\Users\adm2109\Documents\github\feedster\Feedster.Web\Pages\Index.razor" initialLine="28" isMultiMethodBreakpoint="true">
             <option name="multiMethodBreakpoint" value="true" />
-            <startOffsets>
-              <option value="-1" />
-            </startOffsets>
-            <endOffsets>
-              <option value="-1" />
-            </endOffsets>
           </properties>
           <option name="timeStamp" value="55" />
         </line-breakpoint>

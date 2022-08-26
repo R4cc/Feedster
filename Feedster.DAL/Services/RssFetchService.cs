@@ -77,7 +77,8 @@ namespace Feedster.DAL.Services
                     PublicationDate = itm.PublishDate.DateTime,
                     ArticleLink = itm.Links.ToList().Count() == 0 ? null : itm.Links.ToList()[0].Uri.ToString(),
                     FeedId = feed.FeedId,
-                    Categories = itm.Categories.Select(x => new Category() { Name = x.Name}).ToList()});
+                    Tags = itm.Categories.Select(x => x.Name).ToArray()
+                });
             }
             
             return feed.Articles;
