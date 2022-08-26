@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.ServiceModel.Syndication;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using System.Xml.Serialization;
-using CodeHollow.FeedReader;
 using Feedster.DAL.Models;
 using Feedster.DAL.Repositories;
 using Feed = Feedster.DAL.Models.Feed;
@@ -27,7 +20,7 @@ namespace Feedster.DAL.Services
 
         public async Task RefreshFeeds()
         {
-            List<Feed> feeds = new() {await _feedRepository.Get(3)};
+            List<Feed> feeds = await _feedRepository.GetAll();
             List<Article> articlesToUpdate = new();
 
             foreach (var feed in feeds)
@@ -42,55 +35,49 @@ namespace Feedster.DAL.Services
         {
             // get existing articles to match
             Dictionary<string, Article> existingArticles =
-                (await _articleRepository.GetAll()).ToDictionary(keySelector: x => x.Guid, elementSelector: x => x);
-            
-            
+                (await _articleRepository.GetAll()).ToDictionary(keySelector: x => x.ArticleLink, elementSelector: x => x);
 
-            var result = await FeedReader.ReadAsync(feed.RssUrl);
+            XmlReader reader = XmlReader.Create(feed.RssUrl);
+            SyndicationFeed result = SyndicationFeed.Load(reader);
+            reader.Close();
 
-            // loop thoruh all results and add them to a list
+            // loop through all results and add them to a list
             foreach (var itm in result.Items)
             {
-                
-                if (existingArticles.Any(x => x.Key == result.Link))
+                if (existingArticles.Any(x => x.Key == itm.Links.ToList()[0].Uri.ToString()))
                 {
-                    // skip because it has already been loaded
+                    // skip item cus it already exists
                     continue;
                 }
+                
+                List<string> images = new();
 
-                string image = String.Empty;
-
-                // Loop thorugh xElements until img is found
-                foreach (var extension in itm.SpecificItem.Element.Elements())
+                foreach (SyndicationElementExtension extension in itm.ElementExtensions)
                 {
-                    XElement element = extension;
+                    XElement element = extension.GetObject<XElement>();
 
                     if (element.HasAttributes)
                     {
-                        var elements = element.ElementsAfterSelf();
-                        foreach (var attribute in elements)
+                        foreach (var attribute in element.Attributes())
                         {
-                            string value = attribute.ToString();
-
-                            string extractedUrl = await ExtractUrlFromString(value);
-                            if (extractedUrl != string.Empty)
+                            string value = attribute.Value.ToLower();
+                            if (value.StartsWith("http") && (value.EndsWith(".jpg") || value.EndsWith(".png") || value.EndsWith(".gif") || value.EndsWith(".jpeg")))
                             {
-                                image = extractedUrl; 
+                                images.Add(value); // Add here the image link to some array
                             }
                         }                                
                     }                            
-                }    
-                
+                }
                 feed.Articles.Add(new Article()
                 {
-                    Guid = String.IsNullOrEmpty(itm.Link.ToString()) ? null : itm.Link.ToString(),
-                    Description = String.IsNullOrEmpty(itm.Description) ? null : itm.Description,
-                    Title   = String.IsNullOrEmpty(itm.Title) ? null : itm.Title,
-                    ImageUrl = String.IsNullOrEmpty(image) ? null  : image,
-                    PublicationDate = itm.PublishingDate,
-                    ArticleLink = String.IsNullOrEmpty(itm.Link) ? null : itm.Link,
-                    FeedId = feed.FeedId
-                });
+                    Guid = itm.Id is null ? null : itm.Id ,
+                    Description = String.IsNullOrEmpty(itm.Summary.Text) ? null : (itm.Summary.Text.Contains("</a>") ? null : itm.Summary.Text),
+                    Title   = String.IsNullOrEmpty(itm.Title.Text) ? null : itm.Title.Text,
+                    ImageUrl = images?.Count() == 0 ? null  : images.OrderBy(x => x.Length).ToList()[0],
+                    PublicationDate = itm.PublishDate.DateTime,
+                    ArticleLink = itm.Links.ToList().Count() == 0 ? null : itm.Links.ToList()[0].Uri.ToString(),
+                    FeedId = feed.FeedId,
+                    Categories = itm.Categories.Select(x => new Category() { Name = x.Name}).ToList()});
             }
             
             return feed.Articles;
@@ -100,40 +87,6 @@ namespace Feedster.DAL.Services
         { 
             await _articleRepository.UpdateRange(articles);
         }
-
-        private async Task<String> ExtractUrlFromString(string url)
-        {
-            if (!url.Contains("https://") && !url.Contains("https://"))
-            {
-                return String.Empty;
-            }
-            
-            int indexStart = url.IndexOf("url=\"http");
-            
-            int indexEnd;
-            switch (url)
-            {
-                case string value when url.Contains(".jpg"):
-                    indexEnd = value.IndexOf(".jpg")+4;
-                    break;
-                case string value when url.Contains(".png"):
-                    indexEnd = value.IndexOf(".png")+4;
-                    break;
-                case string value when url.Contains(".jpeg"):
-                    indexEnd = value.IndexOf(".jpeg") +5;
-                    break;
-                case string value when url.Contains(".gif"):
-                    indexEnd = value.IndexOf(".gif") +4;
-                    break;
-                case string value when url.Contains(".webp"):
-                    indexEnd = value.IndexOf(".webp") +5;
-                    break;
-                default:
-                    return String.Empty;
-            }
-
-            string returnUrl = url.Substring(indexStart, indexEnd - indexStart);
-            return returnUrl.Split("url=\"")[1];
-        }
+        
     }
 }

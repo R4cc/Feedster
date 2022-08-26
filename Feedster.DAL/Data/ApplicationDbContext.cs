@@ -44,5 +44,6 @@ namespace Feedster.DAL.Data
         public virtual DbSet<Feed> Feeds { get; set; }
         public virtual DbSet<Tag> Tags { get; set; }
         public virtual DbSet<Article> Articles { get; set; }
+        public virtual DbSet<Category> Categories { get; set; }
     }
 }

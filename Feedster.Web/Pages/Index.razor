@@ -2,41 +2,48 @@
 @using Feedster.DAL.Services
 @using Feed = Feedster.DAL.Models.Feed
 @using Feedster.DAL.Repositories
+@using Feedster.DAL.Models
 @inject RssFetchService _fetchService
 @inject FeedRepository _feedRepo
+@inject ArticleRepository _articleRepo
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Feedster - Home</PageTitle>
 
-<p class="text-2xl mb-4">Posts</p>
+@if(_articles is not null){
+    <h5 class="mb-2 text-2xl font-bold tracking-tight dark:text-white">Home</h5>
+    <button class="btn btn-primary" @onclick=Load>LOAD</button>
 
-<button class="btn btn-primary" @onclick=Load>LOAD</button>
-
-@if(_feeds is not null){
-    <div class="container" style="display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0.2em; row-gap: 2.5em;">
-        @foreach (var _feed in _feeds)
-        {
-            @foreach (var article in _feed.Articles)
+    <div>
+            @foreach (var article in _articles.OrderByDescending(a => a.PublicationDate))
             {
-                <div class="col" style="max-width: 25em; min-width: 25em">
-                    <a href="#" class="block p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+                <div class="mb-4 ">
+                    <a href="@article.ArticleLink" class="hover:bg-gray-200 block p-6 max-w-screen-sm bg-white rounded-lg border border-gray-200 shadow-xl hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+                        <a class="text-sm top-0">@article.Feed.Name • @(article.PublicationDate)</a>
                         <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
                         <p class="font-normal text-gray-700 dark:text-gray-400">@article.Description</p>
-                        <img src="@article.ImageUrl" alt="lol you are blind">
-                        <p>FEED: @article.FeedId</p>
+                        @if (!String.IsNullOrEmpty(article.ImageUrl))
+                        {
+                            <img src="@article.ImageUrl" class="rounded max-w-50" alt="article image">
+                        }
+                        @if(article.Categories.Count() != 0){
+                            @foreach (var cat in article.Categories)
+                            {
+                                <a class="rounded bg-gray-200 me-1">#@cat.Name</a>
+                            }
+                        }
                     </a>
                 </div>
             }
-        }
     </div>
 }
 
 @code {
 
-    private List<Feed> _feeds;
+    private List<Article> _articles;
 
     protected override async Task OnInitializedAsync()
     {
-        _feeds = await _feedRepo.GetAll();
+        _articles = await _articleRepo.GetAll();
     }
 
     private async Task Load()

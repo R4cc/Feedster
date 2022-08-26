@@ -14,7 +14,12 @@ public class ArticleRepository
 
     public async Task<List<Article>> GetAll()
     {
-        return await _db.Articles.ToListAsync();
+        var list = await _db.Articles.Include(a => a.Feed).ToListAsync();
+        //foreach (var article in list)
+        //{
+        //    _db.Entry(article).State = EntityState.Detached;
+        //}
+        return list;
     }    
     
     public async Task Create(Article article)
@@ -25,6 +30,7 @@ public class ArticleRepository
     public async Task UpdateRange(List<Article> articles)
     {
         _db.Articles.UpdateRange(articles);
+        _db.SaveChangesAsync();
     }
     
     public async Task<Article> Get(int id)
