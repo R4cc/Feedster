@@ -95,7 +95,8 @@
       <workItem from="1661427281818" duration="1915000" />
       <workItem from="1661431275705" duration="23651000" />
       <workItem from="1661521749679" duration="154000" />
-      <workItem from="1661521916206" duration="3775000" />
+      <workItem from="1661521916206" duration="3809000" />
+      <workItem from="1661607885602" duration="1305000" />
     </task>
     <servers />
   </component>
@@ -113,14 +114,6 @@
           <line>40</line>
           <properties documentPath="C:\Users\adm2109\Documents\github\feedster\Feedster.Web\Program.cs" initialLine="39" containingFunctionPresentation="" />
           <option name="timeStamp" value="45" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/Feedster.Web/Pages/Index.razor</url>
-          <line>32</line>
-          <properties documentPath="C:\Users\adm2109\Documents\github\feedster\Feedster.Web\Pages\Index.razor" initialLine="28" isMultiMethodBreakpoint="true">
-            <option name="multiMethodBreakpoint" value="true" />
-          </properties>
-          <option name="timeStamp" value="55" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

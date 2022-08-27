@@ -11,7 +11,6 @@
 
 @if(_articles is not null){
     <h5 class="mb-2 text-2xl font-bold tracking-tight dark:text-white">Home</h5>
-    <button class="btn btn-primary" @onclick=Load>LOAD</button>
 
     <div>
             @foreach (var article in _articles.OrderByDescending(a => a.PublicationDate))
@@ -47,10 +46,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _articles = await _articleRepo.GetAll();
+        await RefreshArticles();
+        _articles = (await _articleRepo.GetAll()).OrderByDescending(x => x.PublicationDate).ToList().GetRange(0, 30);
     }
 
-    private async Task Load()
+    private async Task RefreshArticles()
     {
         await _fetchService.RefreshFeeds();
     }
