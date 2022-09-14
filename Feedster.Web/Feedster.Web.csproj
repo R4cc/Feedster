@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <None Remove="database.db" />
-    <Content Include="database.db" />
   </ItemGroup>
 
   <Target Name="CheckForNpm" BeforeTargets="NpmInstall">
