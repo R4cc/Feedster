@@ -14,7 +14,7 @@ COPY . .
 WORKDIR "/src/Feedster.Web"
 
 # Install NPM
-RUN apt-get -y update && apt-get install npm -y && apt-get clean
+RUN apt-get -y update && apt-get install -y nodejs && apt-get clean
 RUN npm -v
 RUN npm install
 
