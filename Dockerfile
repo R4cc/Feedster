@@ -8,7 +8,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Feedster.Web/Feedster.Web.csproj", "Feedster.Web/"]
-COPY ["Feedster.Web/Feedster.DAL.csproj", "Feedster.DAL/"]
+COPY ["Feedster.DAL/Feedster.DAL.csproj", "Feedster.DAL/"]
 RUN dotnet restore "Feedster.Web/Feedster.Web.csproj"
 COPY . .
 WORKDIR "/src/Feedster.Web"
