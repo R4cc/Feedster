@@ -5,6 +5,13 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
+RUN apt-get install -y git-core curl build-essential openssl libssl-dev \
+ && git clone https://github.com/nodejs/node.git \
+ && cd node \
+ && ./configure \
+ && make \
+ && sudo make install
+
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Feedster.Web/Feedster.Web.csproj", "Feedster.Web/"]
