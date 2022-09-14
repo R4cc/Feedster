@@ -5,12 +5,15 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-RUN apt-get install -y git-core curl build-essential openssl libssl-dev \
- && git clone https://github.com/nodejs/node.git \
- && cd node \
- && ./configure \
- && make \
- && sudo make install
+FROM ubuntu:latest
+USER root
+WORKDIR /home/app
+COPY ./package.json /home/app/package.json
+RUN apt-get update
+RUN apt-get -y install curl gnupg
+RUN curl -sL https://deb.nodesource.com/setup_11.x  | bash -
+RUN apt-get -y install nodejs
+RUN npm install
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
