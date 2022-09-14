@@ -14,8 +14,9 @@ COPY . .
 WORKDIR "/src/Feedster.Web"
 
 # Install NPM
-RUN apt-get -y update && apt-get install -y nodejs && apt-get clean
+RUN apt-get -y update && apt-get install -y nodejs && apt-get install -y npm && apt-get clean
 RUN npm -v
+RUN node --version
 RUN npm install
 
 RUN dotnet build "Feedster.Web.csproj" -c Release -o /app/build
