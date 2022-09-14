@@ -1,4 +1,5 @@
 ﻿@page "/"
+@page "/{groupId:int}"
 @using Feedster.DAL.Services
 @using Feed = Feedster.DAL.Models.Feed
 @using Feedster.DAL.Repositories
@@ -42,12 +43,24 @@
 
 @code {
 
+    [Parameter]
+    public int? groupId { get; set; }
     private List<Article> _articles;
 
     protected override async Task OnInitializedAsync()
     {
         await RefreshArticles();
-        _articles = (await _articleRepo.GetAll()).OrderByDescending(x => x.PublicationDate).ToList().GetRange(0, 30);
+
+        if (groupId is null)
+        {
+            _articles = (await _articleRepo.GetAll()).OrderByDescending(x => x.PublicationDate).ToList().GetRange(0, 30);
+        }
+        else
+        {
+            _articles = (await _articleRepo.GetFromGroupId((int)groupId)).OrderByDescending(x => x.PublicationDate).ToList();
+            
+        }
+        
     }
 
     private async Task RefreshArticles()

@@ -33,6 +33,11 @@ public class ArticleRepository
         _db.SaveChangesAsync();
     }
     
+    public async Task<List<Article>> GetFromGroupId(int id)
+    {
+        return _db.Articles.Where(f => f.Feed.Groups.Any(x => x.GroupId == id)).ToList();
+    }
+    
     public async Task<Article> Get(int id)
     {
         return await _db.Articles.FirstOrDefaultAsync(f => f.FeedId == id);
