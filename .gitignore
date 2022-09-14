@@ -21,6 +21,9 @@
 *.db-wal
 *.db-shm
 
+# image cache
+.Feedster.Web/images
+
 # Mono auto generated files
 mono_crash.*
 
