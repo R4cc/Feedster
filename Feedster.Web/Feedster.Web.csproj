@@ -23,6 +23,11 @@
     <ProjectReference Include="..\Feedster.DAL\Feedster.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="database.db" />
+    <Content Include="database.db" />
+  </ItemGroup>
+
   <Target Name="CheckForNpm" BeforeTargets="NpmInstall">
     <Exec Command="npm -v" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
