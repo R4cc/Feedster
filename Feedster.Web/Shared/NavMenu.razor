@@ -3,7 +3,7 @@
 @inject GroupRepository _groupRepo
 
 <div class="md:flex flex-col md:flex-row md:min-h-screen w-full shadow-2xl">
-  <div x-on:click.away="open = false" class="flex flex-col w-full md:w-64 text-gray-700 bg-white dark-mode:text-gray-200 dark-mode:bg-gray-800 flex-shrink-0" x-data="{ open: false }">
+  <div x-on:click.away="open = false" class="flex flex-col w-full md:w-64 text-gray-700 bg-gray-200 dark-mode:text-gray-200 dark-mode:bg-gray-800 flex-shrink-0" x-data="{ open: false }">
     <div class="flex-shrink-0 px-8 py-4 flex flex-row items-center justify-between">
       <a href="#" class="text-lg font-semibold tracking-widest text-gray-900 uppercase rounded-lg dark-mode:text-white focus:outline-none focus:shadow-outline">Feedster</a>
       <button class="rounded-lg md:hidden rounded-lg focus:outline-none focus:shadow-outline" x-on:click="open = !open">
@@ -17,7 +17,7 @@
       <p class="block px-2 py-2 mt-2 text-lg underline font-bold text-gray-900 rounded-lg dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 hover:text-gray-900">Custom Feeds</p>
       @foreach (var group in _groups)
       {
-        <a class="hover:-translate-y-1 hover:scale-101 transition block px-3 py-2 mt-2 text-md font-semibold text-gray-900 rounded-lg dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200  focus:ring-2 focus:outline-none  focus:ring-gray-200 dark:focus:ring-gray-700 focus:bg-gray-200" href="#">@group.Name</a>
+        <a class="hover:-translate-y-1 hover:scale-101 transition block px-3 py-2 mt-2 text-md font-semibold text-gray-900 rounded-lg dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-300  focus:ring-2 focus:outline-none  focus:ring-gray-200 dark:focus:ring-gray-700 focus:bg-gray-200" href="#">@group.Name</a>
         
       }
       <a class="hover:-translate-y-1 p-2 hover:scale-101 transition align-middle bottom-0 mb-2 position-absolute block px-4 py-2 mt-2 text-sm font-semibold text-gray-900 rounded-lg dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200  focus:ring-2 focus:outline-none  focus:ring-gray-600 dark:focus:ring-gray-700 focus:bg-gray-200 focus:shadow-md" href="#"><RadzenIcon class="align-middle" Icon="settings"/>Settings</a>

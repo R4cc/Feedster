@@ -10,13 +10,13 @@
 <PageTitle>Feedster - Home</PageTitle>
 
 @if(_articles is not null){
-    <h5 class="mb-2 text-2xl font-bold tracking-tight dark:text-white">Home</h5>
+    <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 3.5em">Home</h5>
 
     <div>
             @foreach (var article in _articles.OrderByDescending(a => a.PublicationDate))
             {
                 <div class="mb-4 ">
-                    <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class="hover:-translate-y-1 hover:scale-105 transition hover:bg-gray-200 block p-6 bg-gray-100 max-w-screen-sm rounded-lg border border-gray-400 shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+                    <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class="transition hover:bg-gray-200 block p-6 bg-gray-100 max-w-screen-sm rounded-lg border border-gray-400 shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                         @if (!String.IsNullOrEmpty(article.ImageUrl))
                         {
                             <img src="@article.ImageUrl" class="rounded max-w-50 mb-2" alt="article image">
