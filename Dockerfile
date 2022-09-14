@@ -15,7 +15,7 @@ WORKDIR "/src/Feedster.Web"
 
 # Install NPM
 RUN apt-get -y update && apt-get install npm -y && apt-get clean
-RUN npm install --global cross-env
+RUN npm install
 
 RUN dotnet build "Feedster.Web.csproj" -c Release -o /app/build
 
