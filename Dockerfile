@@ -14,7 +14,12 @@ COPY . .
 WORKDIR "/src/Feedster.Web"
 
 # Install NPM
-FROM node:8.2
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash
+RUN apt-get install --yes nodejs
+RUN node -v
+RUN npm -v
+RUN npm i -g nodemon
+RUN nodemon -v
 
 RUN dotnet build "Feedster.Web.csproj" -c Release -o /app/build
 
