@@ -1,4 +1,6 @@
 # feedster
+[![dockerpush](https://github.com/R4cc/feedster/actions/workflows/main.yml/badge.svg)](https://github.com/R4cc/feedster/actions/workflows/main.yml)
+
 A lightweight minimal RSS reader written in ASP.NET Blazor
 
 # Deployment
