@@ -14,9 +14,10 @@ COPY . .
 WORKDIR "/src/Feedster.Web"
 
 # Install NPM
-RUN apt-get update -yq 
-RUN apt-get install curl gnupg -yq 
-RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
+RUN apt-get update
+RUN apt-get install -y curl
+RUN apt-get install -y libpng-dev libjpeg-dev curl libxi6 build-essential libgl1-mesa-glx
+RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
 RUN apt-get install -y nodejs
 
 RUN dotnet build "Feedster.Web.csproj" -c Release -o /app/build
