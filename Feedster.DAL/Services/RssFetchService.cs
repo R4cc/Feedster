@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.ServiceModel.Syndication;
 using System.Xml;
 using System.Xml.Linq;
@@ -12,7 +13,8 @@ namespace Feedster.DAL.Services
     {
         private readonly FeedRepository _feedRepository;
         private readonly ArticleRepository _articleRepository;
-        public RssFetchService( FeedRepository feedRepository, ArticleRepository articleRepository)
+
+        public RssFetchService(FeedRepository feedRepository, ArticleRepository articleRepository)
         {
             _feedRepository = feedRepository;
             _articleRepository = articleRepository;
@@ -25,7 +27,7 @@ namespace Feedster.DAL.Services
 
             foreach (var feed in feeds)
             {
-                    articlesToUpdate.AddRange(await FetchFeedArticles(feed));
+                articlesToUpdate.AddRange(await FetchFeedArticles(feed));
             }
 
             await UpdateArticles(articlesToUpdate);
@@ -35,7 +37,8 @@ namespace Feedster.DAL.Services
         {
             // get existing articles to match
             Dictionary<string, Article> existingArticles =
-                (await _articleRepository.GetAll()).ToDictionary(keySelector: x => x.ArticleLink, elementSelector: x => x);
+                (await _articleRepository.GetAll()).ToDictionary(keySelector: x => x.ArticleLink,
+                    elementSelector: x => x);
 
             XmlReader reader = XmlReader.Create(feed.RssUrl);
             SyndicationFeed result = SyndicationFeed.Load(reader);
@@ -49,7 +52,7 @@ namespace Feedster.DAL.Services
                     // skip item cus it already exists
                     continue;
                 }
-                
+
                 List<string> images = new();
 
                 foreach (SyndicationElementExtension extension in itm.ElementExtensions)
@@ -61,33 +64,58 @@ namespace Feedster.DAL.Services
                         foreach (var attribute in element.Attributes())
                         {
                             string value = attribute.Value.ToLower();
-                            if (value.StartsWith("http") && (value.EndsWith(".jpg") || value.EndsWith(".png") || value.EndsWith(".gif") || value.EndsWith(".jpeg")))
+                            if (value.StartsWith("http") && (value.EndsWith(".jpg") || value.EndsWith(".png") ||
+                                                             value.EndsWith(".gif") || value.EndsWith(".jpeg")))
                             {
-                                images.Add(value); // Add here the image link to some array
+                                images.Add(Path.GetFileName(value)); // Add here the image link to some array
+                                await DownloadFileAsync(value, Path.GetFileName(value));
                             }
-                        }                                
-                    }                            
+                        }
+                    }
                 }
+
                 feed.Articles.Add(new Article()
                 {
-                    Guid = itm.Id is null ? null : itm.Id ,
-                    Description = String.IsNullOrEmpty(itm.Summary.Text) ? null : (itm.Summary.Text.Contains("</a>") ? null : itm.Summary.Text),
-                    Title   = String.IsNullOrEmpty(itm.Title.Text) ? null : itm.Title.Text,
-                    ImageUrl = images?.Count() == 0 ? null  : images.OrderBy(x => x.Length).ToList()[0],
+                    Guid = itm.Id is null ? null : itm.Id,
+                    Description = String.IsNullOrEmpty(itm.Summary.Text)
+                        ? null
+                        : (itm.Summary.Text.Contains("</a>") ? null : itm.Summary.Text),
+                    Title = String.IsNullOrEmpty(itm.Title.Text) ? null : itm.Title.Text,
+                    ImageUrl = images?.Count() == 0 ? null : images.OrderBy(x => x.Length).ToList()[0],
                     PublicationDate = itm.PublishDate.DateTime,
                     ArticleLink = itm.Links.ToList().Count() == 0 ? null : itm.Links.ToList()[0].Uri.ToString(),
                     FeedId = feed.FeedId,
                     Tags = itm.Categories.Select(x => x.Name).ToArray()
                 });
             }
-            
+
             return feed.Articles;
         }
 
         private async Task UpdateArticles(List<Article> articles)
-        { 
+        {
             await _articleRepository.UpdateRange(articles);
         }
-        
+
+        public static async Task DownloadFileAsync(string uri, string outputPath)
+        {
+            try
+            {
+                using (HttpClient _httpClient = new())
+                {
+                    Uri uriResult;
+
+                    if (!Uri.TryCreate(uri, UriKind.Absolute, out uriResult))
+                        throw new InvalidOperationException("URI is invalid.");
+
+                    byte[] fileBytes = await _httpClient.GetByteArrayAsync(uri);
+                    File.WriteAllBytes("images/" + outputPath, fileBytes);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
     }
 }

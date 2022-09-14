@@ -30,12 +30,12 @@ public class ArticleRepository
     public async Task UpdateRange(List<Article> articles)
     {
         _db.Articles.UpdateRange(articles);
-        _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();
     }
     
     public async Task<List<Article>> GetFromGroupId(int id)
     {
-        return _db.Articles.Where(f => f.Feed.Groups.Any(x => x.GroupId == id)).ToList();
+        return _db.Articles.Include(x => x.Feed).ThenInclude(c => c.Groups).Where(f => f.Feed.Groups.Any(g => g.GroupId == id)).ToList();
     }
     
     public async Task<Article> Get(int id)

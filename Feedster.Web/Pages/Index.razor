@@ -20,7 +20,7 @@
                     <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class="transition hover:bg-gray-200 block p-6 bg-gray-100 max-w-screen-sm rounded-lg border border-gray-400 shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                         @if (!String.IsNullOrEmpty(article.ImageUrl))
                         {
-                            <img src="@article.ImageUrl" class="rounded max-w-50 mb-2" alt="article image">
+                            <img src="@("/images/" + article.ImageUrl)" class="rounded max-w-50 mb-2" alt="article image">
                         }
                         <p class="text-sm top-0 mb-2">@article.Feed.Name • @(article.PublicationDate)</p>
                         <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
@@ -53,12 +53,12 @@
 
         if (groupId is null)
         {
-            _articles = (await _articleRepo.GetAll()).OrderByDescending(x => x.PublicationDate).ToList().GetRange(0, 30);
+            _articles = (await _articleRepo.GetAll()).OrderByDescending(x => x.PublicationDate).ToList();
         }
         else
         {
             _articles = (await _articleRepo.GetFromGroupId((int)groupId)).OrderByDescending(x => x.PublicationDate).ToList();
-            
+            StateHasChanged();
         }
         
     }
