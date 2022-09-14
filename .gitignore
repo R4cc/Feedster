@@ -17,6 +17,10 @@
 .DS_Store
 .idea
 
+# db temp files
+*.db-wal
+*.db-shm
+
 # Mono auto generated files
 mono_crash.*
 
