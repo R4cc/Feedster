@@ -22,7 +22,7 @@
 *.db-shm
 
 # image cache
-.Feedster.Web/images
+.images
 
 # Mono auto generated files
 mono_crash.*
