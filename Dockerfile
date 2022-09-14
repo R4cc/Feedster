@@ -15,7 +15,7 @@ WORKDIR "/src/Feedster.Web"
 
 # Install NPM
 RUN apt update && apt install curl
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | -E bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs
 
 
