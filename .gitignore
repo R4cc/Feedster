@@ -13,6 +13,10 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# file: ~/.gitignore_global
+.DS_Store
+.idea
+
 # Mono auto generated files
 mono_crash.*
 
