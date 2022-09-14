@@ -18,6 +18,7 @@
 .idea
 
 # db temp files
+*.db
 *.db-wal
 *.db-shm
 
