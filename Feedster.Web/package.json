@@ -1,7 +1,7 @@
 ﻿{
   "scripts": {
-    "buildcss:dev": "npm cross-env TAILWIND_MODE=build postcss ./Styles/app.css -o ./wwwroot/css/app.css",
-    "buildcss:release": "npm cross-env NODE_ENV=production postcss ./Styles/app.css -o ./wwwroot/css/app.css"
+    "buildcss:dev": "cross-env TAILWIND_MODE=build postcss ./Styles/app.css -o ./wwwroot/css/app.css",
+    "buildcss:release": "cross-env NODE_ENV=production postcss ./Styles/app.css -o ./wwwroot/css/app.css"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
