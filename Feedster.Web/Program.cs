@@ -1,3 +1,4 @@
+using Feedster.DAL.BackgroundServices;
 using Feedster.DAL.Data;
 using Feedster.DAL.Repositories;
 using Feedster.DAL.Services;
@@ -24,6 +25,7 @@ builder.Services.AddTransient<FeedRepository>();
 builder.Services.AddTransient<GroupRepository>();
 builder.Services.AddTransient<ArticleRepository>();
 builder.Services.AddTransient<RssFetchService>();
+builder.Services.AddHostedService<AutoFetchService>();
 
 // ensure that paths exists and create if not
 Directory.CreateDirectory("./images");

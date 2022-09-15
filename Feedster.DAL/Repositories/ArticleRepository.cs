@@ -29,6 +29,12 @@ public class ArticleRepository
         await _db.SaveChangesAsync();
     }
     
+    public async Task Update(Article article)
+    {
+        _db.Articles.Update(article);
+        await _db.SaveChangesAsync();
+    }
+    
     public async Task<List<Article>> GetFromGroupId(int id)
     {
         return _db.Articles.Include(x => x.Feed).ThenInclude(c => c.Groups).Where(f => f.Feed.Groups.Any(g => g.GroupId == id)).ToList();

@@ -1,4 +1,5 @@
 ﻿using System.ServiceModel.Syndication;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using Feedster.DAL.Models;
@@ -49,6 +50,21 @@ namespace Feedster.DAL.Services
                 {
                     if (existingArticles.Any(x => x.Key == itm.Links.ToList()[0].Uri.ToString()))
                     {
+                        var article = existingArticles.Values.FirstOrDefault(x =>
+                            x.ArticleLink == itm.Links.ToList()[0].Uri.ToString());
+                        
+                        if (article.ImageUrl is null)
+                        {
+                            continue;
+                        }
+
+                        // donwload the image if it doesnt exist in the cache
+                        if (!File.Exists("images/" + article.ImagePath))
+                        {
+                            article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath);
+                            await _articleRepository.Update(article);
+                        }
+                        
                         // skip item cus it already exists
                         continue;
                     }
@@ -68,9 +84,9 @@ namespace Feedster.DAL.Services
                                 if (value.StartsWith("http") && (value.EndsWith(".jpg") || value.EndsWith(".png") ||
                                                                  value.EndsWith(".gif") || value.EndsWith(".jpeg")))
                                 {
+                                    // Add here the image link to some array
                                     imageUrls.Add(value);
-                                    imagePaths.Add(Path.GetFileName(value)); // Add here the image link to some array
-                                    await DownloadFileAsync(value, Path.GetFileName(value));
+                                    imagePaths.Add(await DownloadFileAsync(value, Path.GetFileName(value)));
                                 }
                             }
                         }
@@ -107,10 +123,14 @@ namespace Feedster.DAL.Services
             await _articleRepository.UpdateRange(articles);
         }
 
-        private static async Task DownloadFileAsync(string uri, string outputPath)
+        private static async Task<string> DownloadFileAsync(string uri, string outputPath)
         {
             try
             {
+                // Remove special chars
+                var normalizedFilename = Regex.Replace(Path.GetFileNameWithoutExtension(outputPath), "(?:[^a-z0-9 ]|(?<=['\"])s)", "");
+                outputPath = normalizedFilename + Path.GetExtension(outputPath);
+                
                 using HttpClient httpClient = new();
 
                 if (!Uri.TryCreate(uri, UriKind.Absolute, out _))
@@ -118,11 +138,15 @@ namespace Feedster.DAL.Services
 
                 byte[] fileBytes = await httpClient.GetByteArrayAsync(uri);
                 await File.WriteAllBytesAsync("images/" + outputPath, fileBytes);
+                
+                return outputPath;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
             }
+
+            return String.Empty;
         }
     }
 }
