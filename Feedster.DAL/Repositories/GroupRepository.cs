@@ -14,7 +14,7 @@ public class GroupRepository
 
     public async Task<List<Group>> GetAll()
     {
-        return _db.Groups.ToList();
+        return await _db.Groups.ToListAsync();
     }    
     
     public async Task Create(Group group)
@@ -25,7 +25,7 @@ public class GroupRepository
     public async Task UpdateRange(List<Group> groups)
     {
         _db.Groups.UpdateRange(groups);
-        _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();
     }
     
     public async Task<Group> Get(int id)

@@ -2,11 +2,8 @@ using Feedster.DAL.Data;
 using Feedster.DAL.Repositories;
 using Feedster.DAL.Services;
 using Feedster.Web.Areas.Identity;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -28,8 +25,9 @@ builder.Services.AddTransient<GroupRepository>();
 builder.Services.AddTransient<ArticleRepository>();
 builder.Services.AddTransient<RssFetchService>();
 
-// ensure that images path exists and create one if not
-DirectoryInfo di = Directory.CreateDirectory("./images");
+// ensure that paths exists and create if not
+Directory.CreateDirectory("./images");
+Directory.CreateDirectory("./data");
 
 var app = builder.Build();
 

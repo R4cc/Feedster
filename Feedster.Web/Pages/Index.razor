@@ -1,66 +1,72 @@
 ﻿@page "/"
 @page "/{groupId:int}"
 @using Feedster.DAL.Services
-@using Feed = Feedster.DAL.Models.Feed
 @using Feedster.DAL.Repositories
 @using Feedster.DAL.Models
 @inject RssFetchService _fetchService
-@inject FeedRepository _feedRepo
 @inject ArticleRepository _articleRepo
+@inject GroupRepository _groupRepo
 
 <PageTitle>Feedster - Home</PageTitle>
 
-@if(_articles is not null){
-    <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 3.5em">Home</h5>
 
-    <div>
-            @foreach (var article in _articles.OrderByDescending(a => a.PublicationDate))
-            {
-                <div class="mb-4 ">
-                    <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class="transition hover:bg-gray-200 block p-6 bg-gray-100 max-w-screen-sm rounded-lg border border-gray-400 shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-                        @if (!String.IsNullOrEmpty(article.ImageUrl))
-                        {
-                            <img src="@("/images/" + article.ImageUrl)" class="rounded max-w-50 mb-2" alt="article image">
-                        }
-                        <p class="text-sm top-0 mb-2">@article.Feed.Name • @(article.PublicationDate)</p>
-                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
-                        @if (article.Description is not null)
-                        {
-                            <p class="mb-2 font-normal text-gray-700 dark:text-gray-400">@article.Description</p>
-                        }
-                        @if(article.Tags.Count() != 0)
-                        {
-                            @foreach (var cat in article.Tags.Distinct())
-                            {
-                                <a class="p-2 text-sm text-gray-500 rounded bg-gray-200 me-1">#@cat</a>
-                            }
-                        }
-                    </a>
-                </div>
-            }
-    </div>
+<h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 3.5em">@(_group is null ? "Home" : _group.Name)</h5>
+
+@if (!_articles.Any())
+{
+    <a>No articles found...</a>
 }
+    
+<div>
+    @foreach (var article in _articles.OrderByDescending(a => a.PublicationDate))
+    {
+        <div class="mb-4 ">
+            <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class="transition hover:bg-gray-200 block p-6 bg-gray-100 max-w-screen-sm rounded-lg border border-gray-400 shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+                @if (!String.IsNullOrEmpty(article.ImageUrl))
+                {
+                    <img src="@("/images/" + article.ImageUrl)" class="rounded max-w-50 mb-2" alt="article image">
+                }
+                <p class="text-sm top-0 mb-2">@article.Feed.Name • @Convert.ToDateTime(article.PublicationDate).ToString("g")</p>
+                <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
+                @if (article.Description is not null)
+                {
+                    <p class="mb-2 font-normal text-gray-700 dark:text-gray-400">@article.Description</p>
+                }
+                @if(article.Tags.Count() != 0)
+                {
+                    foreach (var cat in article.Tags.Distinct())
+                    {
+                        <a class="p-2 text-sm text-gray-500 rounded bg-gray-200 mr-1">#@cat</a>
+                    }
+                }
+            </a>
+        </div>
+    }
+</div>
 
 @code {
 
     [Parameter]
     public int? groupId { get; set; }
-    private List<Article> _articles;
+    private List<Article> _articles = new();
+    private Group? _group = null;
 
     protected override async Task OnInitializedAsync()
     {
-        await RefreshArticles();
-
+        if (!_articles.Any())
+        {
+            await RefreshArticles();
+        }
+        
         if (groupId is null)
         {
             _articles = (await _articleRepo.GetAll()).OrderByDescending(x => x.PublicationDate).ToList();
         }
         else
         {
+            await LoadGroup((int)groupId);
             _articles = (await _articleRepo.GetFromGroupId((int)groupId)).OrderByDescending(x => x.PublicationDate).ToList();
-            StateHasChanged();
         }
-        
     }
 
     private async Task RefreshArticles()
@@ -68,5 +74,8 @@
         await _fetchService.RefreshFeeds();
     }
 
-
+    private async Task LoadGroup(int groupId)
+    {
+        _group = await _groupRepo.Get(groupId);
+    }
 }
