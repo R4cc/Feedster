@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <Folder Include="data" />
-    <Folder Include="images" />
   </ItemGroup>
 
   <Target Name="CheckForNpm" BeforeTargets="NpmInstall">

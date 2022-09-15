@@ -28,6 +28,9 @@ builder.Services.AddTransient<GroupRepository>();
 builder.Services.AddTransient<ArticleRepository>();
 builder.Services.AddTransient<RssFetchService>();
 
+// ensure that images path exists and create one if not
+DirectoryInfo di = Directory.CreateDirectory("./images");
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -51,7 +54,6 @@ else
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 
 app.UseStaticFiles(new StaticFileOptions
