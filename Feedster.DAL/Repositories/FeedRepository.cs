@@ -31,6 +31,6 @@ public class FeedRepository
     
     public async Task<Feed> Get(int id)
     {
-        return await _db.Feeds.FirstOrDefaultAsync(f => f.FeedId == id);
+        return await _db.Feeds.Include(f => f.Articles).FirstOrDefaultAsync(f => f.FeedId == id);
     }
 }

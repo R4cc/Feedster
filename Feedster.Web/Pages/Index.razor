@@ -1,7 +1,9 @@
 ﻿@page "/"
 @page "/{groupId:int}"
+@page "/feed/{feedId:int}"
 @inject ArticleRepository _articleRepo
 @inject GroupRepository _groupRepo
+@inject FeedRepository _feedRepo
 
 <PageTitle>Feedster - Home</PageTitle>
 <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 3.5em">@(_group is null ? "Home" : _group.Name)</h5>
@@ -43,19 +45,30 @@ else
 @code {
     [Parameter]
     public int? groupId { get; set; }
+    
+    [Parameter]
+    public int? feedId { get; set; }
+    
     private List<Article> _articles = new();
     private Group? _group;
+    private Feed? _feed;
 
     protected override async Task OnInitializedAsync()
-    {   
-        if (groupId is null)
+    {
+        switch ((groupId, feedId))
         {
-            _articles = (await _articleRepo.GetAll()).OrderByDescending(x => x.PublicationDate).ToList();
-        }
-        else
-        {
-            await LoadGroup((int)groupId);
-            _articles = (await _articleRepo.GetFromGroupId((int)groupId)).OrderByDescending(x => x.PublicationDate).ToList();
+            case (null, null):
+                // Home page
+                _articles = (await _articleRepo.GetAll()).OrderByDescending(x => x.PublicationDate).ToList();
+                break;
+            case (not null, null) :
+                await LoadGroup((int)groupId);
+                _articles = (await _articleRepo.GetFromGroupId((int)groupId)).OrderByDescending(x => x.PublicationDate).ToList();
+                break;
+            case (null, not null):
+                _feed = await _feedRepo.Get((int) feedId);
+                _articles = _feed.Articles.OrderByDescending(x => x.PublicationDate).ToList();
+                break;
         }
     }
     private async Task LoadGroup(int grpId)
