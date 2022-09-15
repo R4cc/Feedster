@@ -52,7 +52,6 @@ namespace Feedster.DAL.Data
                 Groups = new List<Group>() 
             });
             
-            
             feed.HasData(new Feed()
             {
                 FeedId = 3,
