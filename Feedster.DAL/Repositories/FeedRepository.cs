@@ -27,6 +27,11 @@ public class FeedRepository
     {
         _db.Feeds.UpdateRange(feeds);
         await _db.SaveChangesAsync();
+    }    
+    public async Task Update(Feed feed)
+    {
+        _db.Feeds.Update(feed);
+        await _db.SaveChangesAsync();
     }
     
     public async Task<Feed> Get(int id)

@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <Folder Include="data" />
-    <Folder Include="wwwroot\js\flowbite" />
   </ItemGroup>
 
   <ItemGroup>
