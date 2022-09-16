@@ -105,8 +105,8 @@ else
     <div>
         @foreach (var article in _articles.OrderByDescending(a => a.PublicationDate))
         {
-            <div class="mb-4">
-                <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class="transition hover:bg-gray-200 block p-6 bg-gray-100 max-w-screen-sm rounded-lg border border-gray-400 shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+            <div class="mb-5">
+                <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class="border border-3 border-black transition hover:bg-gray-200 block p-6 bg-gray-100 max-w-screen-sm rounded-lg shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                     @if (File.Exists("images/" + article.ImagePath))
                     {
                         <img src="@("/images/" + article.ImagePath)" class="rounded max-w-50 mb-2" alt="article image">
