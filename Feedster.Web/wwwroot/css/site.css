@@ -12,6 +12,13 @@ a, .btn-link {
     color: #0071c1;
 }
 
+.opacity-50{
+    opacity: 0.5;
+}
+.opacity-0{
+    opacity: 0.5;
+}
+
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;
