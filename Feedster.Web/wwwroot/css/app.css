@@ -1154,8 +1154,8 @@ input:checked + .toggle-bg {
 .w-8 {
   width: 2rem;
 }
-.w-60 {
-  width: 15rem;
+.w-32 {
+  width: 8rem;
 }
 .w-64 {
   width: 16rem;
@@ -1387,8 +1387,8 @@ input:checked + .toggle-bg {
 .bg-opacity-50 {
   --tw-bg-opacity: 0.5;
 }
-.p-5 {
-  padding: 1.25rem;
+.p-10 {
+  padding: 2.5rem;
 }
 .p-2\.5 {
   padding: 0.625rem;
