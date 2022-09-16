@@ -14,7 +14,7 @@ public class GroupRepository
 
     public async Task<List<Group>> GetAll()
     {
-        return await _db.Groups.ToListAsync();
+        return await _db.Groups.Include(g => g.Feeds).ToListAsync();
     }    
     
     public async Task Create(Group group)
