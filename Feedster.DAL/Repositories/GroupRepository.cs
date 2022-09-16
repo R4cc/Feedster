@@ -11,25 +11,21 @@ public class GroupRepository
     {
         _db = db;
     }
-
     public async Task<List<Group>> GetAll()
     {
         return await _db.Groups.Include(g => g.Feeds).ToListAsync();
-    }    
-    
+    }
     public async Task Create(Group group)
     {
         await _db.Groups.AddAsync(group);
-    }    
-    
-    public async Task UpdateRange(List<Group> groups)
-    {
-        _db.Groups.UpdateRange(groups);
-        await _db.SaveChangesAsync();
     }
-    
     public async Task<Group> Get(int id)
     {
         return await _db.Groups.FirstOrDefaultAsync(f => f.GroupId == id);
+    }
+    public async Task Update(Group group)
+    {
+        _db.Groups.Update(group);
+        await _db.SaveChangesAsync();
     }
 }

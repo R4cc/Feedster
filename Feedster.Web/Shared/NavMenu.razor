@@ -21,7 +21,7 @@
         </svg>
         <a style="display:inline-block">Manage Feeds</a>
       </div>
-      <p class="block px-2 mt-2 py-2 mt-2 text-lg font-bold text-gray-900 rounded-lg dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 hover:text-gray-900">Feeds</p>
+      <p class="block px-2 mt-2 py-2 mt-2 text-lg font-bold text-gray-900 rounded-lg dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 hover:text-gray-900">Folders</p>
       @foreach (var group in _groups)
       {
         <details class="duration-300 mb-2">
@@ -38,7 +38,7 @@
         <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        <a style="display:inline-block">new Feed</a>
+        <a style="display:inline-block">new Folder</a>
 
       </div>
       <!--a class="hover:-translate-y-1 p-2 hover:scale-101 transition align-middle bottom-0 mb-2 position-absolute block px-4 py-2 mt-2 text-sm font-semibold text-gray-900 rounded-lg dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200  focus:ring-2 focus:outline-none  focus:ring-gray-600 dark:focus:ring-gray-700 focus:bg-gray-200 focus:shadow-md" href="#">Settings</!--a-->
@@ -56,6 +56,7 @@
   private async Task NavTo(string navlink)
   {
     nav.NavigateTo(navlink, forceLoad: true);
+    focusedGroup = null;
   }
   
   private async Task NavTo(int groupId)
