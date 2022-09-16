@@ -1,7 +1,126 @@
 @page "/feeds/manage"
+@inject FeedRepository _feedRepo
+@inject IJSRuntime js
 
-<h3>FeedManage</h3>
+<PageTitle>Feedster - Feeds</PageTitle>
+<h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 2.5em">Manage Feeds</h5>
+<button type="button" onclick="toggleSlideover()" class="mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+    <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <a class="align-middle" style="display:inline-block">Add Feed</a>
+</button>
+
+@if (!_feeds.Any())
+{
+    <a>No Feeds to display...</a>
+}
+else{
+<div class="overflow-x-auto relative shadow-lg sm:rounded-lg max-w-3xl">
+    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+                <th scope="col" class="py-3 px-6">
+                    Name
+                </th>
+                <th scope="col" class="py-3 px-6">
+                    URL
+                </th>
+                <th scope="col" class="py-3 px-6">
+                    Controls
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach(var feed in _feeds){
+        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+            <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                @feed.Name
+            </th>
+            <td class="py-4 px-6">
+                @feed.RssUrl
+            </td>
+            <td class="py-4 px-6">
+                <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <button type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-l-lg border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg>
+                        Edit
+                    </button>
+                    <button @onclick="() => DeleteFeed(feed)" type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-r-md border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                        </svg>
+                        Delete
+                    </button>
+                </div>
+            </td>
+        </tr>
+        }
+        </tbody>
+    </table>
+</div>
+}
+
+<!-- Slideover for editing / creation -->
+<div class=" flex items-center justify-center" style="width: 50em">
+  <div id="slideover-container" class="w-full h-full fixed inset-0 invisible" >
+    <div onclick="toggleSlideover()" id="slideover-bg" class="w-full h-full duration-500 ease-out transition-all inset-0 absolute bg-gray-900 opacity-50"></div>
+    <div id="slideover" class="w-[50rem] bg-white h-full absolute right-0 duration-300 ease-out transition-all translate-x-full">
+        <div class="absolute cursor-pointer text-gray-600 top-0 w-8 h-8 flex items-center justify-center right-0 mt-5 mr-5" onclick="toggleSlideover()">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </div>
+        <div class="p-5">
+            <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 1.5em">Create a new Feed</h5>
+            <label for="input-group-1" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Name</label>
+            <div class="relative mb-6">
+              <input @bind-value="_newFeedName" type="text" id="input-group-1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Hacker News'">
+            </div>
+            <label for="input-group-1" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Name</label>
+            <div class="relative mb-6">
+                <input @bind-value="_newFeedUrl" type="text" id="input-group-2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'https://news.ycombinator.com/rss'">
+            </div>
+            
+            <button @onclick="CreateFeed" type="button" class="float-right mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">Create</button>
+        </div>
+    </div>
+  </div>
+</div>
+
+
 
 @code {
-    
+    private List<Feed> _feeds = new();
+    private string _newFeedName = string.Empty;
+    private string _newFeedUrl = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFeeds();
+    }
+
+    private async Task LoadFeeds()
+    {
+        _feeds = await _feedRepo.GetAll();
+    }
+
+    private async Task CreateFeed()
+    {
+        Feed newFeed = new()
+        {
+            Name = _newFeedName,
+            RssUrl = _newFeedUrl
+        };
+        await _feedRepo.Create(newFeed);
+        await js.InvokeVoidAsync("toggleSlideover");
+        await LoadFeeds();
+    }
+
+    private async Task DeleteFeed(Feed feedToRemove)
+    {
+        await _feedRepo.Remove(feedToRemove);
+        await LoadFeeds();
+    }
+
 }

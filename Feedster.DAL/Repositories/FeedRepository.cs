@@ -33,4 +33,9 @@ public class FeedRepository
     {
         return await _db.Feeds.Include(f => f.Articles).FirstOrDefaultAsync(f => f.FeedId == id);
     }
+    public async Task Remove(Feed feed)
+    {
+        _db.Feeds.Remove(feed);
+        await _db.SaveChangesAsync();
+    }    
 }
