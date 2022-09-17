@@ -49,7 +49,7 @@ The following features are planned for the future
 
 ## Docker
 ### Docker Run Command Example
-In the below command, the application will be accessible at http://localhost:80 on the host and the files would be stored in a /home/barry/rss directory. In this example, feeds would be configured in a /home/barry/rss/feeds.txt file.
+In the below command, the application will be accessible at http://localhost:30080 on the host and the files including the database for all the articles would be stored in /your/path/data/ folder.
 ```
 docker run -d \
     --restart unless-stopped \
@@ -59,7 +59,7 @@ docker run -d \
 ```
 
 ### Docker Compose Example
-In the below docker-compose.yml example, the application will be accessible at http://localhost:30080 on the host and the files would be stored in a ./rss-files directory relative to the docker-compose.yml file. In this example, feeds would be configured in a ./rss-files/feeds.txt file.
+In the below docker-compose.yml example, the application will be accessible at http://localhost:30080 on the host and the files including the database for all the articles would be stored in /your/path/data/ folder.
 ```
 version: '3.4'
 services:
