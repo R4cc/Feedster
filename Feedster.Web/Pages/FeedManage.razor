@@ -1,5 +1,6 @@
 @page "/feeds/manage"
 @inject FeedRepository _feedRepo
+@inject RssFetchService _fetchService
 @inject IJSRuntime js
 
 <PageTitle>Feedster - Feeds</PageTitle>
@@ -113,6 +114,7 @@ else{
         
         await js.InvokeVoidAsync("toggleSlideover");
         await LoadFeeds();
+        await _fetchService.RefreshFeed(_feed);
     }    
     
     private async Task StartFeedEdit(Feed feed)

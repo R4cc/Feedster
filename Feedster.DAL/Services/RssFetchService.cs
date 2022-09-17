@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
 using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
-using System.Threading.Channels;
 using System.Xml;
 using System.Xml.Linq;
 using Feedster.DAL.Models;
@@ -21,6 +20,14 @@ namespace Feedster.DAL.Services
             _articleRepository = articleRepository;
         }
 
+        public async Task RefreshFeed(Feed feed)
+        {
+            List<Article> articlesToUpdate = new();
+            articlesToUpdate.AddRange(await FetchFeedArticles(feed));
+
+            await UpdateArticles(articlesToUpdate);
+        }
+        
         public async Task RefreshFeeds()
         {
             List<Feed> feeds = await _feedRepository.GetAll();
