@@ -176,7 +176,7 @@ namespace Feedster.DAL.Services
                         // download image and pass it to the drawer
                         using (var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img)))
                         {
-                            using (var image = Image.FromStream(imgStream, false, false))
+                            using (var image = Image.FromStream(imgStream))
                             {
                                 if (image.Height * image.Width > highestResolution)
                                 {
