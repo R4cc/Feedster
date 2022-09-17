@@ -103,6 +103,7 @@ else{
     {
         if (_feed.FeedId  == -1)
         {
+            _feed.FeedId = 0;
             await _feedRepo.Create(_feed);
         }
         else
