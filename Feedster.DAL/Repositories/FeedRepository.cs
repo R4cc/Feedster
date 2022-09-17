@@ -14,7 +14,7 @@ public class FeedRepository
 
     public async Task<List<Feed>> GetAll()
     {
-        return await _db.Feeds.ToListAsync();
+        return await _db.Feeds.Include(f => f.Articles).ToListAsync();
     }    
     
     public async Task Create(Feed feed)

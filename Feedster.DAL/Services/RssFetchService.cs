@@ -1,5 +1,7 @@
-﻿using System.ServiceModel.Syndication;
+﻿using System.Drawing;
+using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using System.Xml;
 using System.Xml.Linq;
 using Feedster.DAL.Models;
@@ -38,8 +40,10 @@ namespace Feedster.DAL.Services
             {
                 // get existing articles to match
                 Dictionary<string, Article> existingArticles =
-                    (await _articleRepository.GetAll()).ToDictionary(keySelector: x => x.ArticleLink,
+                    (feed.Articles).ToDictionary(keySelector: x => x.ArticleLink,
                         elementSelector: x => x);
+
+                List<Article> ArticlesToUpdate = new();
 
                 XmlReader reader = XmlReader.Create(feed.RssUrl);
                 SyndicationFeed result = SyndicationFeed.Load(reader);
@@ -48,12 +52,13 @@ namespace Feedster.DAL.Services
                 // loop through all results and add them to a list
                 foreach (var itm in result.Items)
                 {
-                    if (existingArticles.Any(x => x.Key == itm.Links.ToList()[0].Uri.ToString()))
+                    var articleLink = itm.Links.ToList()[0].Uri.ToString();
+                    
+                    if (existingArticles.ContainsKey(articleLink))
                     {
-                        var article = existingArticles.Values.FirstOrDefault(x =>
-                            x.ArticleLink == itm.Links.ToList()[0].Uri.ToString());
+                        var article = existingArticles.GetValueOrDefault(articleLink);
                         
-                        if (article.ImageUrl is null)
+                        if (String.IsNullOrEmpty(article.ImageUrl))
                         {
                             continue;
                         }
@@ -62,14 +67,18 @@ namespace Feedster.DAL.Services
                         if (!File.Exists("images/" + article.ImagePath))
                         {
                             article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath);
-                            await _articleRepository.Update(article);
+                            
+                            if (!string.IsNullOrEmpty(article.ImagePath))
+                            {
+                                ArticlesToUpdate.Add(article);
+                            }
                         }
                         
                         // skip item cus it already exists
                         continue;
                     }
 
-                    List<string> imagePaths = new();
+                    //List<string> imagePaths = new();
                     List<string> imageUrls = new();
 
                     foreach (SyndicationElementExtension extension in itm.ElementExtensions)
@@ -84,23 +93,23 @@ namespace Feedster.DAL.Services
                                 if (value.StartsWith("http") && (value.EndsWith(".jpg") || value.EndsWith(".png") ||
                                                                  value.EndsWith(".gif") || value.EndsWith(".jpeg")))
                                 {
-                                    // Add here the image link to some array
                                     imageUrls.Add(value);
-                                    imagePaths.Add(await DownloadFileAsync(value, Path.GetFileName(value)));
                                 }
                             }
                         }
                     }
-
-                    feed.Articles.Add(new Article()
+                    
+                    // Find the highest Resolution image in array of multiple image
+                    string highestResImageUrl = (imageUrls.Count > 1 ? await GetHighestResolutionImage(imageUrls) : (imageUrls.Any() ? imageUrls.First() : string.Empty));
+                    string highestResImagePath = (highestResImageUrl == string.Empty ? String.Empty : await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl))) ;
+                    
+                    ArticlesToUpdate.Add(new Article()
                     {
                         Guid = itm.Id,
-                        Description = String.IsNullOrEmpty(itm.Summary.Text)
-                            ? null
-                            : (itm.Summary.Text.Contains("</a>") ? null : itm.Summary.Text),
+                        Description = String.IsNullOrEmpty(itm.Summary.Text) ? null : (itm.Summary.Text.Contains("</a>") ? null : itm.Summary.Text),
                         Title = String.IsNullOrEmpty(itm.Title.Text) ? null : itm.Title.Text,
-                        ImagePath = !imagePaths.Any() ? null : imagePaths.OrderBy(x => x.Length).ToList()[0],
-                        ImageUrl = !imageUrls.Any() ? null : imageUrls.OrderBy(x => x.Length).ToList()[0],
+                        ImagePath = highestResImagePath == String.Empty ? null : highestResImagePath,
+                        ImageUrl = !imageUrls.Any() ? null : highestResImageUrl,
                         PublicationDate = itm.PublishDate.DateTime,
                         ArticleLink = !itm.Links.ToList().Any() ? null : itm.Links.ToList()[0].Uri.ToString(),
                         FeedId = feed.FeedId,
@@ -108,10 +117,11 @@ namespace Feedster.DAL.Services
                     });
                 }
 
-                return feed.Articles;
+                return ArticlesToUpdate;
             }
-            catch
+            catch(Exception e)
             {
+                Console.WriteLine("failed");
                 // ignored
             }
 
@@ -132,6 +142,7 @@ namespace Feedster.DAL.Services
                 outputPath = normalizedFilename + Path.GetExtension(outputPath);
                 
                 using HttpClient httpClient = new();
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
 
                 if (!Uri.TryCreate(uri, UriKind.Absolute, out _))
                     throw new InvalidOperationException("URI is invalid.");
@@ -141,12 +152,47 @@ namespace Feedster.DAL.Services
                 
                 return outputPath;
             }
-            catch (Exception e)
+            catch
             {
-                Console.WriteLine(e);
+                // most likely 403 No access so ignore
             }
 
             return String.Empty;
+        }
+
+        private async Task<string> GetHighestResolutionImage(List<string> Images)
+        {
+            string highestResolutionImage = String.Empty;
+            int highestResolution = 0;
+            
+            foreach (var img in Images)
+            {
+                try
+                {
+                    using (var httpClient = new HttpClient())
+                    {
+                        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
+                        
+                        // download image and pass it to the drawer
+                        using (var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img)))
+                        {
+                            using (var image = Image.FromStream(imgStream, false, false))
+                            {
+                                if (image.Height * image.Width > highestResolution)
+                                {
+                                    highestResolution = image.Height * image.Width;
+                                    highestResolutionImage = img;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    // img download probably failed; continue
+                }
+            }
+            return highestResolutionImage;
         }
     }
 }

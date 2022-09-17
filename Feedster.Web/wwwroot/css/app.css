@@ -1100,9 +1100,6 @@ input:checked + .toggle-bg {
 .mb-5 {
   margin-bottom: 1.25rem;
 }
-.mr-1 {
-  margin-right: 0.25rem;
-}
 .mt-2 {
   margin-top: 0.5rem;
 }
@@ -1283,6 +1280,10 @@ input:checked + .toggle-bg {
 }
 .whitespace-nowrap {
   white-space: nowrap;
+}
+.break-normal {
+  overflow-wrap: normal;
+  word-break: normal;
 }
 .rounded-lg {
   border-radius: 0.5rem;
