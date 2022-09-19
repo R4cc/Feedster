@@ -74,16 +74,22 @@ else{
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </div>
         <div class="p-10">
-            <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 1.5em">Create a new Feed</h5>
-            <label for="input-group-1" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Name</label>
-            <div class="relative mb-6">
-              <input @bind-value="_feed.Name" type="text" id="input-group-1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Hacker News'">
-            </div>
-            <label for="input-group-1" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">RSS URL</label>
-            <div class="relative mb-6">
-                <input @bind-value="_feed.RssUrl" type="text" id="input-group-2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'https://news.ycombinator.com/rss'">
-            </div>
-            <button @onclick="SaveChanges" type="button" class="float-right mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">Save</button>
+            <EditForm Model="_feed" OnValidSubmit="SaveChanges">
+                <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 1.5em">Create a new Feed</h5>
+                <DataAnnotationsValidator/>
+
+                <label for="Name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Name</label>
+                <div class="relative mb-6">
+                    <InputText @bind-Value="_feed.Name" type="text" id="Name" class="form-control mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Hacker News'"/>
+                    <ValidationMessage For="@(() => _feed.Name)" />
+                </div>
+                <label for="RssUrl" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">RSS URL</label>
+                <div class="relative mb-6">
+                    <InputText  @bind-Value="_feed.RssUrl" type="text" id="RssUrl" class="form-control mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'https://news.ycombinator.com/rss'"/>
+                    <ValidationMessage For="@(() => _feed.RssUrl)" />
+                    </div>
+                <button type="submit" class="float-right mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">Save</button>
+            </EditForm>
         </div>
     </div>
   </div>

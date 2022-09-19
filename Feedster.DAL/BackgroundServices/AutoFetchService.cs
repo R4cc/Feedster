@@ -23,6 +23,7 @@ public class AutoFetchService : BackgroundService
         {
             await DoWork();
         }
+        scope.Dispose();
     }
     private async Task DoWork()
     {
