@@ -29,7 +29,7 @@
       <p class="block px-2 mt-2 py-2 mt-2 text-lg font-bold text-gray-900 rounded-lg dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 hover:text-gray-900">Folders</p>
       @foreach (var group in _folders)
       {
-        <details class="@GetActive(group.FolderId.ToString(), NavLinkMatch.All) rounded-lg duration-300 mb-2" @onclick="@(() => NavTo("/folder/" + group.FolderId))">
+        <details class="@GetActive("/folder/" + group.FolderId, NavLinkMatch.All) rounded-lg duration-300 mb-2" @onclick="@(() => NavTo("/folder/" + group.FolderId))">
           <summary class="bg-inherit pl-3 py-1 text-lg cursor-pointer select-none hover:bg-gray-300 active:bg-gray-400 rounded-lg"><a>@group.Name</a></summary>
           <div class="@(group.Feeds.Any() ? "px-5 py-3" : "") text-sm">
             @foreach (var feed in group.Feeds)
@@ -63,6 +63,7 @@
   private async Task NavTo(string navlink)
   {
     nav.NavigateTo(navlink, forceLoad: true);
+    await ToggleSidebar();
   }
   
   private async Task DataLoad()

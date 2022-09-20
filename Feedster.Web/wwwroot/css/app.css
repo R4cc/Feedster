@@ -1046,9 +1046,6 @@ input:checked + .toggle-bg {
 .bottom-0 {
   bottom: 0px;
 }
-.top-5 {
-  top: 1.25rem;
-}
 .right-0 {
   right: 0px;
 }
@@ -1175,9 +1172,6 @@ input:checked + .toggle-bg {
 }
 .w-12 {
   width: 3rem;
-}
-.w-\[50rem\] {
-  width: 50rem;
 }
 .w-8 {
   width: 2rem;

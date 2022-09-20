@@ -69,3 +69,17 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+@media only screen and (max-width: 641px) {
+    .slideover-width{
+        width: 100%
+    }
+}
+
+@media (min-width: 642px) {
+    .slideover-width{
+        width: 50rem;
+    }
+}
+
+
