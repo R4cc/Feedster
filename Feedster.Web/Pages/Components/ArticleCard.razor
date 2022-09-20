@@ -1,0 +1,20 @@
+<div class="mb-5">
+    <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class="border border-3 border-black transition hover:bg-gray-200 block p-6 bg-gray-100 max-w-screen-sm rounded-lg shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+        @if (File.Exists("images/" + article.ImagePath))
+        {
+            <img src="@("/images/" + article.ImagePath)" class="rounded max-w-50 mb-2" alt="article image">
+        }
+        <p class="text-sm top-0 mb-2">@article.Feed.Name • @Convert.ToDateTime(article.PublicationDate).ToString("g")</p>
+        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
+        @if (article.Description is not null)
+        {
+            <p class="mb-2 font-normal text-gray-700 dark:text-gray-400">@article.Description</p>
+        }
+    </a>
+</div>
+
+@code {
+    [Parameter]
+    public Article article { get; set; }    
+
+}

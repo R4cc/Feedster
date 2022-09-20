@@ -37,7 +37,7 @@ public class ArticleRepository
     
     public async Task<List<Article>> GetFromGroupId(int id)
     {
-        return _db.Articles.Include(x => x.Feed).ThenInclude(c => c.Groups).Where(f => f.Feed.Groups.Any(g => g.GroupId == id)).ToList();
+        return _db.Articles.Include(x => x.Feed).ThenInclude(c => c.Folders).Where(f => f.Feed.Folders.Any(g => g.FolderId == id)).ToList();
     }
     
     public async Task<Article> Get(int id)

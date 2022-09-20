@@ -21,7 +21,11 @@ public class CustomValidationAttribute : ValidationAttribute
     {
         try
         {
-            SyndicationFeed feed = SyndicationFeed.Load(XmlReader.Create(url));
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.DtdProcessing = DtdProcessing.Ignore;
+            settings.IgnoreWhitespace = true;
+            
+            SyndicationFeed feed = SyndicationFeed.Load(XmlReader.Create(url, settings));
             return true;
         }
         catch (Exception)

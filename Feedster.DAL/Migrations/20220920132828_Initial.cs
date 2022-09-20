@@ -54,8 +54,8 @@ namespace Feedster.DAL.Migrations
                 {
                     FeedId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    RssUrl = table.Column<string>(type: "TEXT", nullable: false)
+                    Name = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
+                    RssUrl = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -63,16 +63,16 @@ namespace Feedster.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Group",
+                name: "Folders",
                 columns: table => new
                 {
-                    GroupId = table.Column<int>(type: "INTEGER", nullable: false)
+                    FolderId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false)
+                    Name = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Group", x => x.GroupId);
+                    table.PrimaryKey("PK_Folders", x => x.FolderId);
                 });
 
             migrationBuilder.CreateTable(
@@ -209,26 +209,26 @@ namespace Feedster.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FeedGroup",
+                name: "FeedFolder",
                 columns: table => new
                 {
                     FeedsFeedId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TagsGroupId = table.Column<int>(type: "INTEGER", nullable: false)
+                    FoldersFolderId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FeedGroup", x => new { x.FeedsFeedId, x.TagsGroupId });
+                    table.PrimaryKey("PK_FeedFolder", x => new { x.FeedsFeedId, x.FoldersFolderId });
                     table.ForeignKey(
-                        name: "FK_FeedGroup_Feeds_FeedsFeedId",
+                        name: "FK_FeedFolder_Feeds_FeedsFeedId",
                         column: x => x.FeedsFeedId,
                         principalTable: "Feeds",
                         principalColumn: "FeedId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_FeedGroup_Group_TagsGroupId",
-                        column: x => x.TagsGroupId,
-                        principalTable: "Group",
-                        principalColumn: "GroupId",
+                        name: "FK_FeedFolder_Folders_FoldersFolderId",
+                        column: x => x.FoldersFolderId,
+                        principalTable: "Folders",
+                        principalColumn: "FolderId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -246,6 +246,26 @@ namespace Feedster.DAL.Migrations
                 table: "Feeds",
                 columns: new[] { "FeedId", "Name", "RssUrl" },
                 values: new object[] { 3, "Threatpost", "https://threatpost.com/feed/" });
+
+            migrationBuilder.InsertData(
+                table: "Feeds",
+                columns: new[] { "FeedId", "Name", "RssUrl" },
+                values: new object[] { 4, "Fefe HTTPS HTML", "https://blog.fefe.de/rss.xml?html" });
+
+            migrationBuilder.InsertData(
+                table: "Folders",
+                columns: new[] { "FolderId", "Name" },
+                values: new object[] { 1, "Tech News" });
+
+            migrationBuilder.InsertData(
+                table: "Folders",
+                columns: new[] { "FolderId", "Name" },
+                values: new object[] { 2, "Local News" });
+
+            migrationBuilder.InsertData(
+                table: "Folders",
+                columns: new[] { "FolderId", "Name" },
+                values: new object[] { 3, "Security And Privacy" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Articles_FeedId",
@@ -290,9 +310,9 @@ namespace Feedster.DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_FeedGroup_TagsGroupId",
-                table: "FeedGroup",
-                column: "TagsGroupId");
+                name: "IX_FeedFolder_FoldersFolderId",
+                table: "FeedFolder",
+                column: "FoldersFolderId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -316,7 +336,7 @@ namespace Feedster.DAL.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "FeedGroup");
+                name: "FeedFolder");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -328,7 +348,7 @@ namespace Feedster.DAL.Migrations
                 name: "Feeds");
 
             migrationBuilder.DropTable(
-                name: "Group");
+                name: "Folders");
         }
     }
 }

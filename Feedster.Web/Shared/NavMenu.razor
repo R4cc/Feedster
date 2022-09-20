@@ -1,5 +1,5 @@
 ﻿@using Microsoft.EntityFrameworkCore.Query.SqlExpressions
-@inject GroupRepository _groupRepo
+@inject FolderRepository _folderRepo
 @inject NavigationManager nav
 
 <div class="md:flex flex-col md:flex-row md:min-h-screen w-full shadow-2xl rounded" >
@@ -27,9 +27,9 @@
         <a style="display:inline-block">Manage Feeds</a>
       </div>
       <p class="block px-2 mt-2 py-2 mt-2 text-lg font-bold text-gray-900 rounded-lg dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 hover:text-gray-900">Folders</p>
-      @foreach (var group in _groups)
+      @foreach (var group in _folders)
       {
-        <details class="@GetActive(group.GroupId.ToString(), NavLinkMatch.All) rounded-lg duration-300 mb-2" @onclick="@(() => NavTo(group.GroupId.ToString()))">
+        <details class="@GetActive(group.FolderId.ToString(), NavLinkMatch.All) rounded-lg duration-300 mb-2" @onclick="@(() => NavTo("/folder/" + group.FolderId))">
           <summary class="bg-inherit pl-3 py-1 text-lg cursor-pointer select-none hover:bg-gray-300 active:bg-gray-400 rounded-lg"><a>@group.Name</a></summary>
           <div class="@(group.Feeds.Any() ? "px-5 py-3" : "") text-sm">
             @foreach (var feed in group.Feeds)
@@ -52,7 +52,7 @@
 </div>
 
 @code{
-  List<Group> _groups;
+  List<Folder> _folders;
   private static bool showSidebar = false;
   
   protected override async Task OnInitializedAsync()
@@ -67,7 +67,7 @@
   
   private async Task DataLoad()
   {
-    _groups = await _groupRepo.GetAll();
+    _folders = await _folderRepo.GetAll();
   }
 
   private async Task ToggleSidebar()

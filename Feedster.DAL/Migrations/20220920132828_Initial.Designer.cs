@@ -11,27 +11,27 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Feedster.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220826145504_mig-1")]
-    partial class mig1
+    [Migration("20220920132828_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.8");
 
-            modelBuilder.Entity("FeedGroup", b =>
+            modelBuilder.Entity("FeedFolder", b =>
                 {
                     b.Property<int>("FeedsFeedId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("GroupsGroupId")
+                    b.Property<int>("FoldersFolderId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("FeedsFeedId", "GroupsGroupId");
+                    b.HasKey("FeedsFeedId", "FoldersFolderId");
 
-                    b.HasIndex("GroupsGroupId");
+                    b.HasIndex("FoldersFolderId");
 
-                    b.ToTable("FeedGroup");
+                    b.ToTable("FeedFolder");
                 });
 
             modelBuilder.Entity("Feedster.DAL.Models.Article", b =>
@@ -83,10 +83,12 @@ namespace Feedster.DAL.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("RssUrl")
                         .IsRequired()
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.HasKey("FeedId");
@@ -111,37 +113,44 @@ namespace Feedster.DAL.Migrations
                             FeedId = 3,
                             Name = "Threatpost",
                             RssUrl = "https://threatpost.com/feed/"
+                        },
+                        new
+                        {
+                            FeedId = 4,
+                            Name = "Fefe HTTPS HTML",
+                            RssUrl = "https://blog.fefe.de/rss.xml?html"
                         });
                 });
 
-            modelBuilder.Entity("Feedster.DAL.Models.Group", b =>
+            modelBuilder.Entity("Feedster.DAL.Models.Folder", b =>
                 {
-                    b.Property<int>("GroupId")
+                    b.Property<int>("FolderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
-                    b.HasKey("GroupId");
+                    b.HasKey("FolderId");
 
-                    b.ToTable("Groups");
+                    b.ToTable("Folders");
 
                     b.HasData(
                         new
                         {
-                            GroupId = 1,
+                            FolderId = 1,
                             Name = "Tech News"
                         },
                         new
                         {
-                            GroupId = 2,
+                            FolderId = 2,
                             Name = "Local News"
                         },
                         new
                         {
-                            GroupId = 3,
+                            FolderId = 3,
                             Name = "Security And Privacy"
                         });
                 });
@@ -342,7 +351,7 @@ namespace Feedster.DAL.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("FeedGroup", b =>
+            modelBuilder.Entity("FeedFolder", b =>
                 {
                     b.HasOne("Feedster.DAL.Models.Feed", null)
                         .WithMany()
@@ -350,9 +359,9 @@ namespace Feedster.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Feedster.DAL.Models.Group", null)
+                    b.HasOne("Feedster.DAL.Models.Folder", null)
                         .WithMany()
-                        .HasForeignKey("GroupsGroupId")
+                        .HasForeignKey("FoldersFolderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

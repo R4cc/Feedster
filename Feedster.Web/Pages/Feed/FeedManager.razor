@@ -43,7 +43,7 @@ else{
                 @feed.RssUrl
             </td>
             <td class="py-4 px-6">
-                <div class="inline-flex rounded-md shadow-sm" role="group">
+                <div class="inline-flex rounded-md shadow-sm" role="folder">
                     <button @onclick="() => StartFeedEdit(feed)" type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-l-lg border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -66,34 +66,24 @@ else{
 }
 
 <!-- Slideover for editing / creation -->
-<div class=" flex items-center justify-center" style="width: 50em">
-  <div id="slideover-container" class="w-full h-full fixed inset-0 invisible" >
-    <div onclick="toggleSlideover()" id="slideover-bg" class="w-full h-full duration-500 ease-out transition-all inset-0 absolute bg-gray-900 opacity-0"></div>
-    <div id="slideover" class="w-[50rem] bg-white h-full absolute right-0 duration-300 ease-out transition-all translate-x-full">
-        <div class="absolute cursor-pointer text-gray-600 top-0 w-8 h-8 flex items-center justify-center right-0 mt-5 mr-5" onclick="toggleSlideover()">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+<SlideOver>
+    <EditForm Model="_feed" OnValidSubmit="SaveChanges">
+        <DataAnnotationsValidator/>
+        
+        <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 1.5em">Create a new Feed</h5>
+        <label for="Name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Name</label>
+        <div class="relative mb-6">
+            <InputText @bind-Value="_feed.Name" type="text" id="Name" class="form-control mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Hacker News'"/>
+            <ValidationMessage For="@(() => _feed.Name)" />
         </div>
-        <div class="p-10">
-            <EditForm Model="_feed" OnValidSubmit="SaveChanges">
-                <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 1.5em">Create a new Feed</h5>
-                <DataAnnotationsValidator/>
-
-                <label for="Name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Name</label>
-                <div class="relative mb-6">
-                    <InputText @bind-Value="_feed.Name" type="text" id="Name" class="form-control mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Hacker News'"/>
-                    <ValidationMessage For="@(() => _feed.Name)" />
-                </div>
-                <label for="RssUrl" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">RSS URL</label>
-                <div class="relative mb-6">
-                    <InputText  @bind-Value="_feed.RssUrl" type="text" id="RssUrl" class="form-control mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'https://news.ycombinator.com/rss'"/>
-                    <ValidationMessage For="@(() => _feed.RssUrl)" />
-                    </div>
-                <button type="submit" class="float-right mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">Save</button>
-            </EditForm>
-        </div>
-    </div>
-  </div>
-</div>
+        <label for="RssUrl" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">RSS URL</label>
+        <div class="relative mb-6">
+            <InputText  @bind-Value="_feed.RssUrl" type="text" id="RssUrl" class="form-control mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'https://news.ycombinator.com/rss'"/>
+            <ValidationMessage For="@(() => _feed.RssUrl)" />
+            </div>
+        <button type="submit" class="float-right mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">Save</button>
+    </EditForm>
+</SlideOver>
 
 
 

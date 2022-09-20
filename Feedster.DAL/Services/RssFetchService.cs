@@ -52,7 +52,11 @@ namespace Feedster.DAL.Services
 
                 List<Article> ArticlesToUpdate = new();
 
-                XmlReader reader = XmlReader.Create(feed.RssUrl);
+                XmlReaderSettings settings = new XmlReaderSettings();
+                settings.DtdProcessing = DtdProcessing.Ignore;
+                settings.IgnoreWhitespace = true;
+                
+                XmlReader reader = XmlReader.Create(feed.RssUrl, settings);
                 SyndicationFeed result = SyndicationFeed.Load(reader);
                 reader.Close();
 

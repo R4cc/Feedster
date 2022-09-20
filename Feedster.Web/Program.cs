@@ -22,7 +22,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddTransient<FeedRepository>();
-builder.Services.AddTransient<GroupRepository>();
+builder.Services.AddTransient<FolderRepository>();
 builder.Services.AddTransient<ArticleRepository>();
 builder.Services.AddTransient<RssFetchService>();
 builder.Services.AddHostedService<AutoFetchService>();

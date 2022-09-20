@@ -7,30 +7,28 @@ namespace Feedster.DAL.Data
     public class ApplicationDbContext : IdentityDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
+            : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             var feed = builder.Entity<Feed>();
-            var group = builder.Entity<Group>();
+            var folder = builder.Entity<Folder>();
 
-            group.HasData(new Group()
+            folder.HasData(new Folder()
             {
-                GroupId = 1,
+                FolderId = 1,
                 Name = "Tech News"
             });
             
-            group.HasData(new Group()
+            folder.HasData(new Folder()
             {
-                GroupId = 2,
+                FolderId = 2,
                 Name = "Local News"
             });
             
-            group.HasData(new Group()
+            folder.HasData(new Folder()
             {
-                GroupId =3,
+                FolderId =3,
                 Name = "Security And Privacy"
             });
             
@@ -40,7 +38,7 @@ namespace Feedster.DAL.Data
                 FeedId = 1,
                 Name = "ycombinator",
                 RssUrl = "https://news.ycombinator.com/rss",
-                Groups = new List<Group>() 
+                Folders = new List<Folder>() 
             });
             
             
@@ -49,7 +47,7 @@ namespace Feedster.DAL.Data
                 FeedId = 2,
                 Name = "wired",
                 RssUrl = "https://wired.com/feed/rss",
-                Groups = new List<Group>() 
+                Folders = new List<Folder>() 
             });
             
             feed.HasData(new Feed()
@@ -57,7 +55,15 @@ namespace Feedster.DAL.Data
                 FeedId = 3,
                 Name = "Threatpost",
                 RssUrl = "https://threatpost.com/feed/",
-                Groups = new List<Group>()
+                Folders = new List<Folder>()
+            });            
+            
+            feed.HasData(new Feed()
+            {
+                FeedId = 4,
+                Name = "Fefe HTTPS HTML",
+                RssUrl = "https://blog.fefe.de/rss.xml?html",
+                Folders = new List<Folder>()
             });
             
             builder.Entity<Article>()
@@ -71,6 +77,6 @@ namespace Feedster.DAL.Data
 
         public virtual DbSet<Feed> Feeds { get; set; }
         public virtual DbSet<Article> Articles { get; set; }
-        public virtual DbSet<Group> Groups { get; set; }
+        public virtual DbSet<Folder> Folders { get; set; }
     }
 }
