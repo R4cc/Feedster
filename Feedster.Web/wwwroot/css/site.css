@@ -82,14 +82,14 @@ a, .btn-link {
     }
 }
 
-.string-char-lenght{
+.string-char-length{
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 32ch;
 }
 
-.dropdown-char-lenght{
+.dropdown-char-length{
     text-overflow: ellipsis;
     width: 100%;
     display: inline-block;

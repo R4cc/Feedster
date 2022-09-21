@@ -38,10 +38,10 @@ else{
         @foreach(var folder in _folders)
         {
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-            <td class="py-4 px-6 string-char-lenght">
+            <td class="py-4 px-6 string-char-length">
                 @folder.Name
             </td>
-            <td class="py-4 px-6 string-char-lenght">
+            <td class="py-4 px-6 string-char-length">
                     @folder.Feeds.Count
             </td>
             <td class="py-4 px-6">
@@ -139,7 +139,6 @@ else{
     protected override async Task OnInitializedAsync()
     {
         await LoadFolders();
-        await LoadFeeds();
     }
 
     private async Task SaveChanges()
@@ -168,12 +167,14 @@ else{
     {
         _folderDisplayName = folder.Name;
         _folder = folder;
+        await LoadFeeds();
         await js.InvokeVoidAsync("toggleSlideover");
     }    
     
     private async Task StartFolderCreate()
     {
         _folder = new(){FolderId = -1};
+        await LoadFeeds();
         await js.InvokeVoidAsync("toggleSlideover");
     }
 
