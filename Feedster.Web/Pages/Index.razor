@@ -3,7 +3,10 @@
 @inject ArticleRepository _articleRepo
 
 <PageTitle>Feedster - Home</PageTitle>
-<h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 3.5em">Home</h5>
+<div>
+    <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 3.5em; display:inline-block">Home</h5>
+    <a class=" text-gray-300 ml-2" style="display:inline-block">v0.5.0</a>
+</div>
 
 <!-- ALL ARTICLE CARDS -->
 @if (!_articles.Any())

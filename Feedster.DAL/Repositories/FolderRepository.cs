@@ -18,6 +18,7 @@ public class FolderRepository
     public async Task Create(Folder folder)
     {
         await _db.Folders.AddAsync(folder);
+        await _db.SaveChangesAsync();
     }
     public async Task<Folder> Get(int id)
     {
@@ -26,6 +27,12 @@ public class FolderRepository
     public async Task Update(Folder folder)
     {
         _db.Folders.Update(folder);
+        await _db.SaveChangesAsync();
+    }    
+    
+    public async Task Remove(Folder folder)
+    {
+        _db.Folders.Remove(folder);
         await _db.SaveChangesAsync();
     }
 }
