@@ -11,7 +11,7 @@ public class Feed
     public string Name { get; set; }
     public List<Folder> Folders { get; set; } = new();
     [Required]
-    [StringLength(128, ErrorMessage = "URL is too long(0-128)."), CustomValidation()]
+    [StringLength(512, ErrorMessage = "URL is too long(0-512)."), CustomValidation()]
     public string RssUrl { get; set; }
     public List<Article> Articles { get; set; } = new();
 }
