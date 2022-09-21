@@ -4,7 +4,7 @@
 @inject IJSRuntime js
 
 <PageTitle>Feedster - Feeds</PageTitle>
-<h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 2.5em">Manage Feeds</h5>
+<h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 3.5em">Manage Feeds</h5>
 <button type="button" @onclick="StartFeedCreate" class="shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
     <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -36,11 +36,11 @@ else{
         @foreach(var feed in _feeds)
         {
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-            <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+            <td class="py-4 px-6 string-char-lenght">
                 @feed.Name
-            </th>
-            <td class="py-4 px-6">
-                @feed.RssUrl
+            </td>
+            <td class="py-4 px-6 string-char-lenght">
+                    @feed.RssUrl
             </td>
             <td class="py-4 px-6">
                 <div class="inline-flex rounded-md shadow-sm" role="folder">

@@ -82,4 +82,9 @@ a, .btn-link {
     }
 }
 
-
+.string-char-lenght{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 32ch;
+}
