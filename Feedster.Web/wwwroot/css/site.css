@@ -88,3 +88,11 @@ a, .btn-link {
     text-overflow: ellipsis;
     max-width: 32ch;
 }
+
+.dropdown-char-lenght{
+    text-overflow: ellipsis;
+    width: 100%;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+}

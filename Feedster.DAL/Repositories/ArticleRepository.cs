@@ -39,7 +39,7 @@ public class ArticleRepository
     {
         return _db.Articles.Include(x => x.Feed).ThenInclude(c => c.Folders).Where(f => f.Feed.Folders.Any(g => g.FolderId == id)).ToList();
     }
-    
+
     public async Task<Article> Get(int id)
     {
         return await _db.Articles.FirstOrDefaultAsync(f => f.FeedId == id);
