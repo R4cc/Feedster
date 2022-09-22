@@ -10,58 +10,22 @@
 </svg>
 
     <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 3.5em; display:inline-block;">Home</h5>
-    <a class=" text-gray-300 ml-2" style="display:inline-block">v0.6.0</a>
+    <a class=" text-gray-300 ml-2" style="display:inline-block">v0.7.0</a>
 </div>
 
 <!-- ALL ARTICLE CARDS -->
-@if (!_articles.Any())
-{
-    <a>No articles found...</a>
-}
-else
-{
-    @foreach (var article in _articles.OrderByDescending(a => a.PublicationDate))
-    {
-        <ArticleCard article=@article />
-    }
-}
+<ArticlesList _allArticles=@_articles />
 
-<!--Pagination pageNum=@pageNum PageChanged=@PageChanged /-->
 
 @code {
     private List<Article> _articles = new();
-    //int pageNum = 1;
-    //bool nextButtonDisabled = false;
-    //bool prevButtonDisabled = true;
+
     protected override async Task OnInitializedAsync()
     {
-        await LoadArticles(0);
+        await LoadArticles();
     }
-    private async Task LoadArticles(int startIndex)
+    private async Task LoadArticles()
     {
         _articles = (await _articleRepo.GetAll()).OrderByDescending(x => x.PublicationDate).ToList();
-        //int stopIndex = (startIndex + 20 > allArticles.Count ? allArticles.Count - startIndex : 20);
-//
-        //if (stopIndex <= 0)
-        //{
-        //    nextButtonDisabled = true;
-        //}
-        //
-        //if(stopIndex )
-        //
-        //_articles = allArticles.GetRange(startIndex, stopIndex);
     }
-    
-    //private async Task PageChanged(int newPage)
-    //{
-    //    if(newPage <= 0){}
-    //    
-    //    int startIndex = 0;
-    //    for (int i = 0; i < newPage; i++)
-    //    {
-    //        startIndex += 20;
-    //    }
-    //    await LoadArticles(startIndex);
-    //    pageNum = newPage;
-    //}
 }

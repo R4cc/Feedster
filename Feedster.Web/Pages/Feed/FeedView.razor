@@ -5,18 +5,7 @@
 <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 3.5em">@_feed.Name</h5>
 
 <!-- ARTICLE CARDS -->
-@if (!_articles.Any())
-{
-    <a>No articles found...</a>
-}
-else
-{
-    @foreach (var article in _articles.OrderByDescending(a => a.PublicationDate))
-    {
-        <ArticleCard article=@article />
-    }
-}
-
+<ArticlesList _allArticles=@_articles />
 
 @code {
     [Parameter]

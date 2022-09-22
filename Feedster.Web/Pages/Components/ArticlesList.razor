@@ -1,0 +1,105 @@
+@if (!_allArticles.Any())
+{
+    <a>No articles found...</a>
+}
+else
+{
+    @foreach (var article in _currentPageArticles.OrderByDescending(a => a.PublicationDate))
+    {
+        <div class="mb-5">
+            <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class=" border border-3 border-black transition hover:bg-gray-200 block p-6 bg-gray-100 max-w-screen-sm rounded-lg shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+                @if (File.Exists("images/" + article.ImagePath))
+                {
+                    <img src="@("/images/" + article.ImagePath)" class="rounded max-w-50 mb-2" alt="article image">
+                }
+                <p class="text-sm top-0  space-mono">@article.Feed.Name • @Convert.ToDateTime(article.PublicationDate).ToString("g")</p>
+                <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white space-mono">@article.Title</h5>
+                @if (article.Description is not null)
+                {
+                    <p class="mb-2 font-normal text-gray-700 dark:text-gray-400 line-clamp">@article.Description</p>
+                }
+            </a>
+        </div>
+    }
+
+<!-- Naviation Buttons -->
+<div class="mb-8" >
+    <button @onclick="(() => ClickPagingButton(false))" disabled="@PrevBtnDisabled" class="@(PrevBtnDisabled ? "hidden" : " cursor-pointer") w-32 shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+        <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="float-left w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
+        </svg>
+        <a class="align-middle" style="display:inline-block">Previous</a>
+    </button>
+    <button @onclick="(() => ClickPagingButton(true))" disabled="@NextBtnDisabled" class="@(NextBtnDisabled ? "hidden" : " cursor-pointer") w-32 shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+        <a class="align-middle" style="display:inline-block">Next</a>
+        <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class=" float-right w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" />
+        </svg>
+    </button>
+</div>
+}
+
+@code {
+    [Parameter]
+    public List<Article> _allArticles { get; set; }
+    public List<Article> _currentPageArticles { get; set; }
+
+    private int pageNum = 1;
+    
+    private bool PrevBtnDisabled {
+        get
+        {
+            if (pageNum <= 1)
+                return true;
+
+            return false;
+        }
+    }
+
+    private bool NextBtnDisabled = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(_allArticles.Count <= 20)
+            NextBtnDisabled = true;
+        
+        await RefreshArticles(0);
+    }
+    private async Task ClickPagingButton(bool IsNext)
+    {
+        if (IsNext)
+        {
+            pageNum++;
+        }
+        else
+        {
+            pageNum--;
+        }
+
+        await PageChanged(pageNum);
+    }
+    
+    private async Task PageChanged(int newPage)
+    {
+        int startIndex = 0;
+        for (int i = 1; i < newPage; i++)
+        {
+            startIndex += 20;
+        }
+        await RefreshArticles(startIndex);
+        pageNum = newPage;
+    }
+
+    private async Task RefreshArticles(int startIndex)
+    {
+        int count = 20;
+        
+        if (startIndex + 20 > _allArticles.Count)
+        {
+            count = _allArticles.Count - startIndex;
+            NextBtnDisabled = true;
+        }
+        
+        _currentPageArticles = _allArticles.GetRange(startIndex, count);
+    }
+}

@@ -28,17 +28,7 @@
 <br/>
 
 <!-- ARTICLE CARDS -->
-@if (!_articles.Any())
-{
-    <a>No articles found...</a>
-}
-else
-{
-    @foreach (var article in _articles.OrderByDescending(a => a.PublicationDate))
-    {
-        <ArticleCard article=@article />
-    }
-}
+<ArticlesList _allArticles=@_articles />
 
 <!-- SLIDEOVER FOR EDITING NAME / FOLDER FEEDS -->
 <SlideOver>
