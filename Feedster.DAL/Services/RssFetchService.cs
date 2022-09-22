@@ -117,11 +117,11 @@ namespace Feedster.DAL.Services
                     ArticlesToUpdate.Add(new Article()
                     {
                         Guid = itm.Id,
-                        Description = String.IsNullOrEmpty(itm.Summary.Text) ? null : (itm.Summary.Text.Contains("</a>") ? null : itm.Summary.Text),
+                        Description = String.IsNullOrEmpty(itm.Summary.Text) ? null : StripTagsRegex(itm.Summary.Text),
                         Title = String.IsNullOrEmpty(itm.Title.Text) ? null : itm.Title.Text,
                         ImagePath = highestResImagePath == String.Empty ? null : highestResImagePath,
                         ImageUrl = !imageUrls.Any() ? null : highestResImageUrl,
-                        PublicationDate = itm.PublishDate.DateTime,
+                        PublicationDate = (itm.PublishDate.DateTime == DateTime.MinValue ? DateTime.Now : itm.PublishDate.DateTime),
                         ArticleLink = !itm.Links.ToList().Any() ? null : itm.Links.ToList()[0].Uri.ToString(),
                         FeedId = feed.FeedId,
                         Tags = itm.Categories.Select(x => x.Name).ToArray()
@@ -204,6 +204,11 @@ namespace Feedster.DAL.Services
                 }
             }
             return highestResolutionImage;
+        }
+        
+        public static string StripTagsRegex(string source)
+        {
+            return Regex.Replace(source, "<.*?>", string.Empty);
         }
     }
 }
