@@ -96,3 +96,11 @@ a, .btn-link {
     white-space: nowrap;
     overflow: hidden;
 }
+
+[x-cloak] {
+    display: none !important;
+}
+
+.x-cloak {
+    display: none !important;
+}

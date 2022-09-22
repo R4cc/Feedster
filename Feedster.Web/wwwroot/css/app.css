@@ -1116,6 +1116,9 @@ input:checked + .toggle-bg {
 .mb-6 {
   margin-bottom: 1.5rem;
 }
+.mt-7 {
+  margin-top: 1.75rem;
+}
 .block {
   display: block;
 }
@@ -1155,6 +1158,9 @@ input:checked + .toggle-bg {
 .h-8 {
   height: 2rem;
 }
+.h-5 {
+  height: 1.25rem;
+}
 .h-4 {
   height: 1rem;
 }
@@ -1181,6 +1187,9 @@ input:checked + .toggle-bg {
 }
 .w-32 {
   width: 8rem;
+}
+.w-5 {
+  width: 1.25rem;
 }
 .w-4 {
   width: 1rem;
@@ -1626,10 +1635,6 @@ input:checked + .toggle-bg {
 .text-blue-600 {
   --tw-text-opacity: 1;
   color: rgb(28 100 242 / var(--tw-text-opacity));
-}
-.underline {
-  -webkit-text-decoration-line: underline;
-          text-decoration-line: underline;
 }
 .opacity-0 {
   opacity: 0;
