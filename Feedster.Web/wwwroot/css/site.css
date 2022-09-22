@@ -104,3 +104,14 @@ a, .btn-link {
 .x-cloak {
     display: none !important;
 }
+
+.btn-primary-color{
+    background-color: #7a3eb1
+}
+
+.line-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
