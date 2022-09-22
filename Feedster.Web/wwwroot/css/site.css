@@ -115,3 +115,21 @@ a, .btn-link {
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+.space-mono{
+    font-family: 'Space Mono', Fallback, sans-serif;
+}
+
+/* space-mono-regular - latin */
+@font-face {
+    font-family: 'Space Mono';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/Space_Mono/space-mono-v12-latin-regular.eot'); /* IE9 Compat Modes */
+    src: local(''),
+    url('../fonts/Space_Mono/space-mono-v12-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('../fonts/Space_Mono/space-mono-v12-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+    url('../fonts/Space_Mono/space-mono-v12-latin-regular.woff') format('woff'), /* Modern Browsers */
+    url('../fonts/Space_Mono/space-mono-v12-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+    url('../fonts/Space_Mono/space-mono-v12-latin-regular.svg#SpaceMono') format('svg'); /* Legacy iOS */
+}

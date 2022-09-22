@@ -4,8 +4,8 @@
         {
             <img src="@("/images/" + article.ImagePath)" class="rounded max-w-50 mb-2" alt="article image">
         }
-        <p class="text-sm top-0 mb-2">@article.Feed.Name • @Convert.ToDateTime(article.PublicationDate).ToString("g")</p>
-        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
+        <p class="text-sm top-0  space-mono">@article.Feed.Name • @Convert.ToDateTime(article.PublicationDate).ToString("g")</p>
+        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white space-mono">@article.Title</h5>
         @if (article.Description is not null)
         {
             <p class="mb-2 font-normal text-gray-700 dark:text-gray-400 line-clamp">@article.Description</p>
