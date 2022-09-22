@@ -6,8 +6,8 @@
   <div class="flex flex-col w-full md:w-64 text-gray-700 bg-gray-200 dark-mode:text-gray-200 dark-mode:bg-gray-800 flex-shrink-0">
     <div class="flex-shrink-0 px-8 py-4 flex flex-row items-center justify-between">
       <img alt="Feedster logo" src="feedster-logo-full-transparent.png" @onclick="@(() => NavTo("/"))" class="cursor-pointer float-left"  Style="margin-left: -10px; max-width: 12em; vertical-align: middle;"/>
-      <button class="rounded-lg md:hidden rounded-lg focus:outline-none focus:shadow-outline" @onclick="ToggleSidebar">
-        <svg fill="currentColor" viewBox="0 0 20 20" class="w-6 h-6">
+      <button class="p-2 rounded-lg md:hidden rounded-lg focus:outline-none focus:shadow-outline bg-gray-300" @onclick="ToggleSidebar">
+        <svg fill="currentColor" viewBox="0 0 20 20" class="w-8 h-8">
           @if (showSidebar)
           {
             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>

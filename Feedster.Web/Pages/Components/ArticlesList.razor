@@ -1,3 +1,5 @@
+@inject IJSRuntime js
+
 @if (!_allArticles.Any())
 {
     <a>No articles found...</a>
@@ -77,6 +79,7 @@ else
         }
 
         await PageChanged(pageNum);
+        await js.InvokeVoidAsync("OnScrollEvent");
     }
     
     private async Task PageChanged(int newPage)
