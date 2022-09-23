@@ -13,7 +13,13 @@ namespace Feedster.DAL.Data
         {
             var feed = builder.Entity<Feed>();
             var folder = builder.Entity<Folder>();
+            var userSettings = builder.Entity<UserSettings>();
 
+            userSettings.HasData(new UserSettings()
+            {
+                UserSettingsId = 1
+            });
+            
             folder.HasData(new Folder()
             {
                 FolderId = 1,
@@ -78,5 +84,6 @@ namespace Feedster.DAL.Data
         public virtual DbSet<Feed> Feeds { get; set; }
         public virtual DbSet<Article> Articles { get; set; }
         public virtual DbSet<Folder> Folders { get; set; }
+        public virtual DbSet<UserSettings> UserSettings { get; set; }
     }
 }

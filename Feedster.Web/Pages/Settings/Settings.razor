@@ -1,25 +1,91 @@
 @page "/settings"
 
+
 <PageTitle>Feedster - Settings</PageTitle>
 
-coming soon...
-<!--div class="container max-w-[40em]">
-  <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 3.5em">Settings (WIP)</h5>
+    <div class="container max-w-[40em]">
+      <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 3.5em">Settings</h5>
+        <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 2em">Articles</h5>
+        
+        <label>Automatically update articles after...</label>
+        <select class="w-full mb-5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <option selected>Select interval</option>
+            <option value="5">5 Minutes</option>
+            <option value="10">10 Minutes</option>
+            <option value="30">30 Minutes</option>
+            <option value="60">1 Hour</option>
+            <option value="360">6 Hours</option>
+            <option value="1440">24 Hours</option>
+            <option value="0">Never</option>
+        </select>
+        
+        <label>Delete automatically articles after...</label>
+        <select id="countries" class="mb-5 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <option selected>Select duration</option>
+            <option value="7">1 Week</option>
+            <option value="14">2 Weeks</option>
+            <option value="30">1 Month</option>
+            <option value="90">3 Months</option>
+            <option value="">Never</option>
+        </select>
+        
+        <label>Article Count per page</label>
+        <div class="relative">
+            <input type="text"  class="mb-5 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+        </div>
+        
+        <label>Total Article Count in the Database (0 = No limit)</label>
+        <div class="relative">
+            <input type="text" class="mb-5 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+        </div>
+        
+        <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 2em">Images</h5>
+        
+        <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 p-3 bg-gray-200 rounded-lg h-[3.75em]">
+            <label class="inline-block align-middle text-base">Show Article Images</label>
+            <div class="inline-block align-middle form-check form-switch form-switch-lg float-right block">
+                <input class="form-check-input" type="checkbox">
+            </div>
+        </div>
+        
+        <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 p-3 bg-gray-200 rounded-lg h-[3.75em]">
+            <label class="inline-block align-middle text-base">Download Article Images</label>
+            <div class="inline-block align-middle form-check form-switch form-switch-lg float-right block">
+                <input class="form-check-input" type="checkbox">
+            </div>
+        </div>
+        
+        <div class="max-w-sm content-start">
+            <div class="w-1/2 inline-block align-middle border-2 border-gray-200 p-3 bg-gray-200 rounded-lg h-[3.75rem]">
+                <label class="inline-block align-middle text-base">Cache size: </label>
+                <div class="inline-block align-middle float-right block space-mono">
+                    <label class="form-check-input" >40MB</label>
+                </div>
+            </div>
+            <button type="button" class="float-right shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+                <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle  w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+                <a class="align-middle" style="display:inline-block">Clear cache</a>
+            </button>
+        </div>
+        
+    </div>
 
-  <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 2.5em">Articles</h5>
-  <label cla>Delete articles after...</label>
-  <select id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-    <option selected>Select duration</option>
-    <option value="US">1 Week</option>
-    <option value="CA">2 Weeks</option>
-    <option value="FR">1 Month</option>
-    <option value="DE">3 Months</option>
-    <option value="">Never</option>
-  </select>
-</div-->
+<style>
 
-
+</style>
 
 @code {
-    
+    UserSettings _userSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //await LoadUserSettings();
+    }
+
+    private async Task LoadUserSettings()
+    {
+        //_userSettings = await _userRepo.Get(1);
+    }
 }

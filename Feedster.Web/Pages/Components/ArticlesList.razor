@@ -80,6 +80,7 @@ else
 
         await PageChanged(pageNum);
         await js.InvokeVoidAsync("OnScrollEvent");
+        await js.InvokeVoidAsync("blurActive");
     }
     
     private async Task PageChanged(int newPage)
