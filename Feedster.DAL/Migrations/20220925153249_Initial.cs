@@ -55,7 +55,7 @@ namespace Feedster.DAL.Migrations
                     FeedId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
-                    RssUrl = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false)
+                    RssUrl = table.Column<string>(type: "TEXT", maxLength: 512, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -73,6 +73,25 @@ namespace Feedster.DAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Folders", x => x.FolderId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserSettings",
+                columns: table => new
+                {
+                    UserSettingsId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ArticleExpirationSchedule = table.Column<int>(type: "INTEGER", nullable: false),
+                    ArticleRefreshSchedule = table.Column<string>(type: "TEXT", nullable: false),
+                    ArticleCountOnPage = table.Column<int>(type: "INTEGER", nullable: false),
+                    MaxArticleCountInDb = table.Column<int>(type: "INTEGER", nullable: false),
+                    ShowImages = table.Column<bool>(type: "INTEGER", nullable: false),
+                    DownloadImages = table.Column<bool>(type: "INTEGER", nullable: false),
+                    MaxImageCacheSizeInMb = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserSettings", x => x.UserSettingsId);
                 });
 
             migrationBuilder.CreateTable(
@@ -267,6 +286,11 @@ namespace Feedster.DAL.Migrations
                 columns: new[] { "FolderId", "Name" },
                 values: new object[] { 3, "Security And Privacy" });
 
+            migrationBuilder.InsertData(
+                table: "UserSettings",
+                columns: new[] { "UserSettingsId", "ArticleCountOnPage", "ArticleExpirationSchedule", "ArticleRefreshSchedule", "DownloadImages", "MaxArticleCountInDb", "MaxImageCacheSizeInMb", "ShowImages" },
+                values: new object[] { 1, 0, 0, "30 * * * *", true, 0, 1024, true });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Articles_FeedId",
                 table: "Articles",
@@ -337,6 +361,9 @@ namespace Feedster.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "FeedFolder");
+
+            migrationBuilder.DropTable(
+                name: "UserSettings");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

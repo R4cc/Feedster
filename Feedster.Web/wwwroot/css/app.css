@@ -1200,9 +1200,6 @@ input:checked + .toggle-bg {
 .w-5 {
   width: 1.25rem;
 }
-.w-\[15rem\] {
-  width: 15rem;
-}
 .w-4 {
   width: 1rem;
 }
@@ -1308,6 +1305,9 @@ input:checked + .toggle-bg {
 }
 .flex-col {
   flex-direction: column;
+}
+.content-start {
+  align-content: flex-start;
 }
 .items-start {
   align-items: flex-start;

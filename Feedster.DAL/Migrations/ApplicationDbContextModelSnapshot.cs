@@ -86,7 +86,7 @@ namespace Feedster.DAL.Migrations
 
                     b.Property<string>("RssUrl")
                         .IsRequired()
-                        .HasMaxLength(128)
+                        .HasMaxLength(512)
                         .HasColumnType("TEXT");
 
                     b.HasKey("FeedId");
@@ -150,6 +150,52 @@ namespace Feedster.DAL.Migrations
                         {
                             FolderId = 3,
                             Name = "Security And Privacy"
+                        });
+                });
+
+            modelBuilder.Entity("Feedster.DAL.Models.UserSettings", b =>
+                {
+                    b.Property<int>("UserSettingsId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ArticleCountOnPage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ArticleExpirationSchedule")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ArticleRefreshSchedule")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("DownloadImages")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxArticleCountInDb")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxImageCacheSizeInMb")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ShowImages")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("UserSettingsId");
+
+                    b.ToTable("UserSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            UserSettingsId = 1,
+                            ArticleCountOnPage = 0,
+                            ArticleExpirationSchedule = 0,
+                            ArticleRefreshSchedule = "30 * * * *",
+                            DownloadImages = true,
+                            MaxArticleCountInDb = 0,
+                            MaxImageCacheSizeInMb = 1024,
+                            ShowImages = true
                         });
                 });
 
