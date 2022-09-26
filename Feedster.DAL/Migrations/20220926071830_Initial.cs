@@ -81,8 +81,8 @@ namespace Feedster.DAL.Migrations
                 {
                     UserSettingsId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    ArticleExpirationSchedule = table.Column<int>(type: "INTEGER", nullable: false),
-                    ArticleRefreshSchedule = table.Column<string>(type: "TEXT", nullable: false),
+                    ArticleExpirationAfterDays = table.Column<int>(type: "INTEGER", nullable: false),
+                    ArticleRefreshAfterMinutes = table.Column<int>(type: "INTEGER", nullable: false),
                     ArticleCountOnPage = table.Column<int>(type: "INTEGER", nullable: false),
                     MaxArticleCountInDb = table.Column<int>(type: "INTEGER", nullable: false),
                     ShowImages = table.Column<bool>(type: "INTEGER", nullable: false),
@@ -288,8 +288,8 @@ namespace Feedster.DAL.Migrations
 
             migrationBuilder.InsertData(
                 table: "UserSettings",
-                columns: new[] { "UserSettingsId", "ArticleCountOnPage", "ArticleExpirationSchedule", "ArticleRefreshSchedule", "DownloadImages", "MaxArticleCountInDb", "MaxImageCacheSizeInMb", "ShowImages" },
-                values: new object[] { 1, 0, 0, "30 * * * *", true, 0, 1024, true });
+                columns: new[] { "UserSettingsId", "ArticleCountOnPage", "ArticleExpirationAfterDays", "ArticleRefreshAfterMinutes", "DownloadImages", "MaxArticleCountInDb", "MaxImageCacheSizeInMb", "ShowImages" },
+                values: new object[] { 1, 0, 0, 10, true, 0, 1024, true });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Articles_FeedId",

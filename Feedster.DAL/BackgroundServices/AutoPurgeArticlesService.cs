@@ -6,13 +6,13 @@ using Microsoft.Extensions.Hosting;
 
 namespace Feedster.DAL.BackgroundServices;
 
-public class AutoFetchService : BackgroundService
+public class AutoPurgeArticlesService : BackgroundService
 {
-    private  RssFetchService _rssFetchService;
+    private  ArticleRepository _articleRepo;
     private  UserRepository _userRepository;
     private IServiceScopeFactory _scopeFactory;
 
-    public AutoFetchService(IServiceScopeFactory scopeFactory)
+    public AutoPurgeArticlesService(IServiceScopeFactory scopeFactory)
     {
         _scopeFactory = scopeFactory;
     }
@@ -20,27 +20,27 @@ public class AutoFetchService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var scope = _scopeFactory.CreateScope();
-        _rssFetchService = scope.ServiceProvider.GetRequiredService<RssFetchService>();        
+        _articleRepo = scope.ServiceProvider.GetRequiredService<ArticleRepository>();
         
         while (!stoppingToken.IsCancellationRequested)
         {
             _userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
             UserSettings _userSettings = await _userRepository.Get();
 
-            if (_userSettings.ArticleRefreshAfterMinutes == 0)
+            if (_userSettings.ArticleExpirationAfterDays == 0)
             {
                 await Task.Delay(15 * 60 * 1000);
             }
             else
             {
-                await DoWork(_userSettings.ArticleRefreshAfterMinutes);
+                await DoWork(_userSettings.ArticleRefreshAfterMinutes, _userSettings.ArticleExpirationAfterDays);
             }
         }
         scope.Dispose();
     }
-    private async Task DoWork(int interval)
+    private async Task DoWork(int interval, int ExpirationAfterDays)
     {
-        await _rssFetchService.RefreshFeeds();
+        await _articleRepo.ClearArticlesOlderThan(DateTime.Now.AddDays(-ExpirationAfterDays));
         await Task.Delay(interval * 60 * 1000);
     }
 }

@@ -13,11 +13,14 @@ namespace Feedster.DAL.Services
     {
         private readonly FeedRepository _feedRepository;
         private readonly ArticleRepository _articleRepository;
+        private readonly UserRepository _userRepo;
+        private UserSettings _userSettings;
 
-        public RssFetchService(FeedRepository feedRepository, ArticleRepository articleRepository)
+        public RssFetchService(FeedRepository feedRepository, ArticleRepository articleRepository, UserRepository userRepo)
         {
             _feedRepository = feedRepository;
             _articleRepository = articleRepository;
+            _userRepo = userRepo;
         }
 
         public async Task RefreshFeed(Feed feed)
@@ -45,6 +48,8 @@ namespace Feedster.DAL.Services
         {
             try
             {
+                _userSettings = await _userRepo.Get();
+                
                 // get existing articles to match
                 Dictionary<string, Article> existingArticles =
                     (feed.Articles).ToDictionary(keySelector: x => x.ArticleLink,
@@ -75,7 +80,7 @@ namespace Feedster.DAL.Services
                         }
 
                         // donwload the image if it doesnt exist in the cache
-                        if (!File.Exists("images/" + article.ImagePath))
+                        if (!File.Exists("images/" + article.ImagePath) && _userSettings.DownloadImages)
                         {
                             article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath);
                             
@@ -112,7 +117,7 @@ namespace Feedster.DAL.Services
                     
                     // Find the highest Resolution image in array of multiple image
                     string highestResImageUrl = (imageUrls.Count > 1 ? await GetHighestResolutionImage(imageUrls) : (imageUrls.Any() ? imageUrls.First() : string.Empty));
-                    string highestResImagePath = (highestResImageUrl == string.Empty ? String.Empty : await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl))) ;
+                    string highestResImagePath = (highestResImageUrl == string.Empty || !_userSettings.DownloadImages ? String.Empty : await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl))) ;
                     
                     ArticlesToUpdate.Add(new Article()
                     {

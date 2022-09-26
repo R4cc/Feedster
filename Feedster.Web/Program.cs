@@ -24,8 +24,11 @@ builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuth
 builder.Services.AddTransient<FeedRepository>();
 builder.Services.AddTransient<FolderRepository>();
 builder.Services.AddTransient<ArticleRepository>();
+builder.Services.AddTransient<UserRepository>();
 builder.Services.AddTransient<RssFetchService>();
+builder.Services.AddTransient<ImageService>();
 builder.Services.AddHostedService<AutoFetchService>();
+builder.Services.AddHostedService<AutoPurgeArticlesService>();
 
 // ensure that paths exists and create if not
 Directory.CreateDirectory("./images");

@@ -44,4 +44,14 @@ public class ArticleRepository
     {
         return await _db.Articles.FirstOrDefaultAsync(f => f.FeedId == id);
     }
+
+    public async Task ClearAllArticles()
+    {
+        _db.Articles.RemoveRange(_db.Articles);
+    }
+    
+    public async Task ClearArticlesOlderThan(DateTime dateTime)
+    {
+        _db.Articles.RemoveRange(_db.Articles.Where(x => x.PublicationDate < dateTime));
+    }
 }

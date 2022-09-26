@@ -11,8 +11,14 @@ public class UserRepository
     {
         _db = db;
     }
-    public async Task<UserSettings> Get(int userId)
+    public async Task<UserSettings> Get()
     {
-        return await _db.UserSettings.FirstOrDefaultAsync(u => u.UserSettingsId == userId);
+        return await _db.UserSettings.FirstAsync();
+    }
+
+    public async Task Update(UserSettings _userSettings)
+    {
+        _db.UserSettings.Update(_userSettings);
+        await _db.SaveChangesAsync();
     }
 }

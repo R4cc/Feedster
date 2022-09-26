@@ -162,12 +162,11 @@ namespace Feedster.DAL.Migrations
                     b.Property<int>("ArticleCountOnPage")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ArticleExpirationSchedule")
+                    b.Property<int>("ArticleExpirationAfterDays")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ArticleRefreshSchedule")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<int>("ArticleRefreshAfterMinutes")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("DownloadImages")
                         .HasColumnType("INTEGER");
@@ -190,8 +189,8 @@ namespace Feedster.DAL.Migrations
                         {
                             UserSettingsId = 1,
                             ArticleCountOnPage = 0,
-                            ArticleExpirationSchedule = 0,
-                            ArticleRefreshSchedule = "30 * * * *",
+                            ArticleExpirationAfterDays = 0,
+                            ArticleRefreshAfterMinutes = 10,
                             DownloadImages = true,
                             MaxArticleCountInDb = 0,
                             MaxImageCacheSizeInMb = 1024,
