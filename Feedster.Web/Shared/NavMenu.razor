@@ -2,11 +2,11 @@
 @inject FolderRepository _folderRepo
 @inject NavigationManager nav
 
-<div class="md:flex flex-col md:flex-row md:min-h-screen w-full shadow-xl rounded roboto font-semibold" >
-  <div class="flex flex-col w-full md:w-64 text-gray-700 bg-gray-200 dark-mode:text-gray-200 dark-mode:bg-gray-800 flex-shrink-0">
+<div class="sm:flex flex-col sm:flex-row sm:min-h-screen w-full shadow-xl rounded roboto font-semibold" >
+  <div class="flex flex-col w-full sm:w-64 text-gray-700 bg-gray-200 dark-mode:text-gray-200 dark-mode:bg-gray-800 flex-shrink-0">
     <div class="flex-shrink-0 px-8 py-4 flex flex-row items-center justify-between">
       <img alt="Feedster logo" src="feedster-logo-full-transparent.png" @onclick="@(() => NavTo("/"))" class="cursor-pointer float-left"  Style="margin-left: -10px; max-width: 12em; vertical-align: middle;"/>
-      <button class="p-2 rounded-lg md:hidden rounded-lg focus:outline-none focus:shadow-outline bg-gray-300" @onclick="ToggleSidebar">
+      <button class="p-2 rounded-lg sm:hidden rounded-lg focus:outline-none focus:shadow-outline bg-gray-300" @onclick="ToggleSidebar">
         <svg fill="currentColor" viewBox="0 0 20 20" class="w-8 h-8">
           @if (showSidebar)
           {
@@ -19,15 +19,15 @@
         </svg>
       </button>
     </div>
-    <nav class="flex-grow md:block px-4 pb-4 md:pb-0 md:overflow-y-auto @(showSidebar ? "" : "hidden")">
+    <nav class="flex-grow sm:block px-4 pb-4 sm:pb-0 sm:overflow-y-auto @(showSidebar ? "" : "hidden")">
 
-      <div @onclick="@(() => NavTo("feeds/manage"))" class="@GetActive("feeds/manage", NavLinkMatch.All) mt-2 mb-3 bg-inherit focus:ring-2 pl-2 py-2 focus:bg-gray-300 focus:ring-black focus:outline-none text-lg cursor-pointer select-none hover:bg-gray-300 active:bg-gray-400 rounded-lg">
+      <div @onclick="@(() => NavTo("feeds/manage"))" class="@GetActive("feeds/manage", NavLinkMatch.All) mt-2 mb-3 focus:ring-2 pl-2 py-2 focus:bg-gray-300 focus:ring-black focus:outline-none text-lg cursor-pointer select-none hover:bg-gray-300 active:bg-gray-400 rounded-lg">
         <svg style="display:inline-block; vertical-align: text-bottom; position: relative;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
         </svg>
         <a style="display:inline-block">Manage Feeds</a>
       </div>
-      <div @onclick="@(() => NavTo("folders/manage"))" class="@GetActive("folders/manage", NavLinkMatch.All) mt-2 mb-4 bg-inherit focus:ring-2 pl-2 py-2 focus:bg-gray-300 focus:ring-black focus:outline-none text-lg cursor-pointer select-none hover:bg-gray-300 active:bg-gray-400 rounded-lg">
+      <div @onclick="@(() => NavTo("folders/manage"))" class="@GetActive("folders/manage", NavLinkMatch.All) mt-2 mb-4 focus:ring-2 pl-2 py-2 focus:bg-gray-300 focus:ring-black focus:outline-none text-lg cursor-pointer select-none hover:bg-gray-300 active:bg-gray-400 rounded-lg">
         <svg style="display:inline-block; vertical-align: text-bottom; position: relative;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
         </svg>
@@ -39,8 +39,8 @@
           {
             <div x-cloak="x-cloak" x-on:click.away="open = false" class=" relative mb-2" x-data="{ open: false }">
               <div class="py-2 truncate z-30 hover:bg-gray-300 active:bg-gray-400 rounded-lg cursor-pointer @GetActive("folder/" + folder.FolderId, NavLinkMatch.All)" @onclick="@(() => NavTo("/folder/" + folder.FolderId))">
-                <button x-on:click="open = !open" @onclick:stopPropagation="true" @onclick:preventDefault="true" style="display:inline-block;" class="ml-2 select-none justify-center items-center font-semibold bg-transparent rounded-lg dark-mode:bg-transparent dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:focus:bg-gray-600 dark-mode:hover:bg-gray-600 md:block hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline0 z-40">
-                  <svg fill="currentColor" viewBox="0 0 20 20" :class="{'rotate-180': open, 'rotate-0': !open}" class="inline w-6 h-6 transition-transform duration-200 transform md:-mt-1"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                <button x-on:click="open = !open" @onclick:stopPropagation="true" @onclick:preventDefault="true" style="display:inline-block;" class="ml-2 select-none justify-center items-center font-semibold bg-transparent rounded-lg dark-mode:bg-transparent dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:focus:bg-gray-600 dark-mode:hover:bg-gray-600 sm:block hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline0 z-40">
+                  <svg fill="currentColor" viewBox="0 0 20 20" :class="{'rotate-180': open, 'rotate-0': !open}" class="inline w-6 h-6 transition-transform duration-200 transform sm:-mt-1"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                 </button>
                 <a class="bg-inherit pl-1 py-1 pr-1 text-lg cursor-pointer select-none">@folder.Name</a>
               </div>
@@ -49,20 +49,19 @@
                 <div class="px-2 py-2 bg-white rounded-md shadow dark-mode:bg-gray-800">
                   @foreach (var feed in folder.Feeds)
                   {
-                    <a @onclick="@(() => NavTo("/feed/" + feed.FeedId))" class="dropdown-char-length cursor-pointer block px-4 py-2 mb-1 text-sm font-semibold bg-transparent rounded-lg dark-mode:bg-transparent dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 md:mt-0 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline" href="feed/@feed.FeedId">@feed.Name</a>
+                    <a @onclick="@(() => NavTo("/feed/" + feed.FeedId))" class="dropdown-char-length cursor-pointer block px-4 py-2 mb-1 text-sm font-semibold bg-transparent rounded-lg dark-mode:bg-transparent dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 sm:mt-0 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline" href="feed/@feed.FeedId">@feed.Name</a>
                   }
                 </div>
               </div>
               }
             </div>
           }
-          <div @onclick="@(() => NavTo("settings"))" class="@GetActive("settings", NavLinkMatch.All) absolute min-w-[90%] block bottom-0 mt-2 mb-3 bg-inherit focus:ring-2 pl-2 py-2 focus:bg-gray-300 focus:ring-black focus:outline-none text-lg cursor-pointer select-none hover:bg-gray-300 active:bg-gray-400 rounded-lg">
+          <div @onclick="@(() => NavTo("settings"))" class="@GetActive("settings", NavLinkMatch.All) sm:absolute min-w-[90%] sm:block sm:bottom-0 mt-2 mb-3 focus:ring-2 pl-2 py-2 focus:bg-gray-300 focus:ring-black focus:outline-none text-lg cursor-pointer select-none hover:bg-gray-300 active:bg-gray-400 rounded-lg">
             <svg style="display:inline-block; vertical-align: text-bottom; position: relative;"  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077l1.41-.513m14.095-5.13l1.41-.513M5.106 17.785l1.15-.964m11.49-9.642l1.149-.964M7.501 19.795l.75-1.3m7.5-12.99l.75-1.3m-6.063 16.658l.26-1.477m2.605-14.772l.26-1.477m0 17.726l-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205L12 12m6.894 5.785l-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864l-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495" />
             </svg>
             <a style="display:inline-block">Settings</a>
           </div>
-          <!--a class="hover:-translate-y-1 p-2 hover:scale-101 transition align-middle bottom-0 mb-2 position-absolute block px-4 py-2 mt-2 text-sm font-semibold text-gray-900 rounded-lg dark-mode:hover:bg-gray-600 dark-mode:focus:bg-gray-600 dark-mode:focus:text-white dark-mode:hover:text-white dark-mode:text-gray-200 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200  focus:ring-2 focus:outline-none  focus:ring-gray-600 dark:focus:ring-gray-700 focus:bg-gray-200 focus:shadow-md" href="#">Settings</!--a-->
       </nav>
   </div>
 </div>

@@ -27,7 +27,7 @@ main {
         text-overflow: ellipsis;
     }
 
-@media (max-width: 640.98px) {
+@media (max-width: 640px) {
     .top-row:not(.auth) {
         display: none;
     }

@@ -146,6 +146,6 @@
         await js.InvokeVoidAsync("toggleSlideover");
         
         // force refresh of sidebar; else the name and feeds are not refreshed
-        NavigationManager.NavigateTo("/folder/" + folderId);
+        NavigationManager.NavigateTo("/folder/" + folderId, forceLoad: true);
     }
 }
