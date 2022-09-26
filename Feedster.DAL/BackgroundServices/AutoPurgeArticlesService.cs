@@ -21,11 +21,12 @@ public class AutoPurgeArticlesService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var scope = _scopeFactory.CreateScope();
-        _articleRepo = scope.ServiceProvider.GetRequiredService<ArticleRepository>();
         
         while (!stoppingToken.IsCancellationRequested)
         {
+            using var scope = _scopeFactory.CreateScope();
+            _articleRepo = scope.ServiceProvider.GetRequiredService<ArticleRepository>();
+            
             // Load user settings
             _userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
             UserSettings _userSettings = await _userRepository.Get();
@@ -33,14 +34,13 @@ public class AutoPurgeArticlesService : BackgroundService
             if (_userSettings.ArticleExpirationAfterDays == 0) 
             {
                 // auto purge turned off; recheck in 15 minutes
-                await Task.Delay(15 * 60 * 1000);
+                await Task.Delay(15 * 60 * 1000, stoppingToken);
             }
             else
             {
                 await DoWork(_userSettings.ArticleRefreshAfterMinutes, _userSettings.ArticleExpirationAfterDays);
-            }
+            } 
         }
-        scope.Dispose();
     }
     private async Task DoWork(int interval, int ExpirationAfterDays)
     {

@@ -23,13 +23,13 @@ namespace Feedster.DAL.Services
             _userRepo = userRepo;
         }
 
-        public async Task RefreshFeed(Feed feed)
-        {
-            List<Article> articlesToUpdate = new();
-            articlesToUpdate.AddRange(await FetchFeedArticles(feed));
-
-            await UpdateArticles(articlesToUpdate);
-        }
+        //public async Task RefreshFeed(Feed feed)
+        //{
+        //    List<Article> articlesToUpdate = new();
+        //    articlesToUpdate.AddRange(await FetchFeedArticles(feed));
+//
+        //    await UpdateArticles(articlesToUpdate);
+        //}
         
         public async Task RefreshFeeds()
         {

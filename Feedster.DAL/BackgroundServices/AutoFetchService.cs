@@ -19,11 +19,12 @@ public class AutoFetchService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var scope = _scopeFactory.CreateScope();
-        _rssFetchService = scope.ServiceProvider.GetRequiredService<RssFetchService>();        
         
         while (!stoppingToken.IsCancellationRequested)
         {
+            using var scope = _scopeFactory.CreateScope();
+            _rssFetchService = scope.ServiceProvider.GetRequiredService<RssFetchService>();   
+            
             // load user settings
             _userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
             UserSettings _userSettings = await _userRepository.Get();
@@ -31,14 +32,13 @@ public class AutoFetchService : BackgroundService
             if (_userSettings.ArticleRefreshAfterMinutes == 0)
             {
                 // auto fetch turned off; recheck in 15 minutes
-                await Task.Delay(15 * 60 * 1000);
+                await Task.Delay(15 * 60 * 1000, stoppingToken);
             }
             else
             {
                 await DoWork(_userSettings.ArticleRefreshAfterMinutes);
             }
         }
-        scope.Dispose();
     }
     private async Task DoWork(int interval)
     {
