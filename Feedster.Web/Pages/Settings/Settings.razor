@@ -2,6 +2,7 @@
 @inject UserRepository _userRepo
 @inject ImageService _ImageService
 @inject ArticleRepository _articleRepo
+@inject NavigationManager NavigationManager
 
 <PageTitle>Feedster - Settings</PageTitle>
 
@@ -150,7 +151,6 @@
 
     private void ShowNotification(string Title, string Summary)
     {
-        Notification = null;
-        Notification = @<Notification title="@Title" Summary="@Summary"/>;
+        Notification = @<Notification title="@Title" Summary="@Summary" isShown=@true/>;
     }
 }
