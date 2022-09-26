@@ -24,11 +24,13 @@ public class AutoFetchService : BackgroundService
         
         while (!stoppingToken.IsCancellationRequested)
         {
+            // load user settings
             _userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
             UserSettings _userSettings = await _userRepository.Get();
 
             if (_userSettings.ArticleRefreshAfterMinutes == 0)
             {
+                // auto fetch turned off; recheck in 15 minutes
                 await Task.Delay(15 * 60 * 1000);
             }
             else

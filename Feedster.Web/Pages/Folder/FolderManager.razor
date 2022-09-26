@@ -128,10 +128,9 @@ else{
     </EditForm>
 </SlideOver>
 
-@if (confirmationModalFragment is not null)
-{
-        @confirmationModalFragment
-}
+
+@confirmationModalFragment
+@Notification
 
 @code {
     private List<Folder> _folders = new();
@@ -139,6 +138,7 @@ else{
     private Folder _folderToRemove = null;
     private string _folderDisplayName = String.Empty;
     private RenderFragment confirmationModalFragment = null;
+    private RenderFragment? Notification = null;
     
     private List<Feed> _feeds = new();
 
@@ -153,6 +153,7 @@ else{
         {
             _folder.FolderId = 0;
             await _folderRepo.Create(_folder);
+            ShowNotification("Folder created!", "The folder was created successfully.");
         }
         else
         {
@@ -160,6 +161,7 @@ else{
             
             await _folderRepo.Update(_folder);
             _folderDisplayName = String.Empty;
+            ShowNotification("Folder updated!", "The folder was updated successfully.");
         }
         
         // force refresh of sidebar; else the name and folders are not refreshed
@@ -232,8 +234,8 @@ else{
         _feeds.Remove(feed);
     }    
     
-    private async Task UpdateFolder()
+    private void ShowNotification(string Title, string Summary)
     {
-
+        Notification = @<Notification title="@Title" Summary="@Summary" isShown=@true/>;
     }
 }

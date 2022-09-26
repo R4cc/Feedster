@@ -1,3 +1,5 @@
+using Feedster.DAL.Models;
+
 namespace Feedster.DAL.Services;
 
 public class ImageService
@@ -17,6 +19,17 @@ public class ImageService
     public async Task ClearImageCache()
     {
         DirectoryInfo info = new DirectoryInfo(@"./images");
-        foreach(System.IO.FileInfo file in info.GetFiles()) file.Delete();
+        foreach(FileInfo file in info.GetFiles()) file.Delete();
+    }
+
+    public async Task ClearArticleImages(List<Article> articles)
+    {
+        foreach (var article in articles)
+        {
+            if (!String.IsNullOrEmpty("./images/" + article.ImagePath) && File.Exists("./images/" + article.ImagePath))
+            {
+                File.Delete("./images/" + article.ImagePath);
+            }
+        }
     }
 }

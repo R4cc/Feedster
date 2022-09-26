@@ -110,7 +110,7 @@
     
     private async Task LoadArticles()
     {
-        await LoadFolder((int)folderId);
+        await LoadFolder(folderId);
         _articles = (await _articleRepo.GetFromGroupId((int)folderId)).OrderByDescending(x => x.PublicationDate).ToList();
     }
     

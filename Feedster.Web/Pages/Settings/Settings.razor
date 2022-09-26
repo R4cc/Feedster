@@ -6,7 +6,10 @@
 
 <PageTitle>Feedster - Settings</PageTitle>
 
-    <div class="container max-w-sm">
+
+<div class="container max-w-sm">
+    <EditForm Model="_userSettings" OnValidSubmit="SaveChanges">
+        <DataAnnotationsValidator/>
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 3.5em">Settings</h5>
         
         <div class="rounded-lg bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-2" role="alert">
@@ -28,24 +31,28 @@
             <option value=0>Never</option>
         </select>
         
-        <label>Delete automatically articles after...</label>
+        <label>Delete articles automatically after...</label>
         <select @bind=_userSettings.ArticleExpirationAfterDays class="mb-5 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             <option selected>Select duration</option>
             <option value=7>1 Week</option>
             <option value=14>2 Weeks</option>
             <option value=30>1 Month</option>
             <option value=90>3 Months</option>
+            <option value=180>6 Months</option>
+            <option value=365>1 Year</option>
             <option value=0>Never</option>
         </select>
         
         <label>Article Count per page (0 = No limit)</label>
-        <div class="relative">
-            <input type="text" @bind=_userSettings.ArticleCountOnPage maxlength="4" class="mb-5 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+        <div class="relative mb-5 ">
+            <InputNumber @bind-Value=_userSettings.ArticleCountOnPage maxlength="4" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+            <ValidationMessage For="@(() => _userSettings.ArticleCountOnPage)" />
         </div>
         
         <label>Max Article Count in the Database (0 = No limit)</label>
-        <div class="relative">
-            <input type="text" @bind=_userSettings.MaxArticleCountInDb maxlength="5" class="mb-5 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+        <div class="relative mb-5">
+            <InputNumber @bind-Value=_userSettings.MaxArticleCountInDb maxlength="5" class="disabled cursor-not-allowed w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+            <ValidationMessage For="@(() => _userSettings.MaxArticleCountInDb)" />
         </div>
         
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 2em">Images</h5>
@@ -73,7 +80,7 @@
                     <p>@ImageFolderSize.ToString("0.##")MB</p>
                 </div>
             </div>
-            <button @onclick="ClearImageCache" type="button" class="col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+            <button @onclick="ClearImageCache" class="col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
                 <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle  w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                     </svg>
@@ -88,7 +95,7 @@
                     <p>@(DatabaseSize.ToString("0.##") == "0" ? ">1" : DatabaseSize.ToString("0.##"))MB</p>
                 </div>
             </div>
-            <button @onclick="ClearArticles" type="button" class="col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+            <button @onclick="ClearArticles" class="col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
                 <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle  w-6 h-6">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                 </svg>
@@ -96,12 +103,13 @@
             </button>
         </div>
         
-        <button @onclick="SaveChanges" class=" w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
-            <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <a class="align-middle" style="display:inline-block">Save</a>
-        </button>
+    <button type="submit" class=" w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+        <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <a class="align-middle" style="display:inline-block">Save</a>
+    </button>
+    </EditForm>
     </div>
 
 @Notification
@@ -132,7 +140,7 @@
     {
         await _userRepo.Update(_userSettings);
         await LoadUserSettings();
-        ShowNotification("Changes Saved!", "All changes have been saved.");
+        ShowNotification("Changes Saved!", "All changes have been saved. Some settings can take up to 10 minutes to take effect.");
     }
 
     private async Task ClearImageCache()

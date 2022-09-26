@@ -1,11 +1,13 @@
 using Feedster.DAL.Models;
 using Feedster.DAL.Repositories;
-using Feedster.DAL.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Feedster.DAL.BackgroundServices;
 
+/// <summary>
+/// This service automatically purges articles and images of said articles after specific user defined setting
+/// </summary>
 public class AutoPurgeArticlesService : BackgroundService
 {
     private  ArticleRepository _articleRepo;
@@ -24,11 +26,13 @@ public class AutoPurgeArticlesService : BackgroundService
         
         while (!stoppingToken.IsCancellationRequested)
         {
+            // Load user settings
             _userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
             UserSettings _userSettings = await _userRepository.Get();
 
-            if (_userSettings.ArticleExpirationAfterDays == 0)
+            if (_userSettings.ArticleExpirationAfterDays == 0) 
             {
+                // auto purge turned off; recheck in 15 minutes
                 await Task.Delay(15 * 60 * 1000);
             }
             else

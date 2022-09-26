@@ -86,8 +86,7 @@ namespace Feedster.DAL.Migrations
                     ArticleCountOnPage = table.Column<int>(type: "INTEGER", nullable: false),
                     MaxArticleCountInDb = table.Column<int>(type: "INTEGER", nullable: false),
                     ShowImages = table.Column<bool>(type: "INTEGER", nullable: false),
-                    DownloadImages = table.Column<bool>(type: "INTEGER", nullable: false),
-                    MaxImageCacheSizeInMb = table.Column<int>(type: "INTEGER", nullable: false)
+                    DownloadImages = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -288,8 +287,8 @@ namespace Feedster.DAL.Migrations
 
             migrationBuilder.InsertData(
                 table: "UserSettings",
-                columns: new[] { "UserSettingsId", "ArticleCountOnPage", "ArticleExpirationAfterDays", "ArticleRefreshAfterMinutes", "DownloadImages", "MaxArticleCountInDb", "MaxImageCacheSizeInMb", "ShowImages" },
-                values: new object[] { 1, 0, 0, 10, true, 0, 1024, true });
+                columns: new[] { "UserSettingsId", "ArticleCountOnPage", "ArticleExpirationAfterDays", "ArticleRefreshAfterMinutes", "DownloadImages", "MaxArticleCountInDb", "ShowImages" },
+                values: new object[] { 1, 20, 0, 10, true, 0, true });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Articles_FeedId",

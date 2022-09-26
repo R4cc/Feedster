@@ -68,80 +68,113 @@ namespace Feedster.DAL.Services
                 // loop through all results and add them to a list
                 foreach (var itm in result.Items)
                 {
-                    var articleLink = itm.Links.ToList()[0].Uri.ToString();
-                    
-                    if (existingArticles.ContainsKey(articleLink))
+                    try
                     {
-                        var article = existingArticles.GetValueOrDefault(articleLink);
-                        
-                        if (String.IsNullOrEmpty(article.ImageUrl))
+
+                        // Checks if article is older than max expiration setting
+                        if (itm.PublishDate.DateTime != DateTime.MinValue && 
+                            itm.PublishDate.DateTime > DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays))
                         {
                             continue;
                         }
-
-                        // donwload the image if it doesnt exist in the cache
-                        if (!File.Exists("images/" + article.ImagePath) && _userSettings.DownloadImages)
-                        {
-                            article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath);
-                            
-                            if (!string.IsNullOrEmpty(article.ImagePath))
-                            {
-                                ArticlesToUpdate.Add(article);
-                            }
-                        }
                         
-                        // skip item cus it already exists
-                        continue;
-                    }
-
-                    //List<string> imagePaths = new();
-                    List<string> imageUrls = new();
-
-                    foreach (SyndicationElementExtension extension in itm.ElementExtensions)
-                    {
-                        XElement element = extension.GetObject<XElement>();
-
-                        if (element.HasAttributes)
+                        var articleLink = itm.Links.ToList()[0].Uri.ToString();
+                        
+                        // article already exists in DB
+                        if (existingArticles.ContainsKey(articleLink))
                         {
-                            foreach (var attribute in element.Attributes())
+                            var article = existingArticles.GetValueOrDefault(articleLink);
+                            
+                            if (String.IsNullOrEmpty(article.ImageUrl))
                             {
-                                string value = attribute.Value.ToLower();
-                                if (value.StartsWith("http") && (value.EndsWith(".jpg") || value.EndsWith(".png") ||
-                                                                 value.EndsWith(".gif") || value.EndsWith(".jpeg")))
+                                continue;
+                            }
+
+                            // download the image if it doesnt exist in the cache
+                            if (!File.Exists("images/" + article.ImagePath) && _userSettings.DownloadImages)
+                            {
+                                article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath);
+                                
+                                if (!string.IsNullOrEmpty(article.ImagePath))
                                 {
-                                    imageUrls.Add(value);
+                                    ArticlesToUpdate.Add(article);
                                 }
                             }
+                            
+                            // skip item cus it already exists
+                            continue;
                         }
+
+                        List<string> imageUrls = GetAllImageUrls(itm);
+                        string highestResImageUrl = string.Empty;
+                        string highestResImagePath = string.Empty;
+                        
+                        // Find the highest Resolution image in array of multiple images
+                        if (_userSettings.DownloadImages && imageUrls.Any())
+                        {
+                            highestResImageUrl = await GetHighestResolutionImage(imageUrls);
+                            highestResImagePath= await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl));
+                        }
+
+                        ArticlesToUpdate.Add(new Article()
+                        {
+                            Guid = itm.Id,
+                            Description = String.IsNullOrEmpty(itm.Summary.Text) ? null : StripTagsRegex(itm.Summary.Text),
+                            Title = String.IsNullOrEmpty(itm.Title.Text) ? null : itm.Title.Text,
+                            ImagePath = highestResImagePath,
+                            ImageUrl = highestResImageUrl,
+                            PublicationDate = (itm.PublishDate.DateTime == DateTime.MinValue ? DateTime.Now : itm.PublishDate.DateTime),
+                            ArticleLink = !itm.Links.ToList().Any() ? null : itm.Links.ToList()[0].Uri.ToString(),
+                            FeedId = feed.FeedId,
+                            Tags = itm.Categories.Select(x => x.Name).ToArray()
+                        });
                     }
-                    
-                    // Find the highest Resolution image in array of multiple image
-                    string highestResImageUrl = (imageUrls.Count > 1 ? await GetHighestResolutionImage(imageUrls) : (imageUrls.Any() ? imageUrls.First() : string.Empty));
-                    string highestResImagePath = (highestResImageUrl == string.Empty || !_userSettings.DownloadImages ? String.Empty : await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl))) ;
-                    
-                    ArticlesToUpdate.Add(new Article()
+                    catch (Exception e)
                     {
-                        Guid = itm.Id,
-                        Description = String.IsNullOrEmpty(itm.Summary.Text) ? null : StripTagsRegex(itm.Summary.Text),
-                        Title = String.IsNullOrEmpty(itm.Title.Text) ? null : itm.Title.Text,
-                        ImagePath = highestResImagePath == String.Empty ? null : highestResImagePath,
-                        ImageUrl = !imageUrls.Any() ? null : highestResImageUrl,
-                        PublicationDate = (itm.PublishDate.DateTime == DateTime.MinValue ? DateTime.Now : itm.PublishDate.DateTime),
-                        ArticleLink = !itm.Links.ToList().Any() ? null : itm.Links.ToList()[0].Uri.ToString(),
-                        FeedId = feed.FeedId,
-                        Tags = itm.Categories.Select(x => x.Name).ToArray()
-                    });
+                        Console.WriteLine(e);
+                        // ignored
+                    }
                 }
 
                 return ArticlesToUpdate;
             }
             catch(Exception e)
             {
-                Console.WriteLine("failed");
+                Console.WriteLine(e);
                 // ignored
             }
 
             return new List<Article>();
+        }
+
+        /// <summary>
+        /// Take a syndication Item and extract all images (jpg, jpeg, png, gif)
+        /// </summary>
+        /// <param name="itm">SyndicationItem</param>
+        /// <returns>String list of all image URLs</returns>
+        private static List<string> GetAllImageUrls(SyndicationItem itm)
+        {
+            List<string> imageUrls = new();
+            
+            foreach (SyndicationElementExtension extension in itm.ElementExtensions)
+            {
+                XElement element = extension.GetObject<XElement>();
+
+                if (element.HasAttributes)
+                {
+                    foreach (var attribute in element.Attributes())
+                    {
+                        string value = attribute.Value;
+                        if (value.ToLower().StartsWith("http") && (value.ToLower().EndsWith(".jpg") || value.ToLower().EndsWith(".png") ||
+                                                                   value.ToLower().EndsWith(".gif") || value.ToLower().EndsWith(".jpeg")))
+                        {
+                            imageUrls.Add(value);
+                        }
+                    }
+                }
+            }
+
+            return imageUrls;
         }
 
         private async Task UpdateArticles(List<Article> articles)
@@ -153,8 +186,16 @@ namespace Feedster.DAL.Services
         {
             try
             {
+                if (string.IsNullOrEmpty(uri))
+                {
+                    return String.Empty;
+                }
+
                 // Remove special chars
                 var normalizedFilename = Regex.Replace(Path.GetFileNameWithoutExtension(outputPath), "(?:[^a-z0-9 ]|(?<=['\"])s)", "");
+                
+                // add "seed" to differentiate between images with the same filename
+                normalizedFilename += "-" + new Random().Next(10000, 100000);
                 outputPath = normalizedFilename + Path.GetExtension(outputPath);
                 
                 using HttpClient httpClient = new();
@@ -178,6 +219,11 @@ namespace Feedster.DAL.Services
 
         private async Task<string> GetHighestResolutionImage(List<string> Images)
         {
+            if (Images.Count == 1)
+            {
+                return Images.First();
+            }
+            
             string highestResolutionImage = String.Empty;
             int highestResolution = 0;
             
@@ -211,7 +257,7 @@ namespace Feedster.DAL.Services
             return highestResolutionImage;
         }
         
-        public static string StripTagsRegex(string source)
+        private static string StripTagsRegex(string source)
         {
             return Regex.Replace(source, "<.*?>", string.Empty);
         }

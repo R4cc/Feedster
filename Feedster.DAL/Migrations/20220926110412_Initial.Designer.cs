@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Feedster.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220926071830_Initial")]
+    [Migration("20220926110412_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -176,9 +176,6 @@ namespace Feedster.DAL.Migrations
                     b.Property<int>("MaxArticleCountInDb")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("MaxImageCacheSizeInMb")
-                        .HasColumnType("INTEGER");
-
                     b.Property<bool>("ShowImages")
                         .HasColumnType("INTEGER");
 
@@ -190,12 +187,11 @@ namespace Feedster.DAL.Migrations
                         new
                         {
                             UserSettingsId = 1,
-                            ArticleCountOnPage = 0,
+                            ArticleCountOnPage = 20,
                             ArticleExpirationAfterDays = 0,
                             ArticleRefreshAfterMinutes = 10,
                             DownloadImages = true,
                             MaxArticleCountInDb = 0,
-                            MaxImageCacheSizeInMb = 1024,
                             ShowImages = true
                         });
                 });

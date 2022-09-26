@@ -85,16 +85,15 @@ else{
     </EditForm>
 </SlideOver>
 
-@if (confirmationModalFragment is not null)
-{
-        @confirmationModalFragment
-}
+@confirmationModalFragment
+@Notification
 
 @code {
     private List<Feed> _feeds = new();
     private Feed _feed = new(){FeedId = -1};
     private Feed _feedToRemove = null;
     private RenderFragment confirmationModalFragment = null;
+    private RenderFragment? Notification = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -107,10 +106,12 @@ else{
         {
             _feed.FeedId = 0;
             await _feedRepo.Create(_feed);
+            ShowNotification("Feed added!", "It can take up to 2 minutes until all the information has been fetched.");
         }
         else
         {
-            await _feedRepo.Update(_feed);
+            await _feedRepo.Update(_feed); 
+            ShowNotification("Feed updated!", "The feed was updated successfully.");
         }
         
         await js.InvokeVoidAsync("toggleSlideover");
@@ -158,5 +159,11 @@ else{
     {
         await _feedRepo.Remove(feedToRemove);
         await LoadFeeds();
+        ShowNotification("Feed deleted!", "The feed was deleted successfully.");
+    }
+    
+    private void ShowNotification(string Title, string Summary)
+    {
+        Notification = @<Notification title="@Title" Summary="@Summary" isShown=@true/>;
     }
 }
