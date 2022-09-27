@@ -102,21 +102,9 @@ namespace Feedster.DAL.Migrations
                         },
                         new
                         {
-                            FeedId = 2,
-                            Name = "wired",
-                            RssUrl = "https://wired.com/feed/rss"
-                        },
-                        new
-                        {
                             FeedId = 3,
                             Name = "Threatpost",
                             RssUrl = "https://threatpost.com/feed/"
-                        },
-                        new
-                        {
-                            FeedId = 4,
-                            Name = "Fefe HTTPS HTML",
-                            RssUrl = "https://blog.fefe.de/rss.xml?html"
                         });
                 });
 
@@ -140,11 +128,6 @@ namespace Feedster.DAL.Migrations
                         {
                             FolderId = 1,
                             Name = "Tech News"
-                        },
-                        new
-                        {
-                            FolderId = 2,
-                            Name = "Local News"
                         },
                         new
                         {
@@ -186,8 +169,8 @@ namespace Feedster.DAL.Migrations
                         {
                             UserSettingsId = 1,
                             ArticleCountOnPage = 20,
-                            ArticleExpirationAfterDays = 0,
-                            ArticleRefreshAfterMinutes = 10,
+                            ArticleExpirationAfterDays = 30,
+                            ArticleRefreshAfterMinutes = 15,
                             DownloadImages = true,
                             MaxArticleCountInDb = 0,
                             ShowImages = true

@@ -258,17 +258,7 @@ namespace Feedster.DAL.Migrations
             migrationBuilder.InsertData(
                 table: "Feeds",
                 columns: new[] { "FeedId", "Name", "RssUrl" },
-                values: new object[] { 2, "wired", "https://wired.com/feed/rss" });
-
-            migrationBuilder.InsertData(
-                table: "Feeds",
-                columns: new[] { "FeedId", "Name", "RssUrl" },
                 values: new object[] { 3, "Threatpost", "https://threatpost.com/feed/" });
-
-            migrationBuilder.InsertData(
-                table: "Feeds",
-                columns: new[] { "FeedId", "Name", "RssUrl" },
-                values: new object[] { 4, "Fefe HTTPS HTML", "https://blog.fefe.de/rss.xml?html" });
 
             migrationBuilder.InsertData(
                 table: "Folders",
@@ -278,17 +268,12 @@ namespace Feedster.DAL.Migrations
             migrationBuilder.InsertData(
                 table: "Folders",
                 columns: new[] { "FolderId", "Name" },
-                values: new object[] { 2, "Local News" });
-
-            migrationBuilder.InsertData(
-                table: "Folders",
-                columns: new[] { "FolderId", "Name" },
                 values: new object[] { 3, "Security And Privacy" });
 
             migrationBuilder.InsertData(
                 table: "UserSettings",
                 columns: new[] { "UserSettingsId", "ArticleCountOnPage", "ArticleExpirationAfterDays", "ArticleRefreshAfterMinutes", "DownloadImages", "MaxArticleCountInDb", "ShowImages" },
-                values: new object[] { 1, 20, 0, 10, true, 0, true });
+                values: new object[] { 1, 20, 30, 15, true, 0, true });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Articles_FeedId",

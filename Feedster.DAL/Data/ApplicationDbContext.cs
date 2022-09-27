@@ -28,13 +28,7 @@ namespace Feedster.DAL.Data
             
             folder.HasData(new Folder()
             {
-                FolderId = 2,
-                Name = "Local News"
-            });
-            
-            folder.HasData(new Folder()
-            {
-                FolderId =3,
+                FolderId =2,
                 Name = "Security And Privacy"
             });
             
@@ -46,16 +40,7 @@ namespace Feedster.DAL.Data
                 RssUrl = "https://news.ycombinator.com/rss",
                 Folders = new List<Folder>() 
             });
-            
-            
-            feed.HasData(new Feed()
-            {
-                FeedId = 2,
-                Name = "wired",
-                RssUrl = "https://wired.com/feed/rss",
-                Folders = new List<Folder>() 
-            });
-            
+
             feed.HasData(new Feed()
             {
                 FeedId = 3,
@@ -64,13 +49,6 @@ namespace Feedster.DAL.Data
                 Folders = new List<Folder>()
             });            
             
-            feed.HasData(new Feed()
-            {
-                FeedId = 4,
-                Name = "Fefe HTTPS HTML",
-                RssUrl = "https://blog.fefe.de/rss.xml?html",
-                Folders = new List<Folder>()
-            });
             
             builder.Entity<Article>()
                 .Property(e => e.Tags)
