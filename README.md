@@ -26,25 +26,35 @@ The following features are planned for the future
 <table>
 	<tbody>
 		<tr>
-			<td width="25%">
+			<td width="50%">
 				Home View
-                <img src="https://user-images.githubusercontent.com/48733309/190857294-13027837-b2d9-4894-9857-135427313eee.png">
+                <img width="500" alt="home-view" src="https://user-images.githubusercontent.com/48733309/192523278-1a8cb97a-ed8b-4768-b883-5d8914b88290.png">
 			</td>
-			<td width="25%">
-				Folder View(Custom Feed)
-                <img src="https://user-images.githubusercontent.com/48733309/190857333-c5dd5bb1-1eda-4c02-9d2c-0e39c05075fb.png">
-			</td>
-			<td width="25%">
-				Folder Manage Page
-                <img src="https://user-images.githubusercontent.com/48733309/190857273-6f571254-96b2-4e81-b59c-254aa70c6948.png">
-			</td>
-			<td width="25%">
-				Feed Management
-                <img src="https://user-images.githubusercontent.com/48733309/190857360-335c344f-6923-4c65-a987-17823fa06dae.png">
+			<td width="50%">
+				Folder View (Custom Feeds)
+                <img width="500" alt="2022-09-27 14_13_07-" src="https://user-images.githubusercontent.com/48733309/192523650-ce09b39f-aaab-4dab-b209-5360fa148f48.png">
 			</td>
 		</tr>
 	</tbody>
 </table>
+<table>
+	<tbody>
+		<tr>
+			<td width="75%">
+                <img width="500" alt="2022-09-27 14_09_03-" src="https://user-images.githubusercontent.com/48733309/192523891-dcde046a-c946-4dfc-ae4a-a7060c93a478.png">
+			</td>
+			<td width="25%">
+				Mobile View
+                <img width="200" alt="2022-09-27 14_13_38-Feedster - Tech News - Chromium" src="https://user-images.githubusercontent.com/48733309/192523932-5e6ba4e3-46d8-4f5c-828a-12b31f0f059b.png">
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+
+
+
+
 
 ## Docker
 ### Docker Run Command Example
