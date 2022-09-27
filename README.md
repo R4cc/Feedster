@@ -12,6 +12,7 @@ The following features are built into the application:
 - Custom folders for creating custom feeds
 - Ready-to-use docker image.
 - Mobile screen compatible.
+- Webp image conversion for optimal performance
 
 ## To-Do
 The following features are planned for the future
@@ -19,9 +20,7 @@ The following features are planned for the future
 - ATOM support
 - User authentication and user management system.
 - Customization options (themes)
-- Error handling
 - Post title/description search
-- Improved image caching and delivering (optimizations)
 
 ## Screenshots
 <table>
