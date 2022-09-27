@@ -51,7 +51,7 @@
         
         <label>Max Article Count in the Database (0 = No limit)</label>
         <div class="relative mb-5">
-            <InputNumber @bind-Value=_userSettings.MaxArticleCountInDb maxlength="5" class="disabled cursor-not-allowed w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+            <InputNumber disabled @bind-Value=_userSettings.MaxArticleCountInDb maxlength="5" class="disabled cursor-not-allowed w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
             <ValidationMessage For="@(() => _userSettings.MaxArticleCountInDb)" />
         </div>
         
