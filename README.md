@@ -63,7 +63,8 @@ In the below command, the application will be accessible at http://localhost:300
 docker run -d \
     --restart unless-stopped \
     -p 30080:80 \
-    -v  /your/path:/app/data
+    -v  /your/path:/app/data \
+    -v  /your/path:/app/images
     index.docker.io/nl2109/feedster:latest
 ```
 
@@ -78,6 +79,7 @@ services:
         restart: unless-stopped
         volumes:
           - /your/path:/app/data
+	  - /your/path:/app/images
         ports:
           - '30080:80'
 ```
