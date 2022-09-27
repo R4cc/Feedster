@@ -36,23 +36,6 @@ builder.Services.AddHostedService<ExpiredArticlesPurgeService>();
 builder.Services.AddHostedService<FeedUpdateSchedulerService>();
 builder.Services.AddSingleton<BackgroundJobs>();
 
-builder.Services.AddResponseCompression(options =>
-{
-    options.EnableForHttps = true;
-    options.Providers.Add<BrotliCompressionProvider>();
-    options.Providers.Add<GzipCompressionProvider>();
-});
-
-builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
-{
-    options.Level = CompressionLevel.Optimal;
-});
-
-builder.Services.Configure<GzipCompressionProviderOptions>(options =>
-{
-    options.Level = CompressionLevel.SmallestSize;
-});
-
 // ensure that paths exists and create if not
 Directory.CreateDirectory("./images");
 Directory.CreateDirectory("./data");
@@ -80,6 +63,7 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -87,10 +71,6 @@ app.UseStaticFiles(new StaticFileOptions
         Path.Combine(builder.Environment.ContentRootPath, "images")),
     RequestPath = "/images"
 });
-
-app.UseResponseCompression();
-app.UseStaticFiles();
-
 
 app.UseRouting();
 
