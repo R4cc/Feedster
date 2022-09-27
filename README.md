@@ -64,7 +64,7 @@ docker run -d \
     --restart unless-stopped \
     -p 30080:80 \
     -v  /your/path:/app/data
-    ghcr.io/nl2109/feedster:latest 
+    index.docker.io/nl2109/feedster:latest
 ```
 
 ### Docker Compose Example
@@ -73,7 +73,7 @@ In the below docker-compose.yml example, the application will be accessible at h
 version: '3.4'
 services:
     feedster:
-        image: ghcr.io/nl2109/feedster:latest
+        image: index.docker.io/nl2109/feedster:latest
         container_name: feedster
         restart: unless-stopped
         volumes:
