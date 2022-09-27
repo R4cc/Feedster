@@ -5,10 +5,11 @@ namespace Feedster.DAL.Models;
 public class UserSettings
 {
     public int UserSettingsId { get; set; }
+
     [Range(0, int.MaxValue, ErrorMessage = "The field {0} must be greater than {1}.")]
-    public int ArticleExpirationAfterDays { get; set; }
+    public int ArticleExpirationAfterDays { get; set; } = 30;
     [Range(0, int.MaxValue, ErrorMessage = "The field {0} must be greater than {1}.")]
-    public int ArticleRefreshAfterMinutes { get; set; } = 10;
+    public int ArticleRefreshAfterMinutes { get; set; } = 15;
     [Range(0, int.MaxValue, ErrorMessage = "The field {0} must be greater than {1}.")]
     public int ArticleCountOnPage { get; set; } = 20;
     [Range(0, int.MaxValue, ErrorMessage = "The field {0} must be greater than {1}.")]
