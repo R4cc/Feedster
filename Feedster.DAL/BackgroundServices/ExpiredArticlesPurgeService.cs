@@ -2,26 +2,33 @@ using Feedster.DAL.Models;
 using Feedster.DAL.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Feedster.DAL.BackgroundServices;
 
 /// <summary>
 /// This service automatically purges articles and images of said articles after specific user defined setting
 /// </summary>
-public class AutoPurgeArticlesService : BackgroundService
+public class ExpiredArticlesPurgeService : BackgroundService
 {
     private  ArticleRepository _articleRepo;
     private  UserRepository _userRepository;
     private IServiceScopeFactory _scopeFactory;
+    private ILogger<ExpiredArticlesPurgeService> _logger;
 
-    public AutoPurgeArticlesService(IServiceScopeFactory scopeFactory)
+    public ExpiredArticlesPurgeService(IServiceScopeFactory scopeFactory, ILogger<ExpiredArticlesPurgeService> logger)
     {
         _scopeFactory = scopeFactory;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        
+        _logger.LogInformation("Started ExpiredArticlesPurgeService. Waiting 10 minutes until first purge");
+        // wait 10 minutes before starting service to let the updater update first
+        await Task.Delay(10 * 60 * 1000, stoppingToken);
+        _logger.LogInformation("Starting first purge");
+
         while (!stoppingToken.IsCancellationRequested)
         {
             using var scope = _scopeFactory.CreateScope();
@@ -38,13 +45,12 @@ public class AutoPurgeArticlesService : BackgroundService
             }
             else
             {
-                await DoWork(_userSettings.ArticleRefreshAfterMinutes, _userSettings.ArticleExpirationAfterDays);
+                await _articleRepo.ClearArticlesOlderThan(DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays));
+                
+                // run once every 24 hours
+                _logger.LogInformation("Purge completed. Waiting 24 Hours until next purge");
+                await Task.Delay(24 * 60 * 60 * 1000, stoppingToken);
             } 
         }
-    }
-    private async Task DoWork(int interval, int ExpirationAfterDays)
-    {
-        await _articleRepo.ClearArticlesOlderThan(DateTime.Now.AddDays(-ExpirationAfterDays));
-        await Task.Delay(interval * 60 * 1000);
     }
 }

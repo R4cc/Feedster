@@ -113,7 +113,8 @@ else{
             await _feedRepo.Update(_feed); 
             ShowNotification("Feed updated!", "The feed was updated successfully.");
         }
-        
+
+        await _feedRepo.FetchFeed(_feed);
         await js.InvokeVoidAsync("toggleSlideover");
         await LoadFeeds();
     }    

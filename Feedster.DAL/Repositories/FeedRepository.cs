@@ -1,4 +1,5 @@
-﻿using Feedster.DAL.Data;
+﻿using Feedster.DAL.BackgroundServices;
+using Feedster.DAL.Data;
 using Feedster.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,9 +8,11 @@ namespace Feedster.DAL.Repositories;
 public class FeedRepository
 {
     private readonly ApplicationDbContext _db;
-    public FeedRepository(ApplicationDbContext db)
+    private readonly BackgroundJobs _backgroundJobs;
+    public FeedRepository(ApplicationDbContext db, BackgroundJobs backgroundJobs)
     {
         _db = db;
+        _backgroundJobs = backgroundJobs;
     }
 
     public async Task<List<Feed>> GetAll()
@@ -37,5 +40,11 @@ public class FeedRepository
     {
         _db.Feeds.Remove(feed);
         await _db.SaveChangesAsync();
-    }    
+    }
+
+    public async Task FetchFeed(Feed feed)
+    {
+        List<Feed> feeds = new() {feed};
+        _backgroundJobs.BackgroundTasks.Enqueue(feeds);
+    }
 }

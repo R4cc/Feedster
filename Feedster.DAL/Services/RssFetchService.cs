@@ -3,6 +3,7 @@ using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+using Feedster.DAL.BackgroundServices;
 using Feedster.DAL.Models;
 using Feedster.DAL.Repositories;
 using Feed = Feedster.DAL.Models.Feed;
@@ -11,29 +12,18 @@ namespace Feedster.DAL.Services
 {
     public class RssFetchService
     {
-        private readonly FeedRepository _feedRepository;
         private readonly ArticleRepository _articleRepository;
         private readonly UserRepository _userRepo;
         private UserSettings _userSettings;
 
-        public RssFetchService(FeedRepository feedRepository, ArticleRepository articleRepository, UserRepository userRepo)
+        public RssFetchService(ArticleRepository articleRepository, UserRepository userRepo)
         {
-            _feedRepository = feedRepository;
             _articleRepository = articleRepository;
             _userRepo = userRepo;
         }
-
-        //public async Task RefreshFeed(Feed feed)
-        //{
-        //    List<Article> articlesToUpdate = new();
-        //    articlesToUpdate.AddRange(await FetchFeedArticles(feed));
-//
-        //    await UpdateArticles(articlesToUpdate);
-        //}
         
-        public async Task RefreshFeeds()
+        public async Task RefreshFeeds(List<Feed> feeds)
         {
-            List<Feed> feeds = await _feedRepository.GetAll();
             List<Article> articlesToUpdate = new();
 
             foreach (var feed in feeds)
@@ -41,7 +31,7 @@ namespace Feedster.DAL.Services
                 articlesToUpdate.AddRange(await FetchFeedArticles(feed));
             }
 
-            await UpdateArticles(articlesToUpdate);
+            await _articleRepository.UpdateRange(articlesToUpdate);
         }
 
         private async Task<List<Article>> FetchFeedArticles(Feed feed)
@@ -70,7 +60,6 @@ namespace Feedster.DAL.Services
                 {
                     try
                     {
-
                         // Checks if article is older than max expiration setting
                         if (itm.PublishDate.DateTime != DateTime.MinValue && 
                             itm.PublishDate.DateTime > DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays))
@@ -177,11 +166,6 @@ namespace Feedster.DAL.Services
             return imageUrls;
         }
 
-        private async Task UpdateArticles(List<Article> articles)
-        {
-            await _articleRepository.UpdateRange(articles);
-        }
-
         private static async Task<string> DownloadFileAsync(string uri, string outputPath)
         {
             try
@@ -231,20 +215,18 @@ namespace Feedster.DAL.Services
             {
                 try
                 {
-                    using (var httpClient = new HttpClient())
-                    {
-                        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
+                    using var httpClient = new HttpClient();
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
                         
-                        // download image and pass it to the drawer
-                        using (var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img)))
+                    // download image and pass it to the drawer
+                    using (var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img)))
+                    {
+                        using (var image = Image.FromStream(imgStream))
                         {
-                            using (var image = Image.FromStream(imgStream))
+                            if (image.Height * image.Width > highestResolution)
                             {
-                                if (image.Height * image.Width > highestResolution)
-                                {
-                                    highestResolution = image.Height * image.Width;
-                                    highestResolutionImage = img;
-                                }
+                                highestResolution = image.Height * image.Width;
+                                highestResolutionImage = img;
                             }
                         }
                     }

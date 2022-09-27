@@ -1,5 +1,7 @@
+using System.Collections.Concurrent;
 using Feedster.DAL.BackgroundServices;
 using Feedster.DAL.Data;
+using Feedster.DAL.Models;
 using Feedster.DAL.Repositories;
 using Feedster.DAL.Services;
 using Feedster.Web.Areas.Identity;
@@ -27,8 +29,10 @@ builder.Services.AddTransient<ArticleRepository>();
 builder.Services.AddTransient<UserRepository>();
 builder.Services.AddTransient<RssFetchService>();
 builder.Services.AddTransient<ImageService>();
-builder.Services.AddHostedService<AutoFetchService>();
-builder.Services.AddHostedService<AutoPurgeArticlesService>();
+builder.Services.AddHostedService<FeedUpdateDequeueService>();
+builder.Services.AddHostedService<ExpiredArticlesPurgeService>();
+builder.Services.AddHostedService<FeedUpdateSchedulerService>();
+builder.Services.AddSingleton<BackgroundJobs>();
 
 // ensure that paths exists and create if not
 Directory.CreateDirectory("./images");
