@@ -4,8 +4,7 @@ module.exports = {
     mode: 'jit',
     content: [
         './wwwroot/index.html',
-        './**/*.razor',
-        "./node_modules/flowbite/**/*.js"
+        './**/*.razor'
     ],
     darkMode: 'class',
     theme: {
@@ -19,7 +18,6 @@ module.exports = {
         extend: {},
     },
     plugins: [
-        require('tailwindcss-textshadow'),
-        require('flowbite/plugin')
+        require('tailwindcss-textshadow')
     ]
 }
