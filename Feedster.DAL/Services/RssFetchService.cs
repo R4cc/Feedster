@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Net.Mime;
 using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -6,6 +7,7 @@ using System.Xml.Linq;
 using Feedster.DAL.BackgroundServices;
 using Feedster.DAL.Models;
 using Feedster.DAL.Repositories;
+using ImageMagick;
 using Feed = Feedster.DAL.Models.Feed;
 
 namespace Feedster.DAL.Services
@@ -14,12 +16,14 @@ namespace Feedster.DAL.Services
     {
         private readonly ArticleRepository _articleRepository;
         private readonly UserRepository _userRepo;
+        private readonly ImageService _imageService;
         private UserSettings _userSettings;
 
-        public RssFetchService(ArticleRepository articleRepository, UserRepository userRepo)
+        public RssFetchService(ArticleRepository articleRepository, UserRepository userRepo, ImageService imageSerivce)
         {
             _articleRepository = articleRepository;
             _userRepo = userRepo;
+            _imageService = imageSerivce;
         }
         
         public async Task RefreshFeeds(List<Feed> feeds)
@@ -84,6 +88,11 @@ namespace Feedster.DAL.Services
                             continue;
                         }
 
+                        if (String.IsNullOrEmpty(article.ImagePath))
+                        {
+                            article.ImagePath = Path.GetFileName(article.ImageUrl);
+                        }
+                        
                         // download the image if it doesnt exist in the cache
                         if (!File.Exists("images/" + article.ImagePath) && _userSettings.DownloadImages)
                         {
@@ -108,6 +117,8 @@ namespace Feedster.DAL.Services
                     {
                         highestResImageUrl = await GetHighestResolutionImage(imageUrls);
                         highestResImagePath= await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl));
+                        
+                        //await _imageService.CompressImage(highestResImagePath);
                     }
 
                     ArticlesToUpdate.Add(new Article()
@@ -163,7 +174,7 @@ namespace Feedster.DAL.Services
             return imageUrls;
         }
 
-        private static async Task<string> DownloadFileAsync(string uri, string outputPath)
+        private async Task<string> DownloadFileAsync(string uri, string outputPath)
         {
             try
             {
@@ -177,7 +188,8 @@ namespace Feedster.DAL.Services
                 
                 // add "seed" to differentiate between images with the same filename
                 normalizedFilename += "-" + new Random().Next(10000, 100000);
-                outputPath = normalizedFilename + Path.GetExtension(outputPath);
+                //outputPath = normalizedFilename + Path.GetExtension(outputPath);
+                outputPath = normalizedFilename + ".webp";
                 
                 using HttpClient httpClient = new();
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
@@ -186,11 +198,13 @@ namespace Feedster.DAL.Services
                     throw new InvalidOperationException("URI is invalid.");
 
                 byte[] fileBytes = await httpClient.GetByteArrayAsync(uri);
-                await File.WriteAllBytesAsync("images/" + outputPath, fileBytes);
+
+                // Resize image, then save it to disk
+                await File.WriteAllBytesAsync("./images/" + outputPath, await _imageService.ResizeImage(fileBytes));
                 
                 return outputPath;
             }
-            catch
+            catch(Exception e)
             {
                 // most likely 403 No access so ignore
             }
@@ -218,7 +232,7 @@ namespace Feedster.DAL.Services
                     // download image and pass it to the drawer
                     using (var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img)))
                     {
-                        using (var image = Image.FromStream(imgStream))
+                        using (var image = new MagickImage(imgStream))
                         {
                             if (image.Height * image.Width > highestResolution)
                             {

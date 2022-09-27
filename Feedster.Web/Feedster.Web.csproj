@@ -30,6 +30,11 @@
   <ItemGroup>
     <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css" />
     <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css.map" />
+    <_ContentIncludedByDefault Remove="wwwroot\manifest\icon-192x192.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\manifest\icon-256x256.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\manifest\icon-384x384.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\manifest\icon-512x512.png" />
+    <_ContentIncludedByDefault Remove="wwwroot\manifest\manifest.webmanifest" />
   </ItemGroup>
 
   <Target Name="CheckForNpm" BeforeTargets="NpmInstall">

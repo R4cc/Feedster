@@ -1,4 +1,6 @@
+using System.Text;
 using Feedster.DAL.Models;
+using ImageMagick;
 
 namespace Feedster.DAL.Services;
 
@@ -31,5 +33,19 @@ public class ImageService
                 File.Delete("./images/" + article.ImagePath);
             }
         }
+    }
+
+    public async Task<byte[]> ResizeImage(byte[] byteArr)
+    {
+        var data = byteArr;
+        using (var image = new MagickImage(data))
+        {
+            var size = new MagickGeometry(1280, 720);
+            image.Resize(size); ;
+            image.Format = MagickFormat.WebP;
+            byteArr = image.ToByteArray();
+        }
+
+        return byteArr;
     }
 }

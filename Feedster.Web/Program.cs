@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.IO.Compression;
 using Feedster.DAL.BackgroundServices;
 using Feedster.DAL.Data;
 using Feedster.DAL.Models;
@@ -7,6 +8,7 @@ using Feedster.DAL.Services;
 using Feedster.Web.Areas.Identity;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -33,6 +35,23 @@ builder.Services.AddHostedService<FeedUpdateDequeueService>();
 builder.Services.AddHostedService<ExpiredArticlesPurgeService>();
 builder.Services.AddHostedService<FeedUpdateSchedulerService>();
 builder.Services.AddSingleton<BackgroundJobs>();
+
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Optimal;
+});
+
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.SmallestSize;
+});
 
 // ensure that paths exists and create if not
 Directory.CreateDirectory("./images");
@@ -61,7 +80,6 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -69,6 +87,10 @@ app.UseStaticFiles(new StaticFileOptions
         Path.Combine(builder.Environment.ContentRootPath, "images")),
     RequestPath = "/images"
 });
+
+app.UseResponseCompression();
+app.UseStaticFiles();
+
 
 app.UseRouting();
 
