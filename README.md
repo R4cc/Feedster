@@ -1,6 +1,6 @@
 ![feedster-logo-full-transparent](https://user-images.githubusercontent.com/48733309/190857523-6192d8b0-cd5a-42ba-8c00-de1cb1d008c7.png)
 
-A lightweight minimal RSS reader written in ASP.NET Blazor Server Side.
+A semi-minimal RSS reader written in ASP.NET Blazor Server Side.
 
 [![dockerpush](https://github.com/R4cc/feedster/actions/workflows/main.yml/badge.svg)](https://github.com/R4cc/feedster/actions/workflows/main.yml)
 
