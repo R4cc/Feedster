@@ -4,6 +4,8 @@ A semi-minimal RSS reader written in ASP.NET Blazor Server Side.
 
 [![dockerpush](https://github.com/R4cc/feedster/actions/workflows/main.yml/badge.svg)](https://github.com/R4cc/feedster/actions/workflows/main.yml)
 
+**!!This is still in early development and I am somewhat of a noob so expect minor problems :)**
+
 ## Features
 The following features are built into the application:
 - Regular auto-fetching of RSS feeds with adjustable timeframe
