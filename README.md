@@ -4,7 +4,8 @@ A semi-minimal RSS reader written in ASP.NET Blazor Server Side.
 
 [![dockerpush](https://github.com/R4cc/feedster/actions/workflows/main.yml/badge.svg)](https://github.com/R4cc/feedster/actions/workflows/main.yml)
 
-**!!This is still in early development and I am somewhat of a noob so expect minor problems :)**
+## Note
+**This is more of a personal project that is in very early development than a production ready compeditor to TinyRSS or similar projects and I am somewhat of a noob so expect minor problems :)**
 
 ## Features
 The following features are built into the application:
