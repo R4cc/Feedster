@@ -34,106 +34,103 @@ namespace Feedster.DAL.Services
             await _articleRepository.UpdateRange(articlesToUpdate);
         }
 
+        private async Task<SyndicationFeed> ReadXml(string rssUrl)
+        {
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.DtdProcessing = DtdProcessing.Ignore;
+            settings.IgnoreWhitespace = true;
+                
+            XmlReader reader = XmlReader.Create(rssUrl, settings);
+            SyndicationFeed result = SyndicationFeed.Load(reader);
+            reader.Close();
+
+            return result;
+        }
+        
         private async Task<List<Article>> FetchFeedArticles(Feed feed)
         {
-            try
+            _userSettings = await _userRepo.Get();
+            
+            // get existing articles to match
+            Dictionary<string, Article> existingArticles =
+                (feed.Articles).ToDictionary(keySelector: x => x.ArticleLink,
+                    elementSelector: x => x);
+
+            List<Article> ArticlesToUpdate = new();
+
+            SyndicationFeed result = await ReadXml(feed.RssUrl);
+
+            // loop through all results and add them to a list
+            foreach (var itm in result.Items)
             {
-                _userSettings = await _userRepo.Get();
-                
-                // get existing articles to match
-                Dictionary<string, Article> existingArticles =
-                    (feed.Articles).ToDictionary(keySelector: x => x.ArticleLink,
-                        elementSelector: x => x);
-
-                List<Article> ArticlesToUpdate = new();
-
-                XmlReaderSettings settings = new XmlReaderSettings();
-                settings.DtdProcessing = DtdProcessing.Ignore;
-                settings.IgnoreWhitespace = true;
-                
-                XmlReader reader = XmlReader.Create(feed.RssUrl, settings);
-                SyndicationFeed result = SyndicationFeed.Load(reader);
-                reader.Close();
-
-                // loop through all results and add them to a list
-                foreach (var itm in result.Items)
+                try
                 {
-                    try
+                    // Checks if article is older than max expiration setting
+                    if (itm.PublishDate.DateTime != DateTime.MinValue && 
+                        itm.PublishDate.DateTime > DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays))
                     {
-                        // Checks if article is older than max expiration setting
-                        if (itm.PublishDate.DateTime != DateTime.MinValue && 
-                            itm.PublishDate.DateTime > DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays))
+                        continue;
+                    }
+                    
+                    var articleLink = itm.Links.ToList()[0].Uri.ToString();
+                    
+                    // article already exists in DB
+                    if (existingArticles.ContainsKey(articleLink))
+                    {
+                        var article = existingArticles.GetValueOrDefault(articleLink);
+                        
+                        if (String.IsNullOrEmpty(article.ImageUrl))
                         {
                             continue;
                         }
-                        
-                        var articleLink = itm.Links.ToList()[0].Uri.ToString();
-                        
-                        // article already exists in DB
-                        if (existingArticles.ContainsKey(articleLink))
+
+                        // download the image if it doesnt exist in the cache
+                        if (!File.Exists("images/" + article.ImagePath) && _userSettings.DownloadImages)
                         {
-                            var article = existingArticles.GetValueOrDefault(articleLink);
+                            article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath);
                             
-                            if (String.IsNullOrEmpty(article.ImageUrl))
+                            if (!string.IsNullOrEmpty(article.ImagePath))
                             {
-                                continue;
+                                ArticlesToUpdate.Add(article);
                             }
-
-                            // download the image if it doesnt exist in the cache
-                            if (!File.Exists("images/" + article.ImagePath) && _userSettings.DownloadImages)
-                            {
-                                article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath);
-                                
-                                if (!string.IsNullOrEmpty(article.ImagePath))
-                                {
-                                    ArticlesToUpdate.Add(article);
-                                }
-                            }
-                            
-                            // skip item cus it already exists
-                            continue;
                         }
-
-                        List<string> imageUrls = GetAllImageUrls(itm);
-                        string highestResImageUrl = string.Empty;
-                        string highestResImagePath = string.Empty;
                         
-                        // Find the highest Resolution image in array of multiple images
-                        if (_userSettings.DownloadImages && imageUrls.Any())
-                        {
-                            highestResImageUrl = await GetHighestResolutionImage(imageUrls);
-                            highestResImagePath= await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl));
-                        }
-
-                        ArticlesToUpdate.Add(new Article()
-                        {
-                            Guid = itm.Id,
-                            Description = String.IsNullOrEmpty(itm.Summary.Text) ? null : StripTagsRegex(itm.Summary.Text),
-                            Title = String.IsNullOrEmpty(itm.Title.Text) ? null : itm.Title.Text,
-                            ImagePath = highestResImagePath,
-                            ImageUrl = highestResImageUrl,
-                            PublicationDate = (itm.PublishDate.DateTime == DateTime.MinValue ? DateTime.Now : itm.PublishDate.DateTime),
-                            ArticleLink = !itm.Links.ToList().Any() ? null : itm.Links.ToList()[0].Uri.ToString(),
-                            FeedId = feed.FeedId,
-                            Tags = itm.Categories.Select(x => x.Name).ToArray()
-                        });
+                        // skip item cus it already exists
+                        continue;
                     }
-                    catch (Exception e)
+
+                    List<string> imageUrls = GetAllImageUrls(itm);
+                    string highestResImageUrl = string.Empty;
+                    string highestResImagePath = string.Empty;
+                    
+                    // Find the highest Resolution image in array of multiple images
+                    if (_userSettings.DownloadImages && imageUrls.Any())
                     {
-                        Console.WriteLine(e);
-                        // ignored
+                        highestResImageUrl = await GetHighestResolutionImage(imageUrls);
+                        highestResImagePath= await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl));
                     }
+
+                    ArticlesToUpdate.Add(new Article()
+                    {
+                        Guid = itm.Id,
+                        Description = StripTagsRegex(itm.Summary.Text),
+                        Title = itm.Title.Text,
+                        ImagePath = highestResImagePath,
+                        ImageUrl = highestResImageUrl,
+                        PublicationDate = (itm.PublishDate.DateTime == DateTime.MinValue ? DateTime.Now : itm.PublishDate.DateTime),
+                        ArticleLink = !itm.Links.ToList().Any() ? null : itm.Links.ToList()[0].Uri.ToString(),
+                        FeedId = feed.FeedId,
+                        Tags = itm.Categories.Select(x => x.Name).ToArray()
+                    });
                 }
-
-                return ArticlesToUpdate;
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e);
-                // ignored
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    // ignored
+                }
             }
 
-            return new List<Article>();
+            return ArticlesToUpdate;
         }
 
         /// <summary>
