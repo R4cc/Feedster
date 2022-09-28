@@ -1,11 +1,13 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+FROM alpine:3.16 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+WORKDIR /app
+
 WORKDIR /src
 COPY ["Feedster.Web/Feedster.Web.csproj", "Feedster.Web/"]
 COPY ["Feedster.DAL/Feedster.DAL.csproj", "Feedster.DAL/"]
@@ -25,7 +27,7 @@ RUN npm install
 
 RUN dotnet build "Feedster.Web.csproj" -c Release -o /app/build
 
-FROM build AS publish
+FROM build-env AS publish
 RUN dotnet publish "Feedster.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
