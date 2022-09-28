@@ -10,14 +10,14 @@
         <DataAnnotationsValidator/>
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 3.5em">Settings</h5>
         
-        <div class="rounded-lg bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-2" role="alert">
+        <div class="rounded-lg text-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-2" role="alert">
           <p class="font-bold">Don't forget to Save!</p>
           <p>Save with the button at the bottom</p>
         </div>
         
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 2em">Articles</h5>
         
-        <label>Automatically update articles after...</label>
+        <label class="dark:text-gray-200">Automatically update articles after...</label>
         <select @bind=_userSettings.ArticleRefreshAfterMinutes class="w-full mb-5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             <option selected>Select interval</option>
             <option value=5>5 Minutes</option>
@@ -30,7 +30,7 @@
             <option value=0>Never</option>
         </select>
         
-        <label>Delete articles older than...</label>
+        <label class="dark:text-gray-200">Delete articles older than...</label>
         <select @bind=_userSettings.ArticleExpirationAfterDays class="mb-5 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             <option selected>Select duration</option>
             <option value=7>1 Week</option>
@@ -42,13 +42,13 @@
             <option value=0>Never</option>
         </select>
         
-        <label>Article Count per page (0 = No limit)</label>
+        <label class="dark:text-gray-200">Article Count per page (0 = No limit)</label>
         <div class="relative mb-5 ">
             <InputNumber @bind-Value=_userSettings.ArticleCountOnPage maxlength="4" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
             <ValidationMessage For="@(() => _userSettings.ArticleCountOnPage)" />
         </div>
         
-        <label>Max Article Count in the Database (0 = No limit)</label>
+        <label class="dark:text-gray-200">Max Article Count in the Database (0 = No limit)</label>
         <div class="relative mb-5">
             <InputNumber disabled @bind-Value=_userSettings.MaxArticleCountInDb maxlength="5" class="disabled cursor-not-allowed w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
             <ValidationMessage For="@(() => _userSettings.MaxArticleCountInDb)" />
@@ -56,15 +56,15 @@
         
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 2em">Images</h5>
         
-        <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 p-3 bg-gray-200 rounded-lg h-[3.75em]">
-            <label class="inline-block align-middle text-base">Show Article Images</label>
+        <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
+            <label class="inline-block align-middle text-base dark:text-gray-200 ">Show Article Images</label>
             <div class="inline-block align-middle form-check form-switch form-switch-lg float-right block">
                 <input @bind=_userSettings.ShowImages class="form-check-input" type="checkbox">
             </div>
         </div>
         
-        <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 p-3 bg-gray-200 rounded-lg h-[3.75em]">
-            <label class="inline-block align-middle text-base">Download Article Images</label>
+        <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 p-3 dark:bg-slate-700 bg-gray-200 rounded-lg h-[3.75em]">
+            <label class="inline-block align-middle text-base dark:text-gray-200">Download Article Images</label>
             <div class="inline-block align-middle form-check form-switch form-switch-lg float-right block">
                 <input @bind=_userSettings.DownloadImages class="form-check-input" type="checkbox">
             </div>
@@ -73,8 +73,8 @@
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 1.5em">Cache Sizes</h5>
         
         <div class="max-w-sm grid grid-cols-3 gap-4 mb-5">
-            <div class="col-span-2 inline-block align-middle border-2 border-gray-200 p-3 bg-gray-200 rounded-lg h-[3.75rem]">
-                <p class="inline-block align-middle text-base">Image Cache: </p>
+            <div class="col-span-2 inline-block align-middle border-2 border-gray-200 p-3 bg-gray-200 dark:bg-slate-700  rounded-lg h-[3.75rem]">
+                <p class="inline-block align-middle text-base dark:text-gray-200">Image Cache: </p>
                 <div class="inline-block align-middle float-right block space-mono">
                     <p>@(_imageFolderSize.ToString("0.##") == "0" ? "<1" : _imageFolderSize.ToString("0.##"))MB</p>
                 </div>
@@ -88,8 +88,8 @@
         </div>
         
         <div class="max-w-sm grid grid-cols-3 gap-4 mb-5">
-            <div class="col-span-2 inline-block align-middle border-2 border-gray-200 p-3 bg-gray-200 rounded-lg h-[3.75rem]">
-                <label class="inline-block align-middle text-base">Article Cache: </label>
+            <div class="col-span-2 inline-block align-middle border-2 border-gray-200 p-3 bg-gray-200 dark:bg-slate-700  rounded-lg h-[3.75rem]">
+                <label class="inline-block align-middle text-base dark:text-gray-200">Article Cache: </label>
                 <div class="inline-block align-middle float-right block space-mono">
                     <p>@(_databaseSize.ToString("0.##") == "0" ? "<1" : _databaseSize.ToString("0.##"))MB</p>
                 </div>
