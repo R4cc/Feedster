@@ -129,15 +129,15 @@ else{
 </SlideOver>
 
 
-@confirmationModalFragment
+@_confirmationModalFragment
 @Notification
 
 @code {
     private List<Folder> _folders = new();
     private Folder _folder = new(){FolderId = -1};
-    private Folder _folderToRemove = null;
+    private Folder? _folderToRemove;
     private string _folderDisplayName = String.Empty;
-    private RenderFragment confirmationModalFragment = null;
+    private RenderFragment? _confirmationModalFragment = null;
     private RenderFragment? Notification = null;
     
     private List<Feed> _feeds = new();
@@ -191,20 +191,20 @@ else{
         _folders = await _folderRepo.GetAll();
     }
     
-    protected async Task ConfirmationModalResult(bool IsConfirmation)
+    private async Task ConfirmationModalResult(bool IsConfirmation)
     {
-        if (IsConfirmation)
+        if (IsConfirmation && _folderToRemove is not null)
         {
             await DeleteFeed(_folderToRemove);
         }
         _folderToRemove = null;
-        confirmationModalFragment = null;
+        _confirmationModalFragment = null;
     }
 
-    private async Task StartDeleteFeed(Folder folderToRemove)
+    private void StartDeleteFeed(Folder folderToRemove)
     {
         _folderToRemove = folderToRemove;
-        confirmationModalFragment = @<ConfirmationModal
+        _confirmationModalFragment = @<ConfirmationModal
                                          Title="Delete Folder"
                                          Summary="Are you sure you want to delete this folder?"
                                          OnUserSelection=ConfirmationModalResult/>;
@@ -222,13 +222,13 @@ else{
         _feeds = (await _feedRepo.GetAll()).Except(_folder.Feeds).ToList();
     }    
     
-    private async Task RemoveFeedFromFolder(Feed feed)
+    private void RemoveFeedFromFolder(Feed feed)
     {
         _folder.Feeds.Remove(feed);
         _feeds.Add(feed);
     }    
     
-    private async Task AddFeedToFolder(Feed feed)
+    private void AddFeedToFolder(Feed feed)
     {
         _folder.Feeds.Add(feed);
         _feeds.Remove(feed);
@@ -236,6 +236,6 @@ else{
     
     private void ShowNotification(string Title, string Summary)
     {
-        Notification = @<Notification title="@Title" Summary="@Summary" isShown=@true/>;
+        Notification = @<Notification title="@Title" Summary="@Summary" IsShown=@true/>;
     }
 }

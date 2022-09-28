@@ -7,10 +7,10 @@ public class Article
     public string? Title { get; set; }
     public string? Description { get; set; }
     public int FeedId { get; set; }
-    public Feed Feed { get; set; }
-    public string? ArticleLink { get; set; }
+    public Feed? Feed { get; set; }
+    public string ArticleLink { get; set; } = String.Empty;
     public string? ImageUrl { get; set; }
     public string? ImagePath { get; set; }
-    public DateTime? PublicationDate { get; set; }
-    public string[] Tags { get; set; }
+    public DateTime PublicationDate { get; set; } = DateTime.Now;
+    public string[]? Tags { get; set; }
 }

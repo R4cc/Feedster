@@ -1,33 +1,33 @@
 @page "/feed/{feedId:int}"
 @inject FeedRepository _feedRepo
 
-<PageTitle>Feedster - @_feed.Name</PageTitle>
-<h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 3.5em">@_feed.Name</h5>
+<PageTitle>Feedster - @_feed?.Name</PageTitle>
+<h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 3.5em">@_feed?.Name</h5>
 
 <!-- ARTICLE CARDS -->
-<ArticlesList _allArticles=@_articles />
+<ArticlesList AllArticles=@_articles />
 
 @code {
     [Parameter]
-    public int feedId { get; set; }
+    public int FeedId { get; set; }
     
     // FOR ARTICLE DISPLAY
     private List<Article> _articles = new();
-    private Feed _feed;
+    private Feed? _feed = new();
     
     protected override async Task OnInitializedAsync()
     {
         await LoadFeed();
-        await LoadArticles();
+        LoadArticles();
     }
     
     private async Task LoadFeed()
     {
-        _feed = await _feedRepo.Get(feedId);
+        _feed = await _feedRepo.Get(FeedId);
     }
     
-    private async Task LoadArticles()
+    private void LoadArticles()
     {
-        _articles = _feed.Articles;
+        _articles = _feed!.Articles!;
     }
 }

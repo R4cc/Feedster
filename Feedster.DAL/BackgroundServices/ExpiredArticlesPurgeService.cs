@@ -11,10 +11,10 @@ namespace Feedster.DAL.BackgroundServices;
 /// </summary>
 public class ExpiredArticlesPurgeService : BackgroundService
 {
-    private  ArticleRepository _articleRepo;
-    private  UserRepository _userRepository;
-    private IServiceScopeFactory _scopeFactory;
-    private ILogger<ExpiredArticlesPurgeService> _logger;
+    private ArticleRepository? _articleRepo;
+    private UserRepository? _userRepository;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<ExpiredArticlesPurgeService> _logger;
 
     public ExpiredArticlesPurgeService(IServiceScopeFactory scopeFactory, ILogger<ExpiredArticlesPurgeService> logger)
     {
@@ -25,20 +25,22 @@ public class ExpiredArticlesPurgeService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Started ExpiredArticlesPurgeService. Waiting 10 minutes until first purge");
+
         // wait 10 minutes before starting service to let the updater update first
         await Task.Delay(10 * 60 * 1000, stoppingToken);
+
         _logger.LogInformation("Starting first purge");
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var scope = _scopeFactory.CreateScope();
+            using IServiceScope scope = _scopeFactory.CreateScope();
             _articleRepo = scope.ServiceProvider.GetRequiredService<ArticleRepository>();
-            
+
             // Load user settings
             _userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
             UserSettings _userSettings = await _userRepository.Get();
 
-            if (_userSettings.ArticleExpirationAfterDays == 0) 
+            if (_userSettings.ArticleExpirationAfterDays == 0)
             {
                 // auto purge turned off; recheck in 15 minutes
                 await Task.Delay(15 * 60 * 1000, stoppingToken);
@@ -46,11 +48,15 @@ public class ExpiredArticlesPurgeService : BackgroundService
             else
             {
                 await _articleRepo.ClearArticlesOlderThan(DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays));
-                
+
                 // run once every 24 hours
                 _logger.LogInformation("Purge completed. Waiting 24 Hours until next purge");
+
+                scope.Dispose();
+                _userRepository.Dispose();
+
                 await Task.Delay(24 * 60 * 60 * 1000, stoppingToken);
-            } 
+            }
         }
     }
 }

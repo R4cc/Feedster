@@ -7,13 +7,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Feedster.DAL.BackgroundServices;
 
+/// <summary>
+/// This service automatically runs every second and tries to dequeue tasks (fetching feeds) from the BackgroundJobs List
+/// </summary>
 public class FeedUpdateDequeueService : BackgroundService
 {
-    private  RssFetchService _rssFetchService;
-    private  BackgroundJobs _backgroundJobs;
-    private  UserRepository _userRepository;
-    private IServiceScopeFactory _scopeFactory;
-    private ILogger<FeedUpdateDequeueService> _logger;
+    private  RssFetchService? _rssFetchService;
+    private  BackgroundJobs? _backgroundJobs;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<FeedUpdateDequeueService> _logger;
 
     public FeedUpdateDequeueService(IServiceScopeFactory scopeFactory, ILogger<FeedUpdateDequeueService> logger)
     {
@@ -25,7 +27,7 @@ public class FeedUpdateDequeueService : BackgroundService
     {
         _logger.LogInformation("Started FeedUpdateDequeueService");
         
-        using var scope = _scopeFactory.CreateScope();
+        using IServiceScope scope = _scopeFactory.CreateScope();
         _backgroundJobs = scope.ServiceProvider.GetRequiredService<BackgroundJobs>();   
         _rssFetchService = scope.ServiceProvider.GetRequiredService<RssFetchService>();   
         

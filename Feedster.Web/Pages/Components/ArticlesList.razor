@@ -1,7 +1,7 @@
 @inject IJSRuntime js
 @inject UserRepository _userRepo
 
-@if (!_allArticles.Any())
+@if (!AllArticles.Any())
 {
     <br/>
     <a>No articles found...</a>
@@ -12,11 +12,11 @@ else
     {
         <div class="mb-5">
             <a href="@article.ArticleLink" target="_blank" style="min-width: 20em;" class=" border border-3 border-black transition hover:bg-gray-200 block p-6 bg-gray-100 rounded-lg shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-                @if (File.Exists("images/" + article.ImagePath) && _UserSettings.ShowImages)
+                @if (File.Exists("images/" + article.ImagePath) && _userSettings.ShowImages)
                 {
                     <img src="@("/images/" + article.ImagePath)" class="rounded max-w-50 mb-2" alt="article image">
                 }
-                <p class="text-sm top-0 space-mono">@article.Feed.Name • @Convert.ToDateTime(article.PublicationDate).ToString("g")</p>
+                <p class="text-sm top-0 space-mono">@article.Feed?.Name • @Convert.ToDateTime(article.PublicationDate).ToString("g")</p>
                 <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
                 @if (article.Description is not null)
                 {
@@ -45,77 +45,77 @@ else
 
 @code {
     [Parameter]
-    public List<Article> _allArticles { get; set; }
-    public List<Article> _currentPageArticles { get; set; }
-    public UserSettings _UserSettings { get; set; }
-    int articlesPerPage = 20;
+    public List<Article> AllArticles { get; set; } = new();
 
-    private int pageNum = 1;
+    List<Article> _currentPageArticles = new();
+    UserSettings _userSettings = new();
+    int _articlesPerPage = 20;
+    int _pageNum = 1;
     
+    private bool NextBtnDisabled { get; set; }= false;
     private bool PrevBtnDisabled {
         get
         {
-            if (pageNum <= 1)
+            if (_pageNum <= 1)
                 return true;
 
             return false;
         }
     }
 
-    private bool NextBtnDisabled = false;
-
     protected override async Task OnInitializedAsync()
     {
-        _UserSettings = await _userRepo.Get();
-        articlesPerPage = _UserSettings.ArticleCountOnPage;
+        _userSettings = await _userRepo.Get();
+        _articlesPerPage = _userSettings.ArticleCountOnPage;
 
-        if (articlesPerPage == 0)
+        if (_articlesPerPage == 0)
         {
-            articlesPerPage = _allArticles.Count;
+            _articlesPerPage = AllArticles.Count;
         }
         
-        if(_allArticles.Count <= articlesPerPage)
+        if(AllArticles.Count <= _articlesPerPage)
             NextBtnDisabled = true;
         
-        await RefreshArticles(0);
+        RefreshArticles(0);
     }
     private async Task ClickPagingButton(bool IsNext)
     {
         if (IsNext)
         {
-            pageNum++;
+            _pageNum++;
         }
         else
         {
-            pageNum--;
+            _pageNum--;
         }
-
-        await PageChanged(pageNum);
+        
+        PageChanged(_pageNum);
         await js.InvokeVoidAsync("OnScrollEvent");
         await js.InvokeVoidAsync("blurActive");
     }
     
-    private async Task PageChanged(int newPage)
+    // Calculate where the startindex is depending on the current page number and usersettings
+    private void PageChanged(int newPage)
     {
         int startIndex = 0;
         for (int i = 1; i < newPage; i++)
         {
-            startIndex += articlesPerPage;
+            startIndex += _articlesPerPage;
         }
-        await RefreshArticles(startIndex);
-        pageNum = newPage;
+        RefreshArticles(startIndex);
+        _pageNum = newPage;
     }
 
-    private async Task RefreshArticles(int startIndex)
+    private void RefreshArticles(int startIndex)
     {
-        int count = articlesPerPage;
+        int count = _articlesPerPage;
         
-        if (startIndex + articlesPerPage > _allArticles.Count)
+        if (startIndex + _articlesPerPage > AllArticles?.Count)
         {
-            count = _allArticles.Count - startIndex;
+            count = AllArticles.Count - startIndex;
             NextBtnDisabled = true;
         }
-        
-        _currentPageArticles = _allArticles.GetRange(startIndex, count);
+
+        _currentPageArticles = AllArticles!.GetRange(startIndex, count);
     }
 }
