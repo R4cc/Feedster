@@ -9,6 +9,7 @@ public class ArticleRepository
 {
     private readonly ApplicationDbContext _db;
     private readonly ImageService _imageService;
+
     public ArticleRepository(ApplicationDbContext db, ImageService imageService)
     {
         _db = db;
@@ -26,24 +27,30 @@ public class ArticleRepository
         _db.Articles.UpdateRange(articles);
         await _db.SaveChangesAsync();
     }
-    
-    public async Task<List<Article>> GetFromGroupId(int id)
+
+    public async Task<List<Article>> GetFromFolderId(int id)
     {
-        return _db.Articles.Include(x => x.Feed).ThenInclude(c => c.Folders).Where(f => f.Feed.Folders.Any(g => g.FolderId == id)).ToList();
+        return (await _db.Folders.Include(f => f.Feeds).ThenInclude(f => f.Articles)
+            .FirstOrDefaultAsync(f => f.FolderId == id))?.Feeds.SelectMany(f => f.Articles!).ToList() ?? new();
     }
 
     public async Task ClearAllArticles()
     {
         _db.Articles.RemoveRange(_db.Articles);
-        await _imageService.ClearImageCache();
+        _imageService.ClearImageCache();
         await _db.SaveChangesAsync();
     }
-    
+
     public async Task ClearArticlesOlderThan(DateTime dateTime)
     {
         var articlesToDelete = await _db.Articles.Where(x => x.PublicationDate < dateTime).ToListAsync();
         _db.Articles.RemoveRange(articlesToDelete);
         await _db.SaveChangesAsync();
-        await _imageService.ClearArticleImages(articlesToDelete);
+        _imageService.ClearArticleImages(articlesToDelete);
+    }
+
+    internal void Dispose()
+    {
+        _db.Dispose();
     }
 }

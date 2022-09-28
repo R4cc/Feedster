@@ -7,13 +7,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Feedster.DAL.BackgroundServices;
 
+/// <summary>
+/// This service automatically updates all feeds in the DB on a user defined interval
+/// </summary>
 public class FeedUpdateSchedulerService : BackgroundService
 {
-    private  BackgroundJobs _backgroundJobs;
-    private  UserRepository _userRepository;
-    private  FeedRepository _feedRepository;
-    private IServiceScopeFactory _scopeFactory;
-    private ILogger<FeedUpdateSchedulerService> _logger;
+    private  BackgroundJobs? _backgroundJobs;
+    private  UserRepository? _userRepository;
+    private  FeedRepository? _feedRepository;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<FeedUpdateSchedulerService> _logger;
 
     public FeedUpdateSchedulerService(IServiceScopeFactory scopeFactory, ILogger<FeedUpdateSchedulerService> logger)
     {
@@ -25,7 +28,7 @@ public class FeedUpdateSchedulerService : BackgroundService
     {
         _logger.LogInformation("Started FeedUpdateSchedulerService");
         
-        using var scope = _scopeFactory.CreateScope();
+        using IServiceScope scope = _scopeFactory.CreateScope();
         _backgroundJobs = scope.ServiceProvider.GetRequiredService<BackgroundJobs>();   
         
         while (!stoppingToken.IsCancellationRequested)
@@ -34,18 +37,19 @@ public class FeedUpdateSchedulerService : BackgroundService
             
             // load user settings
             _userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
-            UserSettings _userSettings = await _userRepository.Get();
+            UserSettings userSettings = await _userRepository.Get();
 
-            if (_userSettings.ArticleRefreshAfterMinutes == 0)
+            if (userSettings.ArticleRefreshAfterMinutes == 0)
             {
                 // auto fetch turned off; recheck in 15 minutes
                 await Task.Delay(15 * 60 * 1000, stoppingToken);
             }
             else
             {
+                // Update all Feeds currently in DB
                 List<Feed> feeds = await _feedRepository.GetAll();
                 _backgroundJobs.BackgroundTasks.Enqueue(feeds);
-                await Task.Delay(_userSettings.ArticleRefreshAfterMinutes * 60 * 1000, stoppingToken);
+                await Task.Delay(userSettings.ArticleRefreshAfterMinutes * 60 * 1000, stoppingToken);
             }
         }
         scope.Dispose();

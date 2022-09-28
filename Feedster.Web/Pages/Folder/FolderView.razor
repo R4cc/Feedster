@@ -6,9 +6,8 @@
 @inject ArticleRepository _articleRepo
 @inject IJSRuntime js
 
-<PageTitle>Feedster - @_folder.Name</PageTitle>
+<PageTitle>Feedster - @_folder?.Name</PageTitle>
 <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 3.5em">@_folderDisplayName</h5>
-
 
 <!-- MANAGE / RENAME / DELETE BUTTON GROUP -->
 <div class="inline-flex rounded-md shadow-sm mb-4 " role="folder">
@@ -26,15 +25,17 @@
     </button>
 </div>
 
-<!-- ARTICLE CARDS -->
-<ArticlesList _allArticles=@_articles />
-
-@if (_articles.Count == 0 && _folder.Feeds.Count == 0)
+@if (_articles.Count == 0 && _folder?.Feeds.Count == 0)
 {
     <div class="mt-2 rounded-lg bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4" role="alert">
       <p class="font-bold">No Feeds added to folder</p>
       <p>You need to add feeds to this folder to see anything</p>
     </div>
+}
+else
+{
+    <!-- ARTICLE CARDS -->
+    <ArticlesList AllArticles=@_articles />
 }
 
 <!-- SLIDEOVER FOR EDITING NAME / FOLDER FEEDS -->
@@ -45,7 +46,7 @@
     <h5 class="mb-4 font-bold tracking-tight dark:text-white" style="font-size: 2em">Manage your Folder</h5>
     <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 1.5em">Name</h5>
     <div class="relative">
-        <InputText @bind-Value="_folder.Name" type="text" id="input-group-0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Tech News'" />
+        <InputText @bind-Value="_folder!.Name" type="text" id="input-group-0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Tech News'" />
         <ValidationMessage For="@(() => _folder.Name)" />
     </div>
 
@@ -101,14 +102,14 @@
 
 @code {
     [Parameter]
-    public int folderId { get; set; }
+    public int FolderId { get; set; }
     
     // FOR ARTICLE DISPLAY
     private List<Article> _articles = new();
     
     // FOR EDITING THE FOLDERS FEEDS
     private List<Feed> _feeds = new(); 
-    private Folder? _folder;
+    private Folder? _folder = new();
     private string _folderDisplayName = "Folder";
     
     protected override async Task OnInitializedAsync()
@@ -118,42 +119,45 @@
     
     private async Task LoadArticles()
     {
-        await LoadFolder(folderId);
-        _articles = (await _articleRepo.GetFromGroupId((int)folderId)).OrderByDescending(x => x.PublicationDate).ToList();
+        await LoadFolder(FolderId);
+        _articles = (await _articleRepo.GetFromFolderId((int)FolderId)).OrderByDescending(x => x.PublicationDate).ToList();
     }
     
-    private async Task LoadFolder(int grpId)
+    private async Task LoadFolder(int folderId)
     {
-        _folder = await FolderRepo.Get(grpId);
-        _folderDisplayName = _folder.Name;
+        _folder = await FolderRepo.Get(folderId);
+        _folderDisplayName = _folder!.Name;
     }    
     
     private async Task LoadFeeds()
     {
-        _feeds = (await _feedRepo.GetAll()).Except(_folder.Feeds).ToList();
+        _feeds = (await _feedRepo.GetAll()).Except(_folder!.Feeds).ToList();
         await js.InvokeVoidAsync("toggleSlideover");
     }    
     
-    private async Task RemoveFeedFromFolder(Feed feed)
+    private void RemoveFeedFromFolder(Feed feed)
     {
-        _folder.Feeds.Remove(feed);
+        _folder!.Feeds.Remove(feed);
         _feeds.Add(feed);
     }    
     
-    private async Task AddFeedToFolder(Feed feed)
+    private void AddFeedToFolder(Feed feed)
     {
-        _folder.Feeds.Add(feed);
+        _folder!.Feeds.Add(feed);
         _feeds.Remove(feed);
     }    
     
     private async Task UpdateFolder()
     {
+        if (_folder is null) return;
+        
         await FolderRepo.Update(_folder);
         _folderDisplayName = _folder.Name;
+
         await LoadArticles();
         await js.InvokeVoidAsync("toggleSlideover");
         
         // force refresh of sidebar; else the name and feeds are not refreshed
-        NavigationManager.NavigateTo("/folder/" + folderId, forceLoad: true);
+        NavigationManager.NavigateTo("/folder/" + FolderId, forceLoad: true);
     }
 }

@@ -5,5 +5,5 @@ namespace Feedster.DAL.BackgroundServices;
 
 public class BackgroundJobs
 {
-    public ConcurrentQueue<List<Feed>> BackgroundTasks {get; set;} = new();
+    public ConcurrentQueue<List<Feed>> BackgroundTasks { get; set; } = new();
 }

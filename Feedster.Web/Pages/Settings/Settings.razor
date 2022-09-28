@@ -30,7 +30,7 @@
             <option value=0>Never</option>
         </select>
         
-        <label>Delete articles automatically after...</label>
+        <label>Delete articles older than...</label>
         <select @bind=_userSettings.ArticleExpirationAfterDays class="mb-5 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             <option selected>Select duration</option>
             <option value=7>1 Week</option>
@@ -76,7 +76,7 @@
             <div class="col-span-2 inline-block align-middle border-2 border-gray-200 p-3 bg-gray-200 rounded-lg h-[3.75rem]">
                 <p class="inline-block align-middle text-base">Image Cache: </p>
                 <div class="inline-block align-middle float-right block space-mono">
-                    <p>@(ImageFolderSize.ToString("0.##") == "0" ? "<1" : ImageFolderSize.ToString("0.##"))MB</p>
+                    <p>@(_imageFolderSize.ToString("0.##") == "0" ? "<1" : _imageFolderSize.ToString("0.##"))MB</p>
                 </div>
             </div>
             <button @onclick="ClearImageCache" class="col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
@@ -91,7 +91,7 @@
             <div class="col-span-2 inline-block align-middle border-2 border-gray-200 p-3 bg-gray-200 rounded-lg h-[3.75rem]">
                 <label class="inline-block align-middle text-base">Article Cache: </label>
                 <div class="inline-block align-middle float-right block space-mono">
-                    <p>@(DatabaseSize.ToString("0.##") == "0" ? "<1" : DatabaseSize.ToString("0.##"))MB</p>
+                    <p>@(_databaseSize.ToString("0.##") == "0" ? "<1" : _databaseSize.ToString("0.##"))MB</p>
                 </div>
             </div>
             <button @onclick="ClearArticles" class="col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
@@ -111,13 +111,13 @@
     </EditForm>
     </div>
 
-@Notification
+@_notification
 
 @code {
-    UserSettings _userSettings;
-    long ImageFolderSize;
-    long DatabaseSize;
-    RenderFragment? Notification = null;
+    UserSettings _userSettings = new();
+    long _imageFolderSize;
+    long _databaseSize;
+    RenderFragment? _notification;
     protected override async Task OnInitializedAsync()
     {
         await LoadUserSettings();
@@ -126,13 +126,13 @@
     private async Task LoadUserSettings()
     {
         _userSettings = await _userRepo.Get();
-        await LoadCacheSizes();
+        LoadCacheSizes();
     }
 
-    private async Task LoadCacheSizes()
+    private void LoadCacheSizes()
     {
-        ImageFolderSize = await _ImageService.GetImageCacheFolderSize();
-        DatabaseSize = await _ImageService.GetDatabaseSize();
+        _imageFolderSize = _ImageService.GetImageCacheFolderSize();
+        _databaseSize = _ImageService.GetDatabaseSize();
     }
 
     private async Task SaveChanges()
@@ -142,22 +142,22 @@
         ShowNotification("Changes Saved!", "All changes have been saved. Some settings can take up to 10 minutes to take effect.");
     }
 
-    private async Task ClearImageCache()
+    private void ClearImageCache()
     {
-        await _ImageService.ClearImageCache();
-        await LoadCacheSizes();
+        _ImageService.ClearImageCache();
+        LoadCacheSizes();
         ShowNotification("Images cleared!", "All images have been successfully cleared.");
     }
     
     private async Task ClearArticles()
     {
         await _articleRepo.ClearAllArticles();
-        await LoadCacheSizes();
+        LoadCacheSizes();
         ShowNotification("Articles cleared!", "All articles have been successfully cleared.");
     }
 
-    private void ShowNotification(string Title, string Summary)
+    private void ShowNotification(string title, string summary)
     {
-        Notification = @<Notification title="@Title" Summary="@Summary" isShown=@true/>;
+        _notification = @<Notification Title="@title" Summary="@summary" IsShown=@true/>;
     }
 }

@@ -7,10 +7,12 @@ namespace Feedster.DAL.Repositories;
 public class UserRepository
 {
     private readonly ApplicationDbContext _db;
+
     public UserRepository(ApplicationDbContext db)
     {
         _db = db;
     }
+
     public async Task<UserSettings> Get()
     {
         return await _db.UserSettings.FirstAsync();
@@ -20,5 +22,10 @@ public class UserRepository
     {
         _db.UserSettings.Update(_userSettings);
         await _db.SaveChangesAsync();
+    }
+
+    internal void Dispose()
+    {
+        _db.Dispose();
     }
 }

@@ -67,7 +67,7 @@
 </div>
 
 @code{
-  List<Folder> _folders;
+  List<Folder> _folders = new();
   private static bool showSidebar = false;
   
   protected override async Task OnInitializedAsync()
@@ -75,7 +75,7 @@
     //nav.LocationChanged += (s, e) => StateHasChanged();
     await DataLoad();
   }
-  private async Task NavTo(string navlink)
+  private void NavTo(string navlink)
   {
     nav.NavigateTo(navlink, forceLoad: true);
     showSidebar = false;
@@ -86,7 +86,7 @@
     _folders = await _folderRepo.GetAll();
   }
 
-  private async Task ToggleSidebar()
+  private void ToggleSidebar()
   {
     showSidebar = !showSidebar;
   }
