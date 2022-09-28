@@ -58,8 +58,11 @@ The following features are planned for the future
 
 
 
-
 ## Docker
+
+### For Nginx Reverse Proxy Users
+Make sure that "Web Socket support" is enabled for this specific container. This is because Blazor Server communicates with a SignalR connection.
+
 ### Docker Run Command Example
 In the below command, the application will be accessible at http://localhost:30080 on the host and the files including the database for all the articles would be stored in /your/path/data/ folder.
 ```
