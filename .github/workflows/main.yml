@@ -3,7 +3,7 @@ name: dockerpush
 on:
  push:
    branches:
-     - 'main'
+     - 'dev'
 
 jobs:
  docker:
@@ -28,4 +28,4 @@ jobs:
          context: "{{defaultContext}}"
          platforms: linux/amd64
          push: true
-         tags: nl2109/feedster:latest
+         tags: nl2109/feedster:dev
