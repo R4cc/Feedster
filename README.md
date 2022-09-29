@@ -87,7 +87,7 @@ docker run -d \
     --restart unless-stopped \
     -p 30080:80 \
     -v  /your/path:/app/data \
-    -v  /your/path:/app/images
+    -v  /your/path:/app/images \
     index.docker.io/nl2109/feedster:latest
 ```
 
