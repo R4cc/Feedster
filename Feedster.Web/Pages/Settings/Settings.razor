@@ -6,7 +6,7 @@
 
 <PageTitle>Feedster - Settings</PageTitle>
 
-<div class="container max-w-lg sm:border-2 sm:p-5 sm:rounded-xl sm:dark:bg-slate-800 dark:border-gray-600 bg-gray-100">
+<div class="container max-w-lg sm:border-2 sm:p-5 sm:rounded-xl sm:dark:bg-slate-800 sm:dark:border-gray-600 sm:bg-gray-100">
     <EditForm Model="_userSettings" OnValidSubmit="SaveChanges">
         <DataAnnotationsValidator/>
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 3.5em">Settings</h5>
@@ -58,23 +58,23 @@
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono  dark:brightness-[0.85]" style="font-size: 2em">Appearance</h5>
         
         <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
-            <label class="inline-block align-middle text-base dark:text-gray-200 ">Dark Mode</label>
-            <div class="inline-block align-middle form-check form-switch form-switch-lg float-right block">                
-                <input @bind=_isDarkMode class="form-check-input" type="checkbox">
+            <label class="inline-block align-middle text-base dark:text-gray-200">Dark Mode</label>
+            <div class="inline-block align-middle float-right block">                
+                <input @bind=_isDarkMode class="switch" type="checkbox">
             </div>
         </div>
         
         <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
             <label class="inline-block align-middle text-base dark:text-gray-200 ">Show Article Images</label>
-            <div class="inline-block align-middle form-check form-switch form-switch-lg float-right block">                
-                <input @bind=_userSettings.ShowImages class="form-check-input" type="checkbox">
+            <div class="inline-block align-middle float-right block">                
+                <input @bind=_userSettings.ShowImages class="switch" type="checkbox">
             </div>
         </div>
         
         <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 dark:bg-slate-700 bg-gray-200 rounded-lg h-[3.75em]">
             <label class="inline-block align-middle text-base dark:text-gray-200">Download Article Images</label>
-            <div class="inline-block align-middle form-check form-switch form-switch-lg float-right block rounded">
-                <input @bind=_userSettings.DownloadImages class="form-check-input" type="checkbox">
+            <div class="inline-block align-middle float-right block rounded">
+                <input @bind=_userSettings.DownloadImages class="switch" type="checkbox">
             </div>
         </div>
         

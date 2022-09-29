@@ -3,16 +3,25 @@
 
 <PageTitle>Feedster</PageTitle>
 
-<div class="page @(IsDarkMode ? "dark" : "")">
+<div class="page @(IsDarkMode ? "dark" : "")" style="min-height: 100vh">
     <div class="sidebar top-0 border-end border-bottom">
         <NavMenu/>
     </div>
     <main class="dark:bg-slate-900 @(IsDarkMode ? "dark" : "")">
-        <article class="content px-4 max-w-screen-sm roboto ">
+        <article class="content px-4 max-w-screen-sm roboto">
             @Body
         </article>
     </main>
 </div>
+
+
+<style>
+    html,
+    body
+    {
+    min-height: 100vh;
+    }
+</style>
 
 @code{
     bool IsDarkMode = true;
@@ -21,3 +30,4 @@
         IsDarkMode = (await _userRepo.Get()).IsDarkMode;
     }
 }
+
