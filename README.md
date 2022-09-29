@@ -8,7 +8,7 @@ A semi-minimal RSS reader written in ASP.NET Blazor Server Side.
 **This is more of a personal project that is in very early development than a production ready competitor to TinyRSS or similar projects and I am somewhat of a noob so expect minor problems :)**
 
 ## Features
-The following features are built into the application:
+The following features are built into the application
 - Regular auto-fetching of RSS feeds with adjustable timeframe
 - Custom feed names
 - Dark Mode
