@@ -16,4 +16,5 @@ public class UserSettings
     public int MaxArticleCountInDb { get; set; } = 0;
     public bool ShowImages { get; set; } = true;
     public bool DownloadImages { get; set; } = true;
+    public bool IsDarkMode { get; set; } = true;
 }

@@ -6,8 +6,9 @@
 @inject IJSRuntime js
 
 <PageTitle>Feedster - Folders</PageTitle>
-<h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono" style="font-size: 3.5em">Manage Folders</h5>
-<button type="button" @onclick="StartFolderCreate" class="shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+    
+<h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 3.5em">Manage Folders</h5>
+<button type="button" @onclick="StartFolderCreate" class="dark:border-gray-400 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-2 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
     <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -16,7 +17,8 @@
 
 @if (!_folders.Any())
 {
-    <a>No Folders to display...</a>
+    <br/>
+    <a class="dark:brightness-[0.75] dark:text-white">No Folders to display...</a>
 }
 else{
 <div class="break-normal overflow-x-auto relative shadow-md rounded-lg desktop-table-width border border-3 border-black">
@@ -37,7 +39,7 @@ else{
         <tbody>
         @foreach(var folder in _folders)
         {
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 ">
             <td class="py-4 px-6 string-char-length">
                 @folder.Name
             </td>
@@ -45,7 +47,7 @@ else{
                     @folder.Feeds.Count
             </td>
             <td class="py-4 px-6">
-                <div class="inline-flex rounded-md shadow-sm" role="folder">
+                <div class="inline-flex rounded-md shadow-sm dark:brightness-[0.85]" role="folder">
                     <button @onclick="() => StartFolderEdit(folder)" type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-l-lg border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -67,65 +69,68 @@ else{
 </div>
 }
 
+
 <!-- SLIDEOVER FOR EDITING NAME / FOLDER FEEDS -->
 <SlideOver>
     <EditForm Model="_folder" OnValidSubmit="SaveChanges">
         <DataAnnotationsValidator/>
         
-    <h5 class="mb-4 font-bold tracking-tight dark:text-white" style="font-size: 2em">@(_folder.FolderId == -1 ? "Create a Folder" : "Manage your Folder")</h5>
-    <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 1.5em">Name</h5>
-    <div class="relative">
-        <InputText @bind-Value="_folderDisplayName" @onblur="() => _folder.Name = _folderDisplayName" type="text" id="input-group-0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Tech News'" />
-        <ValidationMessage For="@(() => _folder.Name)" />
-    </div>
-
-    <h5 class="mb-2 mt-5 font-bold tracking-tight dark:text-white" style="font-size: 1.5em">Folder feeds</h5>
-    @if (!_folder.Feeds.Any())
-    {
-        <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3 align-middle">
-            <a>No feeds...</a>
+        <DataAnnotationsValidator/>
+            
+        <h5 class="mb-4 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 2em">Manage your Folder</h5>
+        <h5 class="mb-2 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 1.5em">Name</h5>
+        <div class="relative">
+            <InputText @bind-Value="_folder!.Name" type="text" id="input-group-0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Tech News'" />
+            <ValidationMessage For="@(() => _folder.Name)" />
         </div>
-    }
-    @foreach (var feed in _folder.Feeds)
-    {
-        <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3">
-            <a>@feed.Name</a>
-            <button @onclick="@(() => RemoveFeedFromFolder(feed))" type="button" class="float-right hover:bg-red-600 hover:text-white text-red-600 border border-red-600 hover:bg-red-600 focus:ring-2 focus:outline-none focus:ring-black font-medium rounded text-sm px-3 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-red dark:focus:ring-gray-800">
-                <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle  w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6"/>
+    
+        <h5 class="mb-2 mt-5 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 1.5em">Folder feeds</h5>
+        @if (!_folder.Feeds.Any())
+        {
+            <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3 align-middle dark:bg-gray-700">
+                <a class="dark:brightness-[0.75] dark:text-white">No feeds...</a>
+            </div>
+        }
+        @foreach (var feed in _folder.Feeds)
+        {
+            <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3 dark:bg-gray-700">
+                <a class="dark:brightness-[0.75] dark:text-white">@feed.Name</a>
+                <button @onclick="@(() => RemoveFeedFromFolder(feed))" type="button" class="dark:hover:bg-indigo-600 dark:hover:text-white float-right hover:bg-red-600 hover:text-white text-red-600 border border-red-600 hover:bg-red-600 focus:ring-2 focus:outline-none focus:ring-black font-medium rounded text-sm px-3 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:focus:ring-gray-800">
+                    <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle  w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6"/>
+                    </svg>
+                    <a class="align-middle dark:text-white dark:brightness-[0.75]" style="display:inline-block">Remove Feed</a>
+                </button>
+            </div>
+        }
+            <h5 class="mb-2 mt-5 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 1.5em; display: inline-block">Available Feeds</h5>
+            <a href="/feeds/manage" class="text-blue-500 float-right bottom-0 mt-7" @onclick="@(() => NavigationManager.NavigateTo("/feeds/manage"))" >
+                <a class="text-blue-500 cursor-pointer" style="display: inline-block">Create new feed</a>
+                <svg style="display: inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-1 w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                 </svg>
-                <a class="align-middle" style="display:inline-block">Remove Feed</a>
-            </button>
-        </div>
-    }
-        
-    <h5 class="mb-2 mt-5 font-bold tracking-tight dark:text-white" style="font-size: 1.5em; display: inline-block">Available Feeds</h5>
-    <a href="/feeds/manage" class="text-blue-500 float-right bottom-0 mt-7" @onclick="@(() => NavigationManager.NavigateTo("/feeds/manage"))" >
-        <a class="text-blue-500 cursor-pointer" style="display: inline-block">Create new feed</a>
-        <svg style="display: inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-1 w-5 h-5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-        </svg>
-    </a>
-    @if (!_feeds.Any())
-    {
-        <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3 align-middle">
-            <a>No feeds to add...</a>
-        </div>
-    }
-    @foreach (var feed in _feeds)
-    {
-        <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3">
-            <a>@feed.Name</a>
-            <button @onclick="@(() => AddFeedToFolder(feed))" type="button" class="float-right hover:bg-green-600 hover:text-white text-green-600 border border-green-600 hover:bg-green-600 focus:ring-2 focus:outline-none focus:ring-black font-medium rounded text-sm px-3 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-green dark:focus:ring-gray-800">
-                <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/>
-                </svg>
-                <a class="align-middle" style="display:inline-block">Add Folder</a>
-            </button>
-        </div>
-    }
-    <button type="submit" class="w-32 float-right mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">Save</button>
-    </EditForm>
+            </a>
+    
+        @if (!_feeds.Any())
+        {
+            <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3 align-middle dark:bg-gray-700">
+                <a class="dark:brightness-[0.75] dark:text-white">No feeds to add...</a>
+            </div>
+        }
+        @foreach (var feed in _feeds)
+        {
+            <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3 dark:bg-gray-700">
+                <a class="dark:brightness-[0.75] dark:text-white">@feed.Name</a>
+                <button @onclick="@(() => AddFeedToFolder(feed))" type="button" class="dark:hover:bg-indigo-600 dark:hover:text-white float-right hover:bg-green-600 hover:text-white text-green-600 border border-green-600 hover:bg-green-600 focus:ring-2 focus:outline-none focus:ring-black font-medium rounded text-sm px-3 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-green dark:focus:ring-gray-800">
+                    <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/>
+                    </svg>
+                    <a class="align-middle dark:text-white dark:brightness-[0.75]" style="display:inline-block">Add Feed</a>
+                </button>
+            </div>
+        }
+        <button type="submit" class="dark:border-gray-400 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-32 float-right mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Save</button>
+        </EditForm>
 </SlideOver>
 
 
