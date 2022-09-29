@@ -76,8 +76,9 @@ namespace Feedster.DAL.Services
                 try
                 {
                     // Checks if article is older than max expiration setting
-                    if (itm.PublishDate.DateTime != DateTime.MinValue &&
-                        itm.PublishDate.DateTime < DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays))
+                    if (itm.PublishDate.DateTime != DateTime.MinValue
+                        && _userSettings.ArticleExpirationAfterDays != 0 
+                        && itm.PublishDate.DateTime < DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays))
                     {
                         continue;
                     }
