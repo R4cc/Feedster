@@ -1,14 +1,23 @@
 ﻿@inherits LayoutComponentBase
+@inject UserRepository _userRepo
 
 <PageTitle>Feedster</PageTitle>
 
-<div class="page dark">
+<div class="page @(IsDarkMode ? "dark" : "")">
     <div class="sidebar top-0 border-end border-bottom">
         <NavMenu/>
     </div>
-    <main class="dark:bg-slate-900 dark">
+    <main class="dark:bg-slate-900 @(IsDarkMode ? "dark" : "")">
         <article class="content px-4 max-w-screen-sm roboto ">
             @Body
         </article>
     </main>
 </div>
+
+@code{
+    bool IsDarkMode = true;
+    protected override async Task OnInitializedAsync()
+    {
+        IsDarkMode = (await _userRepo.Get()).IsDarkMode;
+    }
+}

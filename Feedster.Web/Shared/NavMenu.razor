@@ -5,10 +5,8 @@
 <div class="sm:flex flex-col sm:flex-row sm:min-h-screen w-full shadow-xl rounded roboto font-semibold" >
   <div class="flex flex-col w-full sm:w-64 text-gray-700 bg-gray-200 dark:text-gray-200 dark:bg-slate-800 flex-shrink-0">
     <div class="flex-shrink-0 px-8 py-2 flex flex-row items-center justify-between">
-      <picture>
-        <source srcset="feedster-logo-full-transparent-dark.png" media="(prefers-color-scheme: dark)">
-        <img alt="Feedster logo" src="feedster-logo-full-transparent.png" @onclick="@(() => NavTo("/"))" class="cursor-pointer float-left" Style="margin-left: -10px; max-width: 12em; vertical-align: middle;"/>
-      </picture>
+      <img alt="Feedster logo" src="feedster-logo-full-transparent.png" @onclick="@(() => NavTo("/"))" class="cursor-pointer float-left dark:hidden" Style="margin-left: -10px; max-width: 12em; vertical-align: middle;"/>
+      <img alt="Feedster logo" src="feedster-logo-full-transparent-dark.png" @onclick="@(() => NavTo("/"))" class="cursor-pointer float-left hidden dark:block" Style="margin-left: -10px; max-width: 12em; vertical-align: middle;"/>
       <button class="p-2 rounded-lg sm:hidden rounded-lg focus:outline-none focus:shadow-outline bg-gray-300 dark:bg-slate-700" @onclick="ToggleSidebar">
         <svg fill="currentColor" viewBox="0 0 20 20" class="w-8 h-8">
           @if (showSidebar)
