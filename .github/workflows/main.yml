@@ -26,6 +26,6 @@ jobs:
        uses: docker/build-push-action@v3
        with:
          context: "{{defaultContext}}"
-         platforms: linux/amd64
+         platforms: linux/amd64,linux/arm64
          push: true
          tags: nl2109/feedster:latest
