@@ -1,11 +1,19 @@
 @page "/feed/{feedId:int}"
 @inject FeedRepository _feedRepo
 
-<PageTitle>Feedster - @_feed?.Name</PageTitle>
-<h5 class="mb-2 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 3.5em">@_feed?.Name</h5>
+@if(_feed is not null)
+{
+    <PageTitle>Feedster - @_feed?.Name</PageTitle>
+    <h5 class="mb-2 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 3.5em">@_feed?.Name</h5>
 
-<!-- ARTICLE CARDS -->
-<ArticlesList AllArticles=@_articles />
+    <!-- ARTICLE CARDS -->
+    <ArticlesList AllArticles=@_articles />
+}
+else
+{
+    <br/>
+    <a class="dark:brightness-[0.75] dark:text-white">Feed not found...</a>
+}
 
 @code {
     [Parameter]
@@ -13,7 +21,7 @@
     
     // FOR ARTICLE DISPLAY
     private List<Article> _articles = new();
-    private Feed? _feed = new();
+    private Feed? _feed;
     
     protected override async Task OnInitializedAsync()
     {
@@ -28,6 +36,9 @@
     
     private void LoadArticles()
     {
-        _articles = _feed!.Articles!;
+        if (_feed is not null)
+        {
+            _articles = _feed.Articles!;
+        }
     }
 }

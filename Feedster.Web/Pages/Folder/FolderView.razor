@@ -6,6 +6,7 @@
 @inject ArticleRepository _articleRepo
 @inject IJSRuntime js
 
+@if(_folder is not null){
 <PageTitle>Feedster - @_folder?.Name</PageTitle>
 <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 3.5em">@_folderDisplayName</h5>
 
@@ -98,7 +99,12 @@ else
     <button type="submit" class="dark:border-gray-400 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-32 float-right mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Save</button>
     </EditForm>
 </SlideOver>
-
+}
+else
+{
+    <br/>
+    <a class="dark:brightness-[0.75] dark:text-white">Folder not found...</a>
+}
 
 @code {
     [Parameter]
@@ -126,7 +132,11 @@ else
     private async Task LoadFolder(int folderId)
     {
         _folder = await FolderRepo.Get(folderId);
-        _folderDisplayName = _folder!.Name;
+
+        if (_folder is not null)
+        {
+            _folderDisplayName = _folder.Name;
+        }
     }    
     
     private async Task LoadFeeds()
