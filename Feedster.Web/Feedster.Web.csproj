@@ -1,60 +1,67 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-Feedster.Web-f4d4acc7-9645-4bbe-a6f1-6589fa8036df</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>aspnet-Feedster.Web-f4d4acc7-9645-4bbe-a6f1-6589fa8036df</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.8" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.8">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Feedster.DAL\Feedster.DAL.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Feedster.DAL\Feedster.DAL.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Remove="database.db" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="database.db" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css" />
-    <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css.map" />
-    <_ContentIncludedByDefault Remove="wwwroot\manifest\icon-192x192.png" />
-    <_ContentIncludedByDefault Remove="wwwroot\manifest\icon-256x256.png" />
-    <_ContentIncludedByDefault Remove="wwwroot\manifest\icon-384x384.png" />
-    <_ContentIncludedByDefault Remove="wwwroot\manifest\icon-512x512.png" />
-    <_ContentIncludedByDefault Remove="wwwroot\manifest\manifest.webmanifest" />
-  </ItemGroup>
+	<ItemGroup>
+		<_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css" />
+		<_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css.map" />
+		<_ContentIncludedByDefault Remove="wwwroot\manifest\icon-192x192.png" />
+		<_ContentIncludedByDefault Remove="wwwroot\manifest\icon-256x256.png" />
+		<_ContentIncludedByDefault Remove="wwwroot\manifest\icon-384x384.png" />
+		<_ContentIncludedByDefault Remove="wwwroot\manifest\icon-512x512.png" />
+		<_ContentIncludedByDefault Remove="wwwroot\manifest\manifest.webmanifest" />
+	</ItemGroup>
 
-  <Target Name="CheckForNpm" BeforeTargets="NpmInstall">
-    <Exec Command="npm -v" ContinueOnError="true">
-      <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
-    </Exec>
-    <Error Condition="'$(ErrorCode)' != '0'" Text="You must install NPM to build this project" />
-  </Target>
+	<!-- Add this PropertyGroup -->
+	<PropertyGroup>
+		<!-- Define a property to indicate if building inside Docker (optional) -->
+		<BuildingInDocker Condition="'$(BuildingInDocker)' == ''">false</BuildingInDocker>
+	</PropertyGroup>
 
-  <Target Name="NpmInstall" BeforeTargets="BuildCSS" Inputs="package.json" Outputs="$(NpmLastInstall)">
-    <Exec Command="npm install" />
-    <Touch Files="$(NpmLastInstall)" AlwaysCreate="true" />
-  </Target>
+	<!-- Modify the custom targets to include conditions -->
+	<Target Name="CheckForNpm" BeforeTargets="NpmInstall" Condition="'$(RestoreExecuting)' != 'true'">
+		<Exec Command="npm -v" ContinueOnError="true">
+			<Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+		</Exec>
+		<Error Condition="'$(ErrorCode)' != '0'" Text="You must install NPM to build this project" />
+	</Target>
 
-  <Target Name="BuildCSS" BeforeTargets="Compile">
-    <Exec Command="npm run buildcss:dev" Condition=" '$(Configuration)' == 'Debug' " />
-    <Exec Command="npm run buildcss:release" Condition=" '$(Configuration)' == 'Release' " />
-  </Target>
+	<Target Name="NpmInstall" BeforeTargets="BuildCSS" Inputs="package.json" Outputs="$(NpmLastInstall)" Condition="'$(RestoreExecuting)' != 'true'">
+		<Exec Command="npm install" />
+		<Touch Files="$(NpmLastInstall)" AlwaysCreate="true" />
+	</Target>
+
+	<Target Name="BuildCSS" BeforeTargets="Compile" Condition="'$(RestoreExecuting)' != 'true'">
+		<Exec Command="npm run buildcss:dev" Condition=" '$(Configuration)' == 'Debug' " />
+		<Exec Command="npm run buildcss:release" Condition=" '$(Configuration)' == 'Release' " />
+	</Target>
 
 </Project>
