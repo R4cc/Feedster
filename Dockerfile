@@ -1,36 +1,44 @@
-#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
+# See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
+# Stage 1: Build the application
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+WORKDIR /src
+
+# Install Node.js and NPM
+RUN apt-get update && apt-get install -y curl gnupg
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+RUN apt-get install -y nodejs
+
+# Verify Node.js and NPM installation
+RUN node -v
+RUN npm -v
+
+# Copy the entire source code
+COPY . .
+
+# Set the working directory to the web project
+WORKDIR /src/Feedster.Web
+
+# Restore dependencies
+RUN dotnet restore "Feedster.Web.csproj"
+
+# Build the project
+RUN dotnet build "Feedster.Web.csproj" -c Release -o /app/build
+
+# Publish the project
+RUN dotnet publish "Feedster.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Stage 2: Build the runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
-WORKDIR /app
-
-WORKDIR /src
-COPY ["Feedster.Web/Feedster.Web.csproj", "Feedster.Web/"]
-COPY ["Feedster.DAL/Feedster.DAL.csproj", "Feedster.DAL/"]
-RUN dotnet restore "Feedster.Web/Feedster.Web.csproj"
-COPY . .
-WORKDIR "/src/Feedster.Web"
-
-# Install NPM
-RUN apt update && apt install curl
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-RUN apt-get install -y nodejs
-
-
-RUN npm -v
-RUN node --version
-RUN npm install
-
-RUN dotnet build "Feedster.Web.csproj" -c Release -o /app/build
-
-FROM build-env AS publish
-RUN dotnet publish "Feedster.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+# Copy the published app from the build stage
+COPY --from=build-env /app/publish .
+
+# Set the entry point for the container
 ENTRYPOINT ["dotnet", "Feedster.Web.dll"]
