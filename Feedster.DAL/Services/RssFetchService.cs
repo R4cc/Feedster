@@ -240,7 +240,7 @@ namespace Feedster.DAL.Services
                     
                     if (image.Height * image.Width <= highestResolution) continue;
                             
-                    highestResolution = image.Height * image.Width;
+                    highestResolution = (int)(image.Height * image.Width);
                     highestResolutionImage = img;
                 }
                 catch
