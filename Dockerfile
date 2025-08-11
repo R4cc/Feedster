@@ -38,8 +38,8 @@ RUN dotnet publish "Feedster.Web.csproj" -c Release -o /app/publish /p:UseAppHos
 # Stage 2: Build the runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+EXPOSE 8080
+EXPOSE 8443
 
 FROM base AS final
 WORKDIR /app
