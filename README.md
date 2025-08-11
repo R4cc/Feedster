@@ -81,20 +81,19 @@ The following features are planned for the future
 Make sure that "Web Socket support" is enabled for this specific container. This is because Blazor Server communicates with a SignalR connection.
 
 ### Docker Run Command Example
-In the below command, the application will be accessible at http://localhost:30080 on the host and the files including the database for all the articles would be stored in /your/path/data/ folder.
+In the below command, the application will be accessible at http://localhost:8080 on the host and the files including the database for all the articles would be stored in /your/path/data/ folder.
 ```
 docker run -d \
     --restart unless-stopped \
-    -p 30080:8080 \
+    -p 8080:8080 \
     -v  /your/path:/app/data \
     -v  /your/path:/app/images \
     index.docker.io/nl2109/feedster:latest
 ```
 
 ### Docker Compose Example
-In the below docker-compose.yml example, the application will be accessible at http://localhost:30080 on the host and the files including the database for all the articles would be stored in /your/path/data/ folder.
+In the below docker-compose.yml example, the application will be accessible at http://localhost:8080 on the host and the files including the database for all the articles would be stored in /your/path/data/ folder.
 ```
-version: '3.9'
 services:
     feedster:
         image: index.docker.io/nl2109/feedster:latest
@@ -102,7 +101,7 @@ services:
         restart: unless-stopped
         volumes:
           - /your/path:/app/data
-	  - /your/path:/app/images
+          - /your/path:/app/images
         ports:
-          - '30080:8080'
+          - '8080:8080'
 ```
