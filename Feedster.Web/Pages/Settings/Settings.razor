@@ -3,6 +3,7 @@
 @inject ImageService _ImageService
 @inject ArticleRepository _articleRepo
 @inject NavigationManager _navManager
+@inject HttpClient _httpClient
 
 <PageTitle>Feedster - Settings</PageTitle>
 
@@ -109,6 +110,14 @@
                 <a class="align-middle" style="display:inline-block">Clear</a>
             </button>
         </div>
+
+        <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 1.5em">Import / Export OPML File</h5>
+
+        <div class="max-w-sm grid grid-cols-2 gap-4 mb-5">
+            <label for="opmlFileInput" class="cursor-pointer dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex items-center justify-center">Import OPML File</label>
+            <button @onclick="ExportOpml" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Export OPML File</button>
+            <InputFile id="opmlFileInput" OnChange="ImportOpml" accept=".opml" class="hidden" />
+        </div>
         
     <button type="submit" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
         <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
@@ -168,7 +177,30 @@
         LoadCacheSizes();
         ShowNotification("Images cleared!", "All images have been successfully cleared.");
     }
-    
+
+    private void ExportOpml()
+    {
+        _navManager.NavigateTo("api/Opml/export", forceLoad: true);
+    }
+
+    private async Task ImportOpml(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using var content = new MultipartFormDataContent();
+        using var stream = file.OpenReadStream(10 * 1024 * 1024);
+        content.Add(new StreamContent(stream), "file", file.Name);
+
+        var response = await _httpClient.PostAsync("api/Opml/import", content);
+        if (response.IsSuccessStatusCode)
+        {
+            ShowNotification("Import completed!", "Feeds imported successfully.");
+        }
+        else
+        {
+            ShowNotification("Import failed!", "Failed to import feeds.");
+        }
+    }
+
     private async Task ClearArticles()
     {
         await _articleRepo.ClearAllArticles();

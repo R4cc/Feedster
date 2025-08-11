@@ -34,10 +34,12 @@ builder.Services.AddTransient<ArticleRepository>();
 builder.Services.AddTransient<UserRepository>();
 builder.Services.AddTransient<RssFetchService>();
 builder.Services.AddTransient<ImageService>();
+builder.Services.AddTransient<OpmlService>();
 builder.Services.AddHostedService<FeedUpdateDequeueService>();
 builder.Services.AddHostedService<ExpiredArticlesPurgeService>();
 builder.Services.AddHostedService<FeedUpdateSchedulerService>();
 builder.Services.AddSingleton<BackgroundJobs>();
+builder.Services.AddHttpClient();
 
 // ensure that paths exists and create if not
 Directory.CreateDirectory("./images");
