@@ -1,7 +1,6 @@
-﻿const colors = require('tailwindcss/colors')
+const colors = require('tailwindcss/colors')
 
 module.exports = {
-    mode: 'jit',
     content: [
         './wwwroot/index.html',
         './**/*.razor'
