@@ -17,7 +17,5 @@ module.exports = {
     variants: {
         extend: { display: ['dark'], },
     },
-    plugins: [
-        require('tailwindcss-textshadow')
-    ]
+    plugins: []
 }
