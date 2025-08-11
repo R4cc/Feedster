@@ -5,7 +5,7 @@ WORKDIR /src
 # Install Node.js, NPM and build tools in a single layer then cleanup
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl gnupg build-essential \
-    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && npm install -g npm@11.5.2 \
     && rm -rf /var/lib/apt/lists/*
