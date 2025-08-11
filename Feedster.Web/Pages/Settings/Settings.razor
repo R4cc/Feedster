@@ -111,13 +111,18 @@
             </button>
         </div>
 
-        <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 1.5em">Import / Export</h5>
+        <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85] flex items-center" style="font-size: 1.5em">Import / Export OPML File
+            <svg title="OPML files let you transfer your feed subscriptions." xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 ml-2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2.25m0 3.75h.008v.008H12v-.008zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </h5>
 
         <div class="max-w-sm grid grid-cols-2 gap-4 mb-5">
-            <button @onclick="ExportOpml" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Export</button>
             <div class="col shadow-md max-w-full h-[3.75rem]">
-                <InputFile OnChange="ImportOpml" accept=".opml" class="w-full h-full text-gray-900 border border-gray-800 dark:bg-indigo-600 dark:text-white dark:border-gray-600 rounded-lg p-2.5" />
+                <InputFile id="opmlFileInput" OnChange="ImportOpml" accept=".opml" class="hidden" />
+                <label for="opmlFileInput" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col inline-block w-full h-full text-center shadow-md text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 cursor-pointer">Import OPML File</label>
             </div>
+            <button @onclick="ExportOpml" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Export OPML File</button>
         </div>
         
     <button type="submit" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
