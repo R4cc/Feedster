@@ -3,7 +3,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /src
 
 # Install Node.js, NPM, and build tools
-RUN apt-get update && apt-get install -y curl gnupg build-essential
+# Use non-interactive apt-get to avoid prompts during image build
+RUN apt-get update && apt-get install -y --no-install-recommends curl gnupg build-essential
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs
 
