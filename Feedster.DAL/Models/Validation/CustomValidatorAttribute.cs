@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net.Http;
 using System.ServiceModel.Syndication;
 using System.Xml;
 
@@ -25,13 +26,18 @@ public class CustomValidationAttribute : ValidationAttribute
     {
         try
         {
-            XmlReaderSettings settings = new XmlReaderSettings
+            XmlReaderSettings settings = new()
             {
                 DtdProcessing = DtdProcessing.Ignore,
                 IgnoreWhitespace = true
             };
 
-            _ = SyndicationFeed.Load(XmlReader.Create(url, settings));
+            using HttpClient httpClient = new();
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
+            using var stream = httpClient.GetStreamAsync(url).Result;
+            using var reader = XmlReader.Create(stream, settings);
+
+            _ = SyndicationFeed.Load(reader);
             return true;
         }
         catch (Exception)
