@@ -68,15 +68,15 @@
         
         <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
             <label class="inline-block align-middle text-base dark:text-gray-200 ">Display article images</label>
-            <div class="inline-block align-middle float-right block">                
-                <input @bind=_userSettings.ShowImages class="switch" type="checkbox">
+            <div class="inline-block align-middle float-right block">
+                <InputCheckbox @bind-Value=_userSettings.ShowImages class="switch" />
             </div>
         </div>
-        
+
         <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 dark:bg-slate-700 bg-gray-200 rounded-lg h-[3.75em]">
             <label class="inline-block align-middle text-base dark:text-gray-200">Download article images</label>
             <div class="inline-block align-middle float-right block rounded">
-                <input @bind=_userSettings.DownloadImages class="switch" type="checkbox">
+                <InputCheckbox @bind-Value=_userSettings.DownloadImages class="switch" />
             </div>
         </div>
         
@@ -121,9 +121,19 @@
         <div class="max-w-sm grid grid-cols-2 gap-4 mb-5">
             <div class="col shadow-md max-w-full h-[3.75rem]">
                 <InputFile id="opmlFileInput" OnChange="ImportOpml" accept=".opml" class="hidden" />
-                <label for="opmlFileInput" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col inline-block w-full h-full text-center shadow-md text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 cursor-pointer">Import OPML File</label>
+                <label for="opmlFileInput" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col inline-flex items-center justify-center w-full h-full shadow-md text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 cursor-pointer">
+                    <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                    <span class="align-middle">Import OPML File</span>
+                </label>
             </div>
-            <button @onclick="ExportOpml" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Export OPML File</button>
+            <button @onclick="ExportOpml" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center">
+                <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                <span class="align-middle">Export OPML File</span>
+            </button>
         </div>
         
     <button type="submit" disabled="@(!_hasUnsavedChanges || _isSaving)" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 disabled:opacity-50">
