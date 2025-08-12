@@ -189,19 +189,37 @@ namespace Feedster.DAL.Services
                 XElement element = extension.GetObject<XElement>();
 
                 if (!element.HasAttributes) continue;
-                
+
                 foreach (var attribute in element.Attributes())
                 {
                     string value = attribute.Value;
-                    if (value.ToLower().StartsWith("http") && (value.ToLower().EndsWith(".jpg") || value.ToLower().EndsWith(".png") ||
-                                                               value.ToLower().EndsWith(".gif") || value.ToLower().EndsWith(".jpeg")))
+                    if (IsImageUrl(value))
                     {
                         imageUrls.Add(value);
                     }
                 }
             }
 
+            foreach (var link in itm.Links)
+            {
+                if (link.RelationshipType == "enclosure" || (link.MediaType?.StartsWith("image") ?? false))
+                {
+                    string url = link.Uri.ToString();
+                    if (IsImageUrl(url))
+                    {
+                        imageUrls.Add(url);
+                    }
+                }
+            }
+
             return imageUrls;
+        }
+
+        private static bool IsImageUrl(string value)
+        {
+            string lower = value.ToLower();
+            return lower.StartsWith("http") && (lower.EndsWith(".jpg") || lower.EndsWith(".png") || lower.EndsWith(".gif") ||
+                                                lower.EndsWith(".jpeg") || lower.EndsWith(".webp"));
         }
 
         private async Task<string> DownloadFileAsync(string uri, string outputPath)
