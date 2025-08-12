@@ -1,4 +1,5 @@
-﻿using System.ServiceModel.Syndication;
+﻿using System.Net.Http;
+using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -29,13 +30,29 @@ namespace Feedster.DAL.Services
 
             foreach (var feed in feeds)
             {
-                articlesToUpdate.AddRange(await FetchFeedArticles(feed));
+                var articles = await FetchFeedArticles(feed);
+                if (articles is not null)
+                {
+                    articlesToUpdate.AddRange(articles);
+                }
             }
 
             await _articleRepository.UpdateRange(articlesToUpdate);
         }
 
-        private static SyndicationFeed ReadXml(string rssUrl)
+        public async Task<int?> RefreshFeed(Feed feed)
+        {
+            var articles = await FetchFeedArticles(feed);
+            if (articles is null)
+            {
+                return null;
+            }
+
+            await _articleRepository.UpdateRange(articles);
+            return articles.Count;
+        }
+
+        private static async Task<(bool Success, SyndicationFeed Feed)> ReadXml(string rssUrl)
         {
             try
             {
@@ -43,21 +60,23 @@ namespace Feedster.DAL.Services
                 settings.DtdProcessing = DtdProcessing.Ignore;
                 settings.IgnoreWhitespace = true;
 
-                XmlReader reader = XmlReader.Create(rssUrl, settings);
-                SyndicationFeed result = SyndicationFeed.Load(reader);
-                reader.Close();
+                using HttpClient httpClient = new();
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
+                using var stream = await httpClient.GetStreamAsync(rssUrl);
+                using var reader = XmlReader.Create(stream, settings);
 
-                return result;
+                SyndicationFeed result = SyndicationFeed.Load(reader);
+                return (true, result);
             }
             catch
             {
                 // ignored
             }
 
-            return new();
+            return (false, new SyndicationFeed());
         }
 
-        private async Task<List<Article>> FetchFeedArticles(Feed feed)
+        private async Task<List<Article>?> FetchFeedArticles(Feed feed)
         {
             _userSettings = await _userRepo.Get();
 
@@ -68,7 +87,11 @@ namespace Feedster.DAL.Services
 
             List<Article> articlesToUpdate = new();
 
-            SyndicationFeed result = ReadXml(feed.RssUrl);
+            var (success, result) = await ReadXml(feed.RssUrl);
+            if (!success)
+            {
+                return null;
+            }
 
             // loop through all results and add them to a list
             foreach (var itm in result.Items)

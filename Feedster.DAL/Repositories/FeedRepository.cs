@@ -44,10 +44,9 @@ public class FeedRepository
         await _db.SaveChangesAsync();
     }
 
-    public async Task FetchFeed(Feed feed)
+    public async Task<int?> FetchFeed(Feed feed)
     {
-        List<Feed> feeds = new() { feed };
-        await _rssFetchService.RefreshFeeds(feeds);
+        return await _rssFetchService.RefreshFeed(feed);
     }
 
     internal void Dispose()
