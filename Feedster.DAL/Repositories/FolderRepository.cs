@@ -1,6 +1,7 @@
 using Feedster.DAL.Data;
 using Feedster.DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Feedster.DAL.Repositories;
 
@@ -39,6 +40,22 @@ public class FolderRepository : IFolderRepository
 
     public async Task Update(Folder folder, CancellationToken cancellationToken = default)
     {
+        for (var i = 0; i < folder.Feeds.Count; i++)
+        {
+            var feed = folder.Feeds[i];
+
+            // reuse any existing tracked feed to avoid duplicate entity tracking
+            var tracked = _db.Feeds.Local.FirstOrDefault(f => f.FeedId == feed.FeedId);
+            if (tracked != null)
+            {
+                folder.Feeds[i] = tracked;
+            }
+            else
+            {
+                _db.Entry(feed).State = EntityState.Unchanged;
+            }
+        }
+
         _db.Folders.Update(folder);
         await _db.SaveChangesAsync(cancellationToken);
     }
