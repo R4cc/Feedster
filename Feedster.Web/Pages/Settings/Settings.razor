@@ -11,12 +11,6 @@
     <EditForm EditContext="_editContext" OnValidSubmit="SaveChanges">
         <DataAnnotationsValidator/>
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 3.5em">Settings</h5>
-        @if (!string.IsNullOrEmpty(_statusMessage))
-        {
-            <div class="rounded-lg border-l-4 p-4 mb-2 @_statusCss" role="alert">
-                <p class="font-bold">@_statusMessage</p>
-            </div>
-        }
         
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono  dark:brightness-[0.85]" style="font-size: 2em">Articles</h5>
         
@@ -82,7 +76,7 @@
         
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 1.5em">Cache Sizes</h5>
         
-        <div class="max-w-sm grid grid-cols-3 gap-4 mb-5 ">
+        <div class="max-w-sm grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5 ">
             <div class="col-span-2 inline-block align-middle border-2 dark:border-gray-500 border-gray-200 p-3 bg-gray-200 dark:bg-slate-700  rounded-lg h-[3.75rem]">
                 <p class="inline-block align-middle text-base dark:text-gray-200">Image Cache: </p>
                 <div class="inline-block align-middle float-right block space-mono dark:text-gray-200">
@@ -97,7 +91,7 @@
             </button>
         </div>
         
-        <div class="max-w-sm grid grid-cols-3 gap-4 mb-5">
+        <div class="max-w-sm grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
             <div class="col-span-2 inline-block align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700  rounded-lg h-[3.75rem]">
                 <label class="inline-block align-middle text-base dark:text-gray-200">Article Cache: </label>
                 <div class="inline-block align-middle float-right block space-mono dark:text-gray-200">
@@ -121,7 +115,7 @@
             </button>
         </h5>
 
-        <div class="max-w-sm grid grid-cols-2 gap-4 mb-5">
+        <div class="max-w-sm grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
             <div class="col shadow-md max-w-full h-[3.75rem]">
                 <InputFile id="opmlFileInput" OnChange="ImportOpml" accept=".opml" class="hidden" />
                 <label for="opmlFileInput" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col inline-flex items-center justify-center w-full h-full shadow-md text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 cursor-pointer">
@@ -139,7 +133,7 @@
             </button>
         </div>
         
-    <button type="submit" disabled="@(!_hasUnsavedChanges || _isSaving)" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 disabled:opacity-50">
+    <button type="submit" disabled="@(!_hasUnsavedChanges || _isSaving)" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-full sm:w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 disabled:opacity-50">
         <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -159,8 +153,6 @@
     EditContext? _editContext;
     bool _hasUnsavedChanges;
     bool _isSaving;
-    string? _statusMessage;
-    string _statusCss = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -180,9 +172,11 @@
     {
         if (_isSaving)
             return;
+        if (!_hasUnsavedChanges)
+        {
+            ShowNotification("Unsaved Changes", "You have unsaved changes. Don't forget to save.");
+        }
         _hasUnsavedChanges = true;
-        _statusMessage = "You have unsaved changes. Don't forget to save.";
-        _statusCss = "text-yellow-700 bg-yellow-100 border-yellow-400";
         InvokeAsync(StateHasChanged);
     }
 
@@ -203,8 +197,6 @@
     private async Task SaveChanges()
     {
         _isSaving = true;
-        _statusMessage = "Saving changes...";
-        _statusCss = "text-blue-700 bg-blue-100 border-blue-500";
         StateHasChanged();
 
         await _userRepo.Update(_userSettings);
@@ -212,12 +204,7 @@
 
         _isSaving = false;
         _hasUnsavedChanges = false;
-        _statusMessage = "Settings saved.";
-        _statusCss = "text-green-700 bg-green-100 border-green-500";
         ShowNotification("Changes Saved!", "All changes have been saved. Some settings can take up to 10 minutes to take effect.");
-        StateHasChanged();
-        await Task.Delay(3000);
-        _statusMessage = null;
         StateHasChanged();
     }
 

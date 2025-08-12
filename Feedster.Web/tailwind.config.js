@@ -1,7 +1,6 @@
 ﻿const colors = require('tailwindcss/colors')
 
 module.exports = {
-    mode: 'jit',
     content: [
         './wwwroot/index.html',
         './**/*.razor'
@@ -13,9 +12,6 @@ module.exports = {
                 cyan: colors.cyan
             }
         },
-    },
-    variants: {
-        extend: { display: ['dark'], },
     },
     plugins: []
 }
