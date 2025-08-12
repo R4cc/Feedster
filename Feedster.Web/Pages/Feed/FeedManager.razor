@@ -43,19 +43,27 @@ else{
                     @feed.RssUrl
             </td>
             <td class="py-4 px-6">
-                <div class="inline-flex rounded-md shadow-sm dark:brightness-[0.85]" role="folder">
-                    <button @onclick="() => StartFeedEdit(feed)" type="button" class=" inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-l-lg border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                        </svg>
-                        Edit
-                    </button>
-                    <button @onclick="() => StartDeleteFeed(feed)" type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-r-md border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                        </svg>
-                        Delete
-                    </button>
+                <div class="flex flex-col space-y-2">
+                    <div class="inline-flex rounded-md shadow-sm dark:brightness-[0.85]" role="folder">
+                        <button @onclick="() => StartFeedEdit(feed)" type="button" class=" inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-l-lg border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                            </svg>
+                            Edit
+                        </button>
+                        <button @onclick="() => FetchFeed(feed)" disabled="@_updatingFeeds.Contains(feed.FeedId)" type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700 @(_updatingFeeds.Contains(feed.FeedId) ? "opacity-50 cursor-not-allowed" : string.Empty)">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.712A8.973 8.973 0 0112 3c2.525 0 4.815.99 6.517 2.583m1.504 2.012a8.954 8.954 0 011.5 4.905 8.964 8.964 0 01-7.086 8.886m-1.513-.134A8.954 8.954 0 013 11.318" />
+                            </svg>
+                            Update
+                        </button>
+                        <button @onclick="() => StartDeleteFeed(feed)" type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-r-md border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                            Delete
+                        </button>
+                    </div>
                 </div>
             </td>
         </tr>
@@ -94,6 +102,7 @@ else{
     private Feed? _feedToRemove = null;
     private RenderFragment? _confirmationModalFragment = null;
     private RenderFragment? _notification = null;
+    private HashSet<int> _updatingFeeds = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,15 +115,29 @@ else{
         {
             _feed.FeedId = 0;
             await _feedRepo.Create(_feed);
-            ShowNotification("Feed added!", "It can take up to 2 minutes until all the information has been fetched.");
+            ShowNotification("Feed added!", "It can take up to 2 minutes until all the information has been fetched.", NotificationType.Success);
         }
         else
         {
             await _feedRepo.Update(_feed); 
-            ShowNotification("Feed updated!", "The feed was updated successfully.");
+            ShowNotification("Feed updated!", "The feed was updated successfully.", NotificationType.Success);
         }
 
-        _feedRepo.FetchFeed(_feed);
+        var articleCount = await _feedRepo.FetchFeed(_feed);
+
+        if (articleCount is null)
+        {
+            ShowNotification("Feed update failed!", $"Could not fetch '{_feed.Name}'.", NotificationType.Error);
+        }
+        else if (articleCount == 0)
+        {
+            ShowNotification("No new articles found!", $"No new articles were found for '{_feed.Name}'.", NotificationType.Info);
+        }
+        else
+        {
+            ShowNotification("Feed updated!", $"Fetched {articleCount} articles for '{_feed.Name}'.", NotificationType.Success);
+        }
+
         await js.InvokeVoidAsync("toggleSlideover");
         await LoadFeeds();
     }    
@@ -159,11 +182,33 @@ else{
     {
         await _feedRepo.Remove(feedToRemove);
         await LoadFeeds();
-        ShowNotification("Feed deleted!", "The feed was deleted successfully.");
+        ShowNotification("Feed deleted!", "The feed was deleted successfully.", NotificationType.Success);
+    }
+
+    private async Task FetchFeed(Feed feed)
+    {
+        _updatingFeeds.Add(feed.FeedId);
+        ShowNotification("Feed update started!", $"Fetching '{feed.Name}'.", NotificationType.Info);
+        StateHasChanged();
+        var articleCount = await _feedRepo.FetchFeed(feed);
+        _updatingFeeds.Remove(feed.FeedId);
+
+        if (articleCount is null)
+        {
+            ShowNotification("Feed update failed!", $"Could not fetch '{feed.Name}'.", NotificationType.Error);
+        }
+        else if (articleCount == 0)
+        {
+            ShowNotification("No new articles found!", $"No new articles were found for '{feed.Name}'.", NotificationType.Info);
+        }
+        else
+        {
+            ShowNotification("Feed updated!", $"Fetched {articleCount} articles for '{feed.Name}'.", NotificationType.Success);
+        }
     }
     
-    private void ShowNotification(string Title, string Summary)
+    private void ShowNotification(string title, string summary, NotificationType type = NotificationType.Info)
     {
-        _notification = @<Notification title="@Title" Summary="@Summary" IsShown=@true/>;
+        _notification = @<Notification Title="@title" Summary="@summary" Type="@type" IsShown="true"/>;
     }
 }

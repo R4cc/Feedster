@@ -1,22 +1,16 @@
 @page "/settings"
-@inject UserRepository _userRepo
-@inject ImageService _ImageService
-@inject ArticleRepository _articleRepo
+@inject UserRepository _userRepository
+@inject ImageService _imageService
+@inject ArticleRepository _articleRepository
 @inject NavigationManager _navManager
 @inject HttpClient _httpClient
 
 <PageTitle>Feedster - Settings</PageTitle>
 
-<div class="container max-w-lg sm:border-2 sm:p-5 sm:rounded-xl sm:dark:bg-slate-800 sm:dark:border-gray-600 sm:bg-gray-100">
+<div class="container mx-auto w-full sm:border-2 sm:p-5 sm:rounded-xl sm:dark:bg-slate-800 sm:dark:border-gray-600 sm:bg-gray-100 md:max-w-2xl lg:max-w-4xl">
     <EditForm EditContext="_editContext" OnValidSubmit="SaveChanges">
         <DataAnnotationsValidator/>
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 3.5em">Settings</h5>
-        @if (!string.IsNullOrEmpty(_statusMessage))
-        {
-            <div class="rounded-lg border-l-4 p-4 mb-2 @_statusCss" role="alert">
-                <p class="font-bold">@_statusMessage</p>
-            </div>
-        }
         
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono  dark:brightness-[0.85]" style="font-size: 2em">Articles</h5>
         
@@ -59,21 +53,21 @@
         
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono  dark:brightness-[0.85]" style="font-size: 2em">Appearance</h5>
         
-        <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
+        <div class="w-full md:max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
             <label class="inline-block align-middle text-base dark:text-gray-200">Dark Mode</label>
             <div class="inline-block align-middle float-right block">
                 <input checked="@_isDarkMode" @onchange="ToggleDarkMode" class="switch" type="checkbox">
             </div>
         </div>
         
-        <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
+        <div class="w-full md:max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
             <label class="inline-block align-middle text-base dark:text-gray-200 ">Display article images</label>
             <div class="inline-block align-middle float-right block">
                 <InputCheckbox @bind-Value=_userSettings.ShowImages class="switch" />
             </div>
         </div>
 
-        <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 dark:bg-slate-700 bg-gray-200 rounded-lg h-[3.75em]">
+        <div class="w-full md:max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 dark:bg-slate-700 bg-gray-200 rounded-lg h-[3.75em]">
             <label class="inline-block align-middle text-base dark:text-gray-200">Download article images</label>
             <div class="inline-block align-middle float-right block rounded">
                 <InputCheckbox @bind-Value=_userSettings.DownloadImages class="switch" />
@@ -82,7 +76,7 @@
         
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 1.5em">Cache Sizes</h5>
         
-        <div class="max-w-sm grid grid-cols-3 gap-4 mb-5 ">
+        <div class="w-full md:max-w-sm grid grid-cols-3 gap-4 mb-5 ">
             <div class="col-span-2 inline-block align-middle border-2 dark:border-gray-500 border-gray-200 p-3 bg-gray-200 dark:bg-slate-700  rounded-lg h-[3.75rem]">
                 <p class="inline-block align-middle text-base dark:text-gray-200">Image Cache: </p>
                 <div class="inline-block align-middle float-right block space-mono dark:text-gray-200">
@@ -97,7 +91,7 @@
             </button>
         </div>
         
-        <div class="max-w-sm grid grid-cols-3 gap-4 mb-5">
+        <div class="w-full md:max-w-sm grid grid-cols-3 gap-4 mb-5">
             <div class="col-span-2 inline-block align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700  rounded-lg h-[3.75rem]">
                 <label class="inline-block align-middle text-base dark:text-gray-200">Article Cache: </label>
                 <div class="inline-block align-middle float-right block space-mono dark:text-gray-200">
@@ -121,7 +115,7 @@
             </button>
         </h5>
 
-        <div class="max-w-sm grid grid-cols-2 gap-4 mb-5">
+        <div class="w-full md:max-w-sm grid grid-cols-2 gap-4 mb-5">
             <div class="col shadow-md max-w-full h-[3.75rem]">
                 <InputFile id="opmlFileInput" OnChange="ImportOpml" accept=".opml" class="hidden" />
                 <label for="opmlFileInput" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col inline-flex items-center justify-center w-full h-full shadow-md text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 cursor-pointer">
@@ -139,7 +133,7 @@
             </button>
         </div>
         
-    <button type="submit" disabled="@(!_hasUnsavedChanges || _isSaving)" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 disabled:opacity-50">
+    <button type="submit" disabled="@(!_hasUnsavedChanges || _isSaving)" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-full sm:w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 disabled:opacity-50">
         <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -159,8 +153,6 @@
     EditContext? _editContext;
     bool _hasUnsavedChanges;
     bool _isSaving;
-    string? _statusMessage;
-    string _statusCss = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -169,7 +161,7 @@
 
     private async Task LoadUserSettings()
     {
-        _userSettings = await _userRepo.Get();
+        _userSettings = await _userRepository.Get();
         _isDarkMode = _userSettings.IsDarkMode;
         _editContext = new EditContext(_userSettings);
         _editContext.OnFieldChanged += EditContext_OnFieldChanged;
@@ -180,52 +172,47 @@
     {
         if (_isSaving)
             return;
+        if (!_hasUnsavedChanges)
+        {
+            ShowNotification("Unsaved changes", "You have unsaved changes. Don't forget to save.");
+        }
         _hasUnsavedChanges = true;
-        _statusMessage = "You have unsaved changes. Don't forget to save.";
-        _statusCss = "text-yellow-700 bg-yellow-100 border-yellow-400";
         InvokeAsync(StateHasChanged);
     }
 
     private void LoadCacheSizes()
     {
-        _imageFolderSize = _ImageService.GetImageCacheFolderSize();
-        _databaseSize = _ImageService.GetDatabaseSize();
+        _imageFolderSize = _imageService.GetImageCacheFolderSize();
+        _databaseSize = _imageService.GetDatabaseSize();
     }
 
     private async Task ToggleDarkMode(ChangeEventArgs e)
     {
         _isDarkMode = e.Value is bool b && b;
         _userSettings.IsDarkMode = _isDarkMode;
-        await _userRepo.Update(_userSettings);
+        await _userRepository.Update(_userSettings);
         _navManager.NavigateTo(_navManager.Uri, forceLoad: true);
     }
 
     private async Task SaveChanges()
     {
         _isSaving = true;
-        _statusMessage = "Saving changes...";
-        _statusCss = "text-blue-700 bg-blue-100 border-blue-500";
         StateHasChanged();
 
-        await _userRepo.Update(_userSettings);
+        await _userRepository.Update(_userSettings);
         await LoadUserSettings();
 
         _isSaving = false;
         _hasUnsavedChanges = false;
-        _statusMessage = "Settings saved.";
-        _statusCss = "text-green-700 bg-green-100 border-green-500";
-        ShowNotification("Changes Saved!", "All changes have been saved. Some settings can take up to 10 minutes to take effect.");
-        StateHasChanged();
-        await Task.Delay(3000);
-        _statusMessage = null;
+        ShowNotification("Changes Saved!", "All changes have been saved. Some settings can take up to 10 minutes to take effect.", NotificationType.Success);
         StateHasChanged();
     }
 
     private void ClearImageCache()
     {
-        _ImageService.ClearImageCache();
+        _imageService.ClearImageCache();
         LoadCacheSizes();
-        ShowNotification("Images cleared!", "All images have been successfully cleared.");
+        ShowNotification("Images cleared!", "All images have been successfully cleared.", NotificationType.Success);
     }
 
     private void ExportOpml()
@@ -235,7 +222,7 @@
 
     private void ShowOpmlInfo()
     {
-        ShowNotification("About OPML", "OPML files let you import and export your feed subscriptions.");
+        ShowNotification("About OPML", "OPML files let you import and export your feed subscriptions.", NotificationType.Info);
     }
 
     private async Task ImportOpml(InputFileChangeEventArgs e)
@@ -251,30 +238,30 @@
             var response = await _httpClient.PostAsync(uri, content);
             if (response.IsSuccessStatusCode)
             {
-                ShowNotification("Import completed!", "Feeds imported successfully.");
+                ShowNotification("Import completed!", "Feeds imported successfully.", NotificationType.Success);
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                ShowNotification("Import failed!", string.IsNullOrWhiteSpace(error) ? "Failed to import feeds." : error);
+                ShowNotification("Import failed!", string.IsNullOrWhiteSpace(error) ? "Failed to import feeds." : error, NotificationType.Error);
             }
         }
         catch (Exception ex)
         {
-            ShowNotification("Import failed!", ex.Message);
+            ShowNotification("Import failed!", ex.Message, NotificationType.Error);
         }
     }
 
     private async Task ClearArticles()
     {
-        await _articleRepo.ClearAllArticles();
+        await _articleRepository.ClearAllArticles();
         LoadCacheSizes();
-        ShowNotification("Articles cleared!", "All articles have been successfully cleared.");
+        ShowNotification("Articles cleared!", "All articles have been successfully cleared.", NotificationType.Success);
     }
 
-    private void ShowNotification(string title, string summary)
+    private void ShowNotification(string title, string summary, NotificationType type = NotificationType.Info)
     {
-        _notification = @<Notification Title="@title" Summary="@summary" IsShown=@true/>;
+        _notification = @<Notification Title="@title" Summary="@summary" Type="@type" IsShown="true"/>;
         InvokeAsync(StateHasChanged);
     }
 }
