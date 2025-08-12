@@ -61,8 +61,8 @@
         
         <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
             <label class="inline-block align-middle text-base dark:text-gray-200">Dark Mode</label>
-            <div class="inline-block align-middle float-right block">                
-                <input @bind=_isDarkMode class="switch" type="checkbox">
+            <div class="inline-block align-middle float-right block">
+                <input checked="@_isDarkMode" @onchange="ToggleDarkMode" class="switch" type="checkbox">
             </div>
         </div>
         
@@ -179,6 +179,14 @@
         _databaseSize = _ImageService.GetDatabaseSize();
     }
 
+    private async Task ToggleDarkMode(ChangeEventArgs e)
+    {
+        _isDarkMode = e.Value is bool b && b;
+        _userSettings.IsDarkMode = _isDarkMode;
+        await _userRepo.Update(_userSettings);
+        _navManager.NavigateTo(_navManager.Uri, forceLoad: true);
+    }
+
     private async Task SaveChanges()
     {
         _isSaving = true;
@@ -186,18 +194,8 @@
         _statusCss = "text-blue-700 bg-blue-100 border-blue-500";
         StateHasChanged();
 
-        if (_isDarkMode != _userSettings.IsDarkMode)
-        {
-            _userSettings.IsDarkMode = _isDarkMode;
-            await _userRepo.Update(_userSettings);
-            await LoadUserSettings();
-            _navManager.NavigateTo("/settings", forceLoad: true);
-        }
-        else
-        {
-            await _userRepo.Update(_userSettings);
-            await LoadUserSettings();
-        }
+        await _userRepo.Update(_userSettings);
+        await LoadUserSettings();
 
         _isSaving = false;
         _hasUnsavedChanges = false;
@@ -231,7 +229,8 @@
             await using var stream = file.OpenReadStream(10 * 1024 * 1024);
             content.Add(new StreamContent(stream), "file", file.Name);
 
-            var response = await _httpClient.PostAsync("api/Opml/import", content);
+            var uri = _navManager.ToAbsoluteUri("api/Opml/import");
+            var response = await _httpClient.PostAsync(uri, content);
             if (response.IsSuccessStatusCode)
             {
                 ShowNotification("Import completed!", "Feeds imported successfully.");
