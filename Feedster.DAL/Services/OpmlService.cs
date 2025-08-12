@@ -6,19 +6,19 @@ namespace Feedster.DAL.Services;
 
 public class OpmlService
 {
-    private readonly FeedRepository _feedRepo;
-    private readonly FolderRepository _folderRepo;
+    private readonly IFeedRepository _feedRepo;
+    private readonly IFolderRepository _folderRepo;
 
-    public OpmlService(FeedRepository feedRepo, FolderRepository folderRepo)
+    public OpmlService(IFeedRepository feedRepo, IFolderRepository folderRepo)
     {
         _feedRepo = feedRepo;
         _folderRepo = folderRepo;
     }
 
-    public async Task<string> ExportAsync()
+    public async Task<string> ExportAsync(CancellationToken cancellationToken = default)
     {
-        var folders = await _folderRepo.GetAll();
-        var feeds = await _feedRepo.GetAll();
+        var folders = await _folderRepo.GetAll(cancellationToken);
+        var feeds = await _feedRepo.GetAll(cancellationToken);
 
         var body = new XElement("body");
 
@@ -50,21 +50,21 @@ public class OpmlService
         return doc.ToString();
     }
 
-    public async Task ImportAsync(Stream stream)
+    public async Task ImportAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         var doc = XDocument.Load(stream);
         var body = doc.Root?.Element("body");
         if (body == null) return;
 
-        var existingFolders = await _folderRepo.GetAll();
-        var existingFeeds = await _feedRepo.GetAll();
+        var existingFolders = await _folderRepo.GetAll(cancellationToken);
+        var existingFeeds = await _feedRepo.GetAll(cancellationToken);
 
         foreach (var outline in body.Elements("outline"))
         {
             var xmlUrl = outline.Attribute("xmlUrl")?.Value;
             if (!string.IsNullOrEmpty(xmlUrl))
             {
-                await CreateFeed(outline, null, existingFeeds);
+                await CreateFeed(outline, null, existingFeeds, cancellationToken);
                 continue;
             }
 
@@ -75,13 +75,13 @@ public class OpmlService
             if (folder == null)
             {
                 folder = new Folder { Name = folderName };
-                await _folderRepo.Create(folder);
+                await _folderRepo.Create(folder, cancellationToken);
                 existingFolders.Add(folder);
             }
 
             foreach (var feedOutline in outline.Elements("outline"))
             {
-                await CreateFeed(feedOutline, folder, existingFeeds);
+                await CreateFeed(feedOutline, folder, existingFeeds, cancellationToken);
             }
         }
     }
@@ -95,7 +95,7 @@ public class OpmlService
             new XAttribute("xmlUrl", feed.RssUrl));
     }
 
-    private async Task CreateFeed(XElement outline, Folder? folder, List<Feed> existingFeeds)
+    private async Task CreateFeed(XElement outline, Folder? folder, List<Feed> existingFeeds, CancellationToken cancellationToken)
     {
         var url = outline.Attribute("xmlUrl")?.Value;
         if (string.IsNullOrEmpty(url)) return;
@@ -115,7 +115,7 @@ public class OpmlService
             feed.Folders.Add(folder);
         }
 
-        await _feedRepo.Create(feed);
+        await _feedRepo.Create(feed, cancellationToken);
         existingFeeds.Add(feed);
     }
 }

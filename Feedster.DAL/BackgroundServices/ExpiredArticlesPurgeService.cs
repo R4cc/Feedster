@@ -11,8 +11,6 @@ namespace Feedster.DAL.BackgroundServices;
 /// </summary>
 public class ExpiredArticlesPurgeService : BackgroundService
 {
-    private ArticleRepository? _articleRepo;
-    private UserRepository? _userRepository;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<ExpiredArticlesPurgeService> _logger;
 
@@ -34,11 +32,11 @@ public class ExpiredArticlesPurgeService : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             using IServiceScope scope = _scopeFactory.CreateScope();
-            _articleRepo = scope.ServiceProvider.GetRequiredService<ArticleRepository>();
+            var articleRepo = scope.ServiceProvider.GetRequiredService<IArticleRepository>();
 
             // Load user settings
-            _userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
-            UserSettings _userSettings = await _userRepository.Get();
+            var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            UserSettings _userSettings = await userRepository.Get(stoppingToken);
 
             if (_userSettings.ArticleExpirationAfterDays == 0)
             {
@@ -47,13 +45,10 @@ public class ExpiredArticlesPurgeService : BackgroundService
             }
             else
             {
-                await _articleRepo.ClearArticlesOlderThan(DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays));
+                await articleRepo.ClearArticlesOlderThan(DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays), stoppingToken);
 
                 // run once every 24 hours
                 _logger.LogInformation("Purge completed. Waiting 24 Hours until next purge");
-
-                scope.Dispose();
-                _userRepository.Dispose();
 
                 await Task.Delay(24 * 60 * 60 * 1000, stoppingToken);
             }

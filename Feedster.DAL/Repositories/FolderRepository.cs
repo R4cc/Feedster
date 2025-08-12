@@ -1,10 +1,13 @@
-﻿using Feedster.DAL.Data;
+using Feedster.DAL.Data;
 using Feedster.DAL.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Feedster.DAL.Repositories;
 
-public class FolderRepository
+/// <summary>
+/// Entity Framework implementation of <see cref="IFolderRepository"/>.
+/// </summary>
+public class FolderRepository : IFolderRepository
 {
     private readonly ApplicationDbContext _db;
 
@@ -13,36 +16,36 @@ public class FolderRepository
         _db = db;
     }
 
-    public async Task<List<Folder>> GetAll()
+    public async Task<List<Folder>> GetAll(CancellationToken cancellationToken = default)
     {
-        return await _db.Folders.Include(g => g.Feeds).ToListAsync();
+        return await _db.Folders
+            .AsNoTracking()
+            .Include(g => g.Feeds)
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task Create(Folder folder)
+    public async Task Create(Folder folder, CancellationToken cancellationToken = default)
     {
-        await _db.Folders.AddAsync(folder);
-        await _db.SaveChangesAsync();
+        await _db.Folders.AddAsync(folder, cancellationToken);
+        await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Folder?> Get(int id)
+    public async Task<Folder?> Get(int id, CancellationToken cancellationToken = default)
     {
-        return await _db.Folders.FirstOrDefaultAsync(f => f.FolderId == id);
+        return await _db.Folders
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.FolderId == id, cancellationToken);
     }
 
-    public async Task Update(Folder folder)
+    public async Task Update(Folder folder, CancellationToken cancellationToken = default)
     {
         _db.Folders.Update(folder);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task Remove(Folder folder)
+    public async Task Remove(Folder folder, CancellationToken cancellationToken = default)
     {
         _db.Folders.Remove(folder);
-        await _db.SaveChangesAsync();
-    }
-
-    internal void Dispose()
-    {
-        _db.Dispose();
+        await _db.SaveChangesAsync(cancellationToken);
     }
 }

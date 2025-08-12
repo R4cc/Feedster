@@ -13,47 +13,47 @@ namespace Feedster.DAL.Services
 {
     public class RssFetchService
     {
-        private readonly ArticleRepository _articleRepository;
-        private readonly UserRepository _userRepo;
+        private readonly IArticleRepository _articleRepository;
+        private readonly IUserRepository _userRepo;
         private readonly ImageService _imageService;
         private UserSettings? _userSettings;
 
-        public RssFetchService(ArticleRepository articleRepository, UserRepository userRepo, ImageService imageSerivce)
+        public RssFetchService(IArticleRepository articleRepository, IUserRepository userRepo, ImageService imageSerivce)
         {
             _articleRepository = articleRepository;
             _userRepo = userRepo;
             _imageService = imageSerivce;
         }
 
-        public async Task RefreshFeeds(List<Feed> feeds)
+        public async Task RefreshFeeds(List<Feed> feeds, CancellationToken cancellationToken = default)
         {
             List<Article> articlesToUpdate = new();
 
             foreach (var feed in feeds)
             {
-                var articles = await FetchFeedArticles(feed);
+                var articles = await FetchFeedArticles(feed, cancellationToken);
                 if (articles is not null)
                 {
                     articlesToUpdate.AddRange(articles);
                 }
             }
 
-            await _articleRepository.UpdateRange(articlesToUpdate);
+            await _articleRepository.UpdateRange(articlesToUpdate, cancellationToken);
         }
 
-        public async Task<int?> RefreshFeed(Feed feed)
+        public async Task<int?> RefreshFeed(Feed feed, CancellationToken cancellationToken = default)
         {
-            var articles = await FetchFeedArticles(feed);
+            var articles = await FetchFeedArticles(feed, cancellationToken);
             if (articles is null)
             {
                 return null;
             }
 
-            await _articleRepository.UpdateRange(articles);
+            await _articleRepository.UpdateRange(articles, cancellationToken);
             return articles.Count;
         }
 
-        private static async Task<(bool Success, SyndicationFeed Feed)> ReadXml(string rssUrl)
+        private static async Task<(bool Success, SyndicationFeed Feed)> ReadXml(string rssUrl, CancellationToken cancellationToken)
         {
             try
             {
@@ -64,7 +64,7 @@ namespace Feedster.DAL.Services
                 using HttpClient httpClient = new();
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
                 httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-                using var stream = await httpClient.GetStreamAsync(rssUrl);
+                using var stream = await httpClient.GetStreamAsync(rssUrl, cancellationToken);
                 using var reader = XmlReader.Create(stream, settings);
 
                 SyndicationFeed result = SyndicationFeed.Load(reader);
@@ -78,9 +78,9 @@ namespace Feedster.DAL.Services
             return (false, new SyndicationFeed());
         }
 
-        private async Task<List<Article>?> FetchFeedArticles(Feed feed)
+        private async Task<List<Article>?> FetchFeedArticles(Feed feed, CancellationToken cancellationToken)
         {
-            _userSettings = await _userRepo.Get();
+            _userSettings = await _userRepo.Get(cancellationToken);
 
             // get existing articles to match
             Dictionary<string, Article> existingArticles =
@@ -89,7 +89,7 @@ namespace Feedster.DAL.Services
 
             List<Article> articlesToUpdate = new();
 
-            var (success, result) = await ReadXml(feed.RssUrl);
+            var (success, result) = await ReadXml(feed.RssUrl, cancellationToken);
             if (!success)
             {
                 return null;
@@ -128,7 +128,7 @@ namespace Feedster.DAL.Services
                         // download the image if it doesnt exist in the cache
                         if (!File.Exists("images/" + article.ImagePath) && _userSettings.DownloadImages)
                         {
-                            article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath);
+                            article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath, cancellationToken);
 
                             if (!string.IsNullOrEmpty(article.ImagePath))
                             {
@@ -147,8 +147,8 @@ namespace Feedster.DAL.Services
                     // Find the highest Resolution image in array of multiple images
                     if (_userSettings.DownloadImages && imageUrls.Any())
                     {
-                        highestResImageUrl = await GetHighestResolutionImage(imageUrls);
-                        highestResImagePath = await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl));
+                        highestResImageUrl = await GetHighestResolutionImage(imageUrls, cancellationToken);
+                        highestResImagePath = await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl), cancellationToken);
 
                         //await _imageService.CompressImage(highestResImagePath);
                     }
@@ -222,7 +222,7 @@ namespace Feedster.DAL.Services
                                                 lower.EndsWith(".jpeg") || lower.EndsWith(".webp"));
         }
 
-        private async Task<string> DownloadFileAsync(string uri, string outputPath)
+        private async Task<string> DownloadFileAsync(string uri, string outputPath, CancellationToken cancellationToken)
         {
             try
             {
@@ -246,10 +246,10 @@ namespace Feedster.DAL.Services
                 if (!Uri.TryCreate(uri, UriKind.Absolute, out _))
                     throw new InvalidOperationException("URI is invalid.");
 
-                byte[] fileBytes = await httpClient.GetByteArrayAsync(uri);
+                byte[] fileBytes = await httpClient.GetByteArrayAsync(uri, cancellationToken);
 
                 // Resize image, then save it to disk
-                await File.WriteAllBytesAsync("./images/" + outputPath, _imageService.ResizeImage(fileBytes));
+                await File.WriteAllBytesAsync("./images/" + outputPath, _imageService.ResizeImage(fileBytes), cancellationToken);
 
                 return outputPath;
             }
@@ -261,7 +261,7 @@ namespace Feedster.DAL.Services
             return String.Empty;
         }
 
-        private async Task<string> GetHighestResolutionImage(List<string> Images)
+        private async Task<string> GetHighestResolutionImage(List<string> Images, CancellationToken cancellationToken)
         {
             if (Images.Count == 1)
             {
@@ -280,7 +280,7 @@ namespace Feedster.DAL.Services
                     httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
                     // download image and pass it to the drawer
-                    using var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img));
+                    using var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img, cancellationToken));
                     using var image = new MagickImage(imgStream);
                     
                     if (image.Height * image.Width <= highestResolution) continue;

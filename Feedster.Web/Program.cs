@@ -28,9 +28,13 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+builder.Services.AddTransient<IFeedRepository, FeedRepository>();
 builder.Services.AddTransient<FeedRepository>();
+builder.Services.AddTransient<IFolderRepository, FolderRepository>();
 builder.Services.AddTransient<FolderRepository>();
+builder.Services.AddTransient<IArticleRepository, ArticleRepository>();
 builder.Services.AddTransient<ArticleRepository>();
+builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<UserRepository>();
 builder.Services.AddTransient<RssFetchService>();
 builder.Services.AddTransient<ImageService>();

@@ -1,5 +1,4 @@
 using Feedster.DAL.Models;
-using Feedster.DAL.Repositories;
 using Feedster.DAL.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,8 +11,6 @@ namespace Feedster.DAL.BackgroundServices;
 /// </summary>
 public class FeedUpdateDequeueService : BackgroundService
 {
-    private  RssFetchService? _rssFetchService;
-    private  BackgroundJobs? _backgroundJobs;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<FeedUpdateDequeueService> _logger;
 
@@ -26,20 +23,21 @@ public class FeedUpdateDequeueService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Started FeedUpdateDequeueService");
-        
-        using IServiceScope scope = _scopeFactory.CreateScope();
-        _backgroundJobs = scope.ServiceProvider.GetRequiredService<BackgroundJobs>();   
-        _rssFetchService = scope.ServiceProvider.GetRequiredService<RssFetchService>();   
-        
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            if(_backgroundJobs.BackgroundTasks.TryDequeue(out var feeds))
+            using var scope = _scopeFactory.CreateScope();
+            var backgroundJobs = scope.ServiceProvider.GetRequiredService<BackgroundJobs>();
+            var rssFetchService = scope.ServiceProvider.GetRequiredService<RssFetchService>();
+
+            if (backgroundJobs.BackgroundTasks.TryDequeue(out var feeds))
             {
-                await _rssFetchService.RefreshFeeds(feeds); 
+                await rssFetchService.RefreshFeeds(feeds, stoppingToken);
             }
+
             await Task.Delay(1000, stoppingToken);
         }
-        scope.Dispose();
+
         _logger.LogInformation("Stopped FeedUpdateDequeueService");
     }
 }

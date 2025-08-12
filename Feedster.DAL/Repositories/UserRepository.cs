@@ -4,7 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Feedster.DAL.Repositories;
 
-public class UserRepository
+/// <summary>
+/// Entity Framework implementation of <see cref="IUserRepository"/>.
+/// </summary>
+public class UserRepository : IUserRepository
 {
     private readonly ApplicationDbContext _db;
 
@@ -13,19 +16,14 @@ public class UserRepository
         _db = db;
     }
 
-    public async Task<UserSettings> Get()
+    public async Task<UserSettings> Get(CancellationToken cancellationToken = default)
     {
-        return await _db.UserSettings.FirstAsync();
+        return await _db.UserSettings.AsNoTracking().FirstAsync(cancellationToken);
     }
 
-    public async Task Update(UserSettings _userSettings)
+    public async Task Update(UserSettings userSettings, CancellationToken cancellationToken = default)
     {
-        _db.UserSettings.Update(_userSettings);
-        await _db.SaveChangesAsync();
-    }
-
-    internal void Dispose()
-    {
-        _db.Dispose();
+        _db.UserSettings.Update(userSettings);
+        await _db.SaveChangesAsync(cancellationToken);
     }
 }
