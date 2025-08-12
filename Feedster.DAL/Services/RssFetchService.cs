@@ -1,4 +1,6 @@
-﻿using System.ServiceModel.Syndication;
+﻿using System.Net.Http;
+using System.Net.Http.Headers;
+using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -29,13 +31,29 @@ namespace Feedster.DAL.Services
 
             foreach (var feed in feeds)
             {
-                articlesToUpdate.AddRange(await FetchFeedArticles(feed));
+                var articles = await FetchFeedArticles(feed);
+                if (articles is not null)
+                {
+                    articlesToUpdate.AddRange(articles);
+                }
             }
 
             await _articleRepository.UpdateRange(articlesToUpdate);
         }
 
-        private static SyndicationFeed ReadXml(string rssUrl)
+        public async Task<int?> RefreshFeed(Feed feed)
+        {
+            var articles = await FetchFeedArticles(feed);
+            if (articles is null)
+            {
+                return null;
+            }
+
+            await _articleRepository.UpdateRange(articles);
+            return articles.Count;
+        }
+
+        private static async Task<(bool Success, SyndicationFeed Feed)> ReadXml(string rssUrl)
         {
             try
             {
@@ -43,21 +61,24 @@ namespace Feedster.DAL.Services
                 settings.DtdProcessing = DtdProcessing.Ignore;
                 settings.IgnoreWhitespace = true;
 
-                XmlReader reader = XmlReader.Create(rssUrl, settings);
-                SyndicationFeed result = SyndicationFeed.Load(reader);
-                reader.Close();
+                using HttpClient httpClient = new();
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+                using var stream = await httpClient.GetStreamAsync(rssUrl);
+                using var reader = XmlReader.Create(stream, settings);
 
-                return result;
+                SyndicationFeed result = SyndicationFeed.Load(reader);
+                return (true, result);
             }
             catch
             {
                 // ignored
             }
 
-            return new();
+            return (false, new SyndicationFeed());
         }
 
-        private async Task<List<Article>> FetchFeedArticles(Feed feed)
+        private async Task<List<Article>?> FetchFeedArticles(Feed feed)
         {
             _userSettings = await _userRepo.Get();
 
@@ -68,7 +89,11 @@ namespace Feedster.DAL.Services
 
             List<Article> articlesToUpdate = new();
 
-            SyndicationFeed result = ReadXml(feed.RssUrl);
+            var (success, result) = await ReadXml(feed.RssUrl);
+            if (!success)
+            {
+                return null;
+            }
 
             // loop through all results and add them to a list
             foreach (var itm in result.Items)
@@ -164,19 +189,37 @@ namespace Feedster.DAL.Services
                 XElement element = extension.GetObject<XElement>();
 
                 if (!element.HasAttributes) continue;
-                
+
                 foreach (var attribute in element.Attributes())
                 {
                     string value = attribute.Value;
-                    if (value.ToLower().StartsWith("http") && (value.ToLower().EndsWith(".jpg") || value.ToLower().EndsWith(".png") ||
-                                                               value.ToLower().EndsWith(".gif") || value.ToLower().EndsWith(".jpeg")))
+                    if (IsImageUrl(value))
                     {
                         imageUrls.Add(value);
                     }
                 }
             }
 
+            foreach (var link in itm.Links)
+            {
+                if (link.RelationshipType == "enclosure" || (link.MediaType?.StartsWith("image") ?? false))
+                {
+                    string url = link.Uri.ToString();
+                    if (IsImageUrl(url))
+                    {
+                        imageUrls.Add(url);
+                    }
+                }
+            }
+
             return imageUrls;
+        }
+
+        private static bool IsImageUrl(string value)
+        {
+            string lower = value.ToLower();
+            return lower.StartsWith("http") && (lower.EndsWith(".jpg") || lower.EndsWith(".png") || lower.EndsWith(".gif") ||
+                                                lower.EndsWith(".jpeg") || lower.EndsWith(".webp"));
         }
 
         private async Task<string> DownloadFileAsync(string uri, string outputPath)
@@ -197,7 +240,8 @@ namespace Feedster.DAL.Services
                 outputPath = normalizedFilename + ".webp";
 
                 using HttpClient httpClient = new();
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
                 if (!Uri.TryCreate(uri, UriKind.Absolute, out _))
                     throw new InvalidOperationException("URI is invalid.");
@@ -232,7 +276,8 @@ namespace Feedster.DAL.Services
                 try
                 {
                     using var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                    httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
                     // download image and pass it to the drawer
                     using var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img));

@@ -1,6 +1,6 @@
-﻿using Feedster.DAL.BackgroundServices;
-using Feedster.DAL.Data;
+﻿using Feedster.DAL.Data;
 using Feedster.DAL.Models;
+using Feedster.DAL.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Feedster.DAL.Repositories;
@@ -8,12 +8,12 @@ namespace Feedster.DAL.Repositories;
 public class FeedRepository
 {
     private readonly ApplicationDbContext _db;
-    private readonly BackgroundJobs _backgroundJobs;
+    private readonly RssFetchService _rssFetchService;
 
-    public FeedRepository(ApplicationDbContext db, BackgroundJobs backgroundJobs)
+    public FeedRepository(ApplicationDbContext db, RssFetchService rssFetchService)
     {
         _db = db;
-        _backgroundJobs = backgroundJobs;
+        _rssFetchService = rssFetchService;
     }
 
     public async Task<List<Feed>> GetAll()
@@ -44,10 +44,9 @@ public class FeedRepository
         await _db.SaveChangesAsync();
     }
 
-    public void FetchFeed(Feed feed)
+    public async Task<int?> FetchFeed(Feed feed)
     {
-        List<Feed> feeds = new() { feed };
-        _backgroundJobs.BackgroundTasks.Enqueue(feeds);
+        return await _rssFetchService.RefreshFeed(feed);
     }
 
     internal void Dispose()
