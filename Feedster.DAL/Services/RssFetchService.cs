@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using System.Net.Http.Headers;
 using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -61,7 +62,8 @@ namespace Feedster.DAL.Services
                 settings.IgnoreWhitespace = true;
 
                 using HttpClient httpClient = new();
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
                 using var stream = await httpClient.GetStreamAsync(rssUrl);
                 using var reader = XmlReader.Create(stream, settings);
 
@@ -220,7 +222,8 @@ namespace Feedster.DAL.Services
                 outputPath = normalizedFilename + ".webp";
 
                 using HttpClient httpClient = new();
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
                 if (!Uri.TryCreate(uri, UriKind.Absolute, out _))
                     throw new InvalidOperationException("URI is invalid.");
@@ -255,7 +258,8 @@ namespace Feedster.DAL.Services
                 try
                 {
                     using var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("rss-reader/1.0 bot");
+                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                    httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
                     // download image and pass it to the drawer
                     using var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img));
