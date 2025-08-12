@@ -8,18 +8,19 @@
 <PageTitle>Feedster - Settings</PageTitle>
 
 <div class="container max-w-lg sm:border-2 sm:p-5 sm:rounded-xl sm:dark:bg-slate-800 sm:dark:border-gray-600 sm:bg-gray-100">
-    <EditForm Model="_userSettings" OnValidSubmit="SaveChanges">
+    <EditForm EditContext="_editContext" OnValidSubmit="SaveChanges">
         <DataAnnotationsValidator/>
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 3.5em">Settings</h5>
-        
-        <div class="rounded-lg text-indigo-400 dark:brightness-[0.75] dark:bg-indigo-300 bg-indigo-200 border-l-4 border-indigo-500 text-indigo-700 p-4 mb-2" role="alert">
-          <p class="font-bold">Don't forget to Save!</p>
-          <p>Save with the button at the bottom</p>
-        </div>
+        @if (!string.IsNullOrEmpty(_statusMessage))
+        {
+            <div class="rounded-lg border-l-4 p-4 mb-2 @_statusCss" role="alert">
+                <p class="font-bold">@_statusMessage</p>
+            </div>
+        }
         
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono  dark:brightness-[0.85]" style="font-size: 2em">Articles</h5>
         
-        <label class="dark:text-gray-200">Automatically update articles after...</label>
+        <label class="dark:text-gray-200">Refresh articles every...</label>
         <select @bind=_userSettings.ArticleRefreshAfterMinutes class="w-full mb-5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             <option selected>Select interval</option>
             <option value=5>5 Minutes</option>
@@ -32,7 +33,7 @@
             <option value=0>Never</option>
         </select>
         
-        <label class="dark:text-gray-200">Delete articles older than...</label>
+        <label class="dark:text-gray-200">Remove articles older than...</label>
         <select @bind=_userSettings.ArticleExpirationAfterDays class="mb-5 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             <option selected>Select duration</option>
             <option value=7>1 Week</option>
@@ -44,13 +45,13 @@
             <option value=0>Never</option>
         </select>
         
-        <label class="dark:text-gray-200">Article Count per page (0 = No limit)</label>
+        <label class="dark:text-gray-200">Articles per page (0 = unlimited)</label>
         <div class="relative mb-5">
             <InputNumber @bind-Value=_userSettings.ArticleCountOnPage maxlength="4" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
             <ValidationMessage For="@(() => _userSettings.ArticleCountOnPage)" />
         </div>
         
-        <label class="dark:text-gray-200">Max Article Count in the Database (0 = No limit)</label>
+        <label class="dark:text-gray-200">Maximum articles stored (0 = unlimited)</label>
         <div class="relative mb-5">
             <InputNumber disabled @bind-Value=_userSettings.MaxArticleCountInDb maxlength="5" class="disabled cursor-not-allowed w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
             <ValidationMessage For="@(() => _userSettings.MaxArticleCountInDb)" />
@@ -66,14 +67,14 @@
         </div>
         
         <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
-            <label class="inline-block align-middle text-base dark:text-gray-200 ">Show Article Images</label>
+            <label class="inline-block align-middle text-base dark:text-gray-200 ">Display article images</label>
             <div class="inline-block align-middle float-right block">                
                 <input @bind=_userSettings.ShowImages class="switch" type="checkbox">
             </div>
         </div>
         
         <div class="max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 dark:bg-slate-700 bg-gray-200 rounded-lg h-[3.75em]">
-            <label class="inline-block align-middle text-base dark:text-gray-200">Download Article Images</label>
+            <label class="inline-block align-middle text-base dark:text-gray-200">Download article images</label>
             <div class="inline-block align-middle float-right block rounded">
                 <input @bind=_userSettings.DownloadImages class="switch" type="checkbox">
             </div>
@@ -125,11 +126,11 @@
             <button @onclick="ExportOpml" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col shadow-md max-w-full h-[3.75rem] text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Export OPML File</button>
         </div>
         
-    <button type="submit" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
+    <button type="submit" disabled="@(!_hasUnsavedChanges || _isSaving)" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 disabled:opacity-50">
         <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <a class="align-middle" style="display:inline-block">Save</a>
+        <a class="align-middle" style="display:inline-block">Save Settings</a>
     </button>
     </EditForm>
     </div>
@@ -142,6 +143,12 @@
     long _databaseSize;
     bool _isDarkMode;
     RenderFragment? _notification;
+    EditContext? _editContext;
+    bool _hasUnsavedChanges;
+    bool _isSaving;
+    string? _statusMessage;
+    string _statusCss = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadUserSettings();
@@ -151,7 +158,19 @@
     {
         _userSettings = await _userRepo.Get();
         _isDarkMode = _userSettings.IsDarkMode;
+        _editContext = new EditContext(_userSettings);
+        _editContext.OnFieldChanged += EditContext_OnFieldChanged;
         LoadCacheSizes();
+    }
+
+    private void EditContext_OnFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        if (_isSaving)
+            return;
+        _hasUnsavedChanges = true;
+        _statusMessage = "You have unsaved changes. Don't forget to save.";
+        _statusCss = "text-yellow-700 bg-yellow-100 border-yellow-400";
+        InvokeAsync(StateHasChanged);
     }
 
     private void LoadCacheSizes()
@@ -162,6 +181,11 @@
 
     private async Task SaveChanges()
     {
+        _isSaving = true;
+        _statusMessage = "Saving changes...";
+        _statusCss = "text-blue-700 bg-blue-100 border-blue-500";
+        StateHasChanged();
+
         if (_isDarkMode != _userSettings.IsDarkMode)
         {
             _userSettings.IsDarkMode = _isDarkMode;
@@ -174,7 +198,16 @@
             await _userRepo.Update(_userSettings);
             await LoadUserSettings();
         }
+
+        _isSaving = false;
+        _hasUnsavedChanges = false;
+        _statusMessage = "Settings saved.";
+        _statusCss = "text-green-700 bg-green-100 border-green-500";
         ShowNotification("Changes Saved!", "All changes have been saved. Some settings can take up to 10 minutes to take effect.");
+        StateHasChanged();
+        await Task.Delay(3000);
+        _statusMessage = null;
+        StateHasChanged();
     }
 
     private void ClearImageCache()
@@ -191,19 +224,27 @@
 
     private async Task ImportOpml(InputFileChangeEventArgs e)
     {
-        var file = e.File;
-        using var content = new MultipartFormDataContent();
-        using var stream = file.OpenReadStream(10 * 1024 * 1024);
-        content.Add(new StreamContent(stream), "file", file.Name);
+        try
+        {
+            var file = e.File;
+            using var content = new MultipartFormDataContent();
+            await using var stream = file.OpenReadStream(10 * 1024 * 1024);
+            content.Add(new StreamContent(stream), "file", file.Name);
 
-        var response = await _httpClient.PostAsync("api/Opml/import", content);
-        if (response.IsSuccessStatusCode)
-        {
-            ShowNotification("Import completed!", "Feeds imported successfully.");
+            var response = await _httpClient.PostAsync("api/Opml/import", content);
+            if (response.IsSuccessStatusCode)
+            {
+                ShowNotification("Import completed!", "Feeds imported successfully.");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                ShowNotification("Import failed!", string.IsNullOrWhiteSpace(error) ? "Failed to import feeds." : error);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            ShowNotification("Import failed!", "Failed to import feeds.");
+            ShowNotification("Import failed!", ex.Message);
         }
     }
 
@@ -217,5 +258,6 @@
     private void ShowNotification(string title, string summary)
     {
         _notification = @<Notification Title="@title" Summary="@summary" IsShown=@true/>;
+        InvokeAsync(StateHasChanged);
     }
 }
