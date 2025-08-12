@@ -1,6 +1,6 @@
 ﻿@using Microsoft.EntityFrameworkCore.Query.SqlExpressions
-@inject FolderRepository _folderRepo
-@inject NavigationManager nav
+@inject FolderRepository _folderRepository
+@inject NavigationManager _navManager
 
 <div class="sm:flex flex-col sm:flex-row sm:min-h-screen w-full shadow-xl rounded roboto font-semibold" >
   <div class="flex flex-col w-full sm:w-64 text-gray-700 bg-gray-200 dark:text-gray-200 dark:bg-slate-800 flex-shrink-0">
@@ -9,7 +9,7 @@
       <img alt="Feedster logo" src="feedster-logo-full-transparent-dark.png" @onclick="@(() => NavTo("/"))" class="cursor-pointer float-left hidden dark:block" Style="margin-left: -10px; max-width: 12em; vertical-align: middle;"/>
       <button class="p-2 rounded-lg sm:hidden rounded-lg focus:outline-none focus:shadow-outline bg-gray-300 dark:bg-slate-700" @onclick="ToggleSidebar">
         <svg fill="currentColor" viewBox="0 0 20 20" class="w-8 h-8">
-          @if (showSidebar)
+            @if (_showSidebar)
           {
             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
           }
@@ -20,7 +20,7 @@
         </svg>
       </button>
     </div>
-    <nav class="flex-grow sm:block px-4 pb-4 sm:pb-0 sm:overflow-y-auto @(showSidebar ? "" : "hidden")">
+      <nav class="flex-grow sm:block px-4 pb-4 sm:pb-0 sm:overflow-y-auto @(_showSidebar ? "" : "hidden")">
 
       <div @onclick="@(() => NavTo("feeds/manage"))" class="@GetActive("feeds/manage", NavLinkMatch.All)  mt-2 mb-3 focus:ring-2 pl-2 py-2 focus:bg-gray-300 focus:ring-black focus:outline-none text-lg cursor-pointer select-none hover:bg-gray-300 dark:hover:bg-slate-700  active:bg-gray-400 rounded-lg">
         <svg style="display:inline-block; vertical-align: text-bottom; position: relative;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
@@ -76,34 +76,34 @@
 </div>
 
 @code{
-  List<Folder> _folders = new();
-  private static bool showSidebar = false;
+    List<Folder> _folders = new();
+    private static bool _showSidebar = false;
   
   protected override async Task OnInitializedAsync()
   {
-    //nav.LocationChanged += (s, e) => StateHasChanged();
-    await DataLoad();
+      // _navManager.LocationChanged += (s, e) => StateHasChanged();
+      await LoadData();
   }
-  private void NavTo(string navlink)
-  {
-    nav.NavigateTo(navlink, forceLoad: true);
-    showSidebar = false;
-  }
-  
-  private async Task DataLoad()
-  {
-    _folders = await _folderRepo.GetAll();
-  }
+    private void NavTo(string navlink)
+    {
+      _navManager.NavigateTo(navlink, forceLoad: true);
+      _showSidebar = false;
+    }
 
-  private void ToggleSidebar()
-  {
-    showSidebar = !showSidebar;
-  }
+    private async Task LoadData()
+    {
+      _folders = await _folderRepository.GetAll();
+    }
+
+    private void ToggleSidebar()
+    {
+      _showSidebar = !_showSidebar;
+    }
   
-  // for marking active navbar tab
+  // Marks the active navigation bar tab.
   bool IsActive(string href, NavLinkMatch navLinkMatch = NavLinkMatch.Prefix)
   {
-    var relativePath = nav.ToBaseRelativePath(nav.Uri).ToLower();
+    var relativePath = _navManager.ToBaseRelativePath(_navManager.Uri).ToLower();
     return navLinkMatch == NavLinkMatch.All ? relativePath == href.ToLower() : relativePath.StartsWith(href.ToLower());
   }
   
