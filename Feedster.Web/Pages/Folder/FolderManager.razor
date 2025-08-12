@@ -158,7 +158,7 @@ else{
         {
             _folder.FolderId = 0;
             await _folderRepo.Create(_folder);
-            ShowNotification("Folder created!", "The folder was created successfully.");
+            ShowNotification("Folder created!", "The folder was created successfully.", NotificationType.Success);
         }
         else
         {
@@ -166,7 +166,7 @@ else{
             
             await _folderRepo.Update(_folder);
             _folderDisplayName = String.Empty;
-            ShowNotification("Folder updated!", "The folder was updated successfully.");
+            ShowNotification("Folder updated!", "The folder was updated successfully.", NotificationType.Success);
         }
         
         // force refresh of sidebar; else the name and folders are not refreshed
@@ -239,8 +239,8 @@ else{
         _feeds.Remove(feed);
     }    
     
-    private void ShowNotification(string Title, string Summary)
+    private void ShowNotification(string title, string summary, NotificationType type = NotificationType.Info)
     {
-        Notification = @<Notification title="@Title" Summary="@Summary" IsShown=@true/>;
+        Notification = @<Notification Title="@title" Summary="@summary" Type="@type" IsShown="true"/>;
     }
 }
