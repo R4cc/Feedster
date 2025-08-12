@@ -106,12 +106,12 @@ else{
         {
             _feed.FeedId = 0;
             await _feedRepo.Create(_feed);
-            ShowNotification("Feed added!", "It can take up to 2 minutes until all the information has been fetched.");
+            ShowNotification("Feed added!", "It can take up to 2 minutes until all the information has been fetched.", NotificationType.Success);
         }
         else
         {
             await _feedRepo.Update(_feed); 
-            ShowNotification("Feed updated!", "The feed was updated successfully.");
+            ShowNotification("Feed updated!", "The feed was updated successfully.", NotificationType.Success);
         }
 
         _feedRepo.FetchFeed(_feed);
@@ -159,11 +159,11 @@ else{
     {
         await _feedRepo.Remove(feedToRemove);
         await LoadFeeds();
-        ShowNotification("Feed deleted!", "The feed was deleted successfully.");
+        ShowNotification("Feed deleted!", "The feed was deleted successfully.", NotificationType.Success);
     }
     
-    private void ShowNotification(string Title, string Summary)
+    private void ShowNotification(string title, string summary, NotificationType type = NotificationType.Info)
     {
-        _notification = @<Notification title="@Title" Summary="@Summary" IsShown=@true/>;
+        _notification = @<Notification Title="@title" Summary="@summary" Type="@type" IsShown="true"/>;
     }
 }

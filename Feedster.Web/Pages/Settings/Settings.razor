@@ -11,12 +11,6 @@
     <EditForm EditContext="_editContext" OnValidSubmit="SaveChanges">
         <DataAnnotationsValidator/>
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 3.5em">Settings</h5>
-        @if (!string.IsNullOrEmpty(_statusMessage))
-        {
-            <div class="rounded-lg border-l-4 p-4 mb-2 @_statusCss" role="alert">
-                <p class="font-bold">@_statusMessage</p>
-            </div>
-        }
         
         <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono  dark:brightness-[0.85]" style="font-size: 2em">Articles</h5>
         
@@ -159,8 +153,6 @@
     EditContext? _editContext;
     bool _hasUnsavedChanges;
     bool _isSaving;
-    string? _statusMessage;
-    string _statusCss = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -185,8 +177,6 @@
             ShowNotification("Unsaved changes", "You have unsaved changes. Don't forget to save.");
         }
         _hasUnsavedChanges = true;
-        _statusMessage = null;
-        _statusCss = string.Empty;
         InvokeAsync(StateHasChanged);
     }
 
@@ -207,8 +197,6 @@
     private async Task SaveChanges()
     {
         _isSaving = true;
-        _statusMessage = "Saving changes...";
-        _statusCss = "text-blue-700 bg-blue-100 border-blue-500";
         StateHasChanged();
 
         await _userRepository.Update(_userSettings);
@@ -216,12 +204,7 @@
 
         _isSaving = false;
         _hasUnsavedChanges = false;
-        _statusMessage = "Settings saved.";
-        _statusCss = "text-green-700 bg-green-100 border-green-500";
-        ShowNotification("Changes Saved!", "All changes have been saved. Some settings can take up to 10 minutes to take effect.");
-        StateHasChanged();
-        await Task.Delay(3000);
-        _statusMessage = null;
+        ShowNotification("Changes Saved!", "All changes have been saved. Some settings can take up to 10 minutes to take effect.", NotificationType.Success);
         StateHasChanged();
     }
 
@@ -229,7 +212,7 @@
     {
         _imageService.ClearImageCache();
         LoadCacheSizes();
-        ShowNotification("Images cleared!", "All images have been successfully cleared.");
+        ShowNotification("Images cleared!", "All images have been successfully cleared.", NotificationType.Success);
     }
 
     private void ExportOpml()
@@ -239,7 +222,7 @@
 
     private void ShowOpmlInfo()
     {
-        ShowNotification("About OPML", "OPML files let you import and export your feed subscriptions.");
+        ShowNotification("About OPML", "OPML files let you import and export your feed subscriptions.", NotificationType.Info);
     }
 
     private async Task ImportOpml(InputFileChangeEventArgs e)
@@ -255,17 +238,17 @@
             var response = await _httpClient.PostAsync(uri, content);
             if (response.IsSuccessStatusCode)
             {
-                ShowNotification("Import completed!", "Feeds imported successfully.");
+                ShowNotification("Import completed!", "Feeds imported successfully.", NotificationType.Success);
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                ShowNotification("Import failed!", string.IsNullOrWhiteSpace(error) ? "Failed to import feeds." : error);
+                ShowNotification("Import failed!", string.IsNullOrWhiteSpace(error) ? "Failed to import feeds." : error, NotificationType.Error);
             }
         }
         catch (Exception ex)
         {
-            ShowNotification("Import failed!", ex.Message);
+            ShowNotification("Import failed!", ex.Message, NotificationType.Error);
         }
     }
 
@@ -273,12 +256,12 @@
     {
         await _articleRepository.ClearAllArticles();
         LoadCacheSizes();
-        ShowNotification("Articles cleared!", "All articles have been successfully cleared.");
+        ShowNotification("Articles cleared!", "All articles have been successfully cleared.", NotificationType.Success);
     }
 
-    private void ShowNotification(string title, string summary)
+    private void ShowNotification(string title, string summary, NotificationType type = NotificationType.Info)
     {
-        _notification = @<Notification Title="@title" Summary="@summary" IsShown=@true/>;
+        _notification = @<Notification Title="@title" Summary="@summary" Type="@type" IsShown="true"/>;
         InvokeAsync(StateHasChanged);
     }
 }
