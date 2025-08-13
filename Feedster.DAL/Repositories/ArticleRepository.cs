@@ -2,10 +2,11 @@
 using Feedster.DAL.Models;
 using Feedster.DAL.Services;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Feedster.DAL.Repositories;
 
-public class ArticleRepository
+public class ArticleRepository : IDisposable
 {
     private readonly ApplicationDbContext _db;
     private readonly ImageService _imageService;
@@ -49,8 +50,16 @@ public class ArticleRepository
         _imageService.ClearArticleImages(articlesToDelete);
     }
 
-    internal void Dispose()
+    private bool _disposed;
+
+    public void Dispose()
     {
-        _db.Dispose();
+        if (!_disposed)
+        {
+            _db.Dispose();
+            _disposed = true;
+        }
+
+        GC.SuppressFinalize(this);
     }
 }

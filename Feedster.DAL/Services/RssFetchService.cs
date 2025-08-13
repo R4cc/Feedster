@@ -7,7 +7,9 @@ using System.Xml.Linq;
 using Feedster.DAL.Models;
 using Feedster.DAL.Repositories;
 using ImageMagick;
+using Microsoft.Extensions.Logging;
 using Feed = Feedster.DAL.Models.Feed;
+using System;
 
 namespace Feedster.DAL.Services
 {
@@ -16,13 +18,22 @@ namespace Feedster.DAL.Services
         private readonly ArticleRepository _articleRepository;
         private readonly UserRepository _userRepo;
         private readonly ImageService _imageService;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<RssFetchService> _logger;
         private UserSettings? _userSettings;
 
-        public RssFetchService(ArticleRepository articleRepository, UserRepository userRepo, ImageService imageSerivce)
+        public RssFetchService(
+            ArticleRepository articleRepository,
+            UserRepository userRepo,
+            ImageService imageSerivce,
+            IHttpClientFactory httpClientFactory,
+            ILogger<RssFetchService> logger)
         {
             _articleRepository = articleRepository;
             _userRepo = userRepo;
             _imageService = imageSerivce;
+            _httpClientFactory = httpClientFactory;
+            _logger = logger;
         }
 
         public async Task RefreshFeeds(List<Feed> feeds)
@@ -53,15 +64,13 @@ namespace Feedster.DAL.Services
             return articles.Count;
         }
 
-        private static async Task<(bool Success, SyndicationFeed Feed)> ReadXml(string rssUrl)
+        private async Task<(bool Success, SyndicationFeed Feed)> ReadXml(string rssUrl)
         {
             try
             {
-                XmlReaderSettings settings = new XmlReaderSettings();
-                settings.DtdProcessing = DtdProcessing.Ignore;
-                settings.IgnoreWhitespace = true;
+                XmlReaderSettings settings = new() { DtdProcessing = DtdProcessing.Ignore, IgnoreWhitespace = true };
 
-                using HttpClient httpClient = new();
+                var httpClient = _httpClientFactory.CreateClient();
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
                 httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
                 using var stream = await httpClient.GetStreamAsync(rssUrl);
@@ -70,9 +79,9 @@ namespace Feedster.DAL.Services
                 SyndicationFeed result = SyndicationFeed.Load(reader);
                 return (true, result);
             }
-            catch
+            catch (Exception ex)
             {
-                // ignored
+                _logger.LogError(ex, "Failed to read RSS feed from {Url}", rssUrl);
             }
 
             return (false, new SyndicationFeed());
@@ -166,9 +175,9 @@ namespace Feedster.DAL.Services
                         Tags = itm.Categories.Select(x => x.Name).ToArray()
                     });
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // ignored
+                    _logger.LogError(ex, "Failed to process article from {Url}", feed.RssUrl);
                 }
             }
 
@@ -234,12 +243,11 @@ namespace Feedster.DAL.Services
                 // Remove special chars
                 var normalizedFilename = Regex.Replace(Path.GetFileNameWithoutExtension(outputPath), "(?:[^a-z0-9 ]|(?<=['\"])s)", "");
 
-                // add "seed" to differentiate between images with the same filename
-                normalizedFilename += "-" + new Random().Next(10000, 100000);
-                //outputPath = normalizedFilename + Path.GetExtension(outputPath);
+                // add unique value to differentiate between images with the same filename
+                normalizedFilename += "-" + Guid.NewGuid().ToString("N");
                 outputPath = normalizedFilename + ".webp";
 
-                using HttpClient httpClient = new();
+                var httpClient = _httpClientFactory.CreateClient();
                 httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
                 httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
@@ -253,9 +261,9 @@ namespace Feedster.DAL.Services
 
                 return outputPath;
             }
-            catch
+            catch (Exception ex)
             {
-                // most likely 403 No access so ignore
+                _logger.LogError(ex, "Failed to download file from {Uri}", uri);
             }
 
             return String.Empty;
@@ -275,22 +283,22 @@ namespace Feedster.DAL.Services
             {
                 try
                 {
-                    using var httpClient = new HttpClient();
+                    var httpClient = _httpClientFactory.CreateClient();
                     httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
                     httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
                     // download image and pass it to the drawer
                     using var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img));
                     using var image = new MagickImage(imgStream);
-                    
+
                     if (image.Height * image.Width <= highestResolution) continue;
-                            
+
                     highestResolution = (int)(image.Height * image.Width);
                     highestResolutionImage = img;
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // img download probably failed; continue
+                    _logger.LogError(ex, "Failed to evaluate image {ImageUrl}", img);
                 }
             }
             return highestResolutionImage;

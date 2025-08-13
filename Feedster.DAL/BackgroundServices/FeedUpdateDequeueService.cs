@@ -39,7 +39,6 @@ public class FeedUpdateDequeueService : BackgroundService
             }
             await Task.Delay(1000, stoppingToken);
         }
-        scope.Dispose();
         _logger.LogInformation("Stopped FeedUpdateDequeueService");
     }
 }

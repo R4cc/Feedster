@@ -52,7 +52,6 @@ public class FeedUpdateSchedulerService : BackgroundService
                 await Task.Delay(userSettings.ArticleRefreshAfterMinutes * 60 * 1000, stoppingToken);
             }
         }
-        scope.Dispose();
         _logger.LogInformation("Stopped FeedUpdateSchedulerService");
     }
 }

@@ -2,10 +2,11 @@
 using Feedster.DAL.Models;
 using Feedster.DAL.Services;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Feedster.DAL.Repositories;
 
-public class FeedRepository
+public class FeedRepository : IDisposable
 {
     private readonly ApplicationDbContext _db;
     private readonly RssFetchService _rssFetchService;
@@ -49,8 +50,16 @@ public class FeedRepository
         return await _rssFetchService.RefreshFeed(feed);
     }
 
-    internal void Dispose()
+    private bool _disposed;
+
+    public void Dispose()
     {
-        _db.Dispose();
+        if (!_disposed)
+        {
+            _db.Dispose();
+            _disposed = true;
+        }
+
+        GC.SuppressFinalize(this);
     }
 }

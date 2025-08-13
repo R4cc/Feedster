@@ -52,9 +52,6 @@ public class ExpiredArticlesPurgeService : BackgroundService
                 // run once every 24 hours
                 _logger.LogInformation("Purge completed. Waiting 24 Hours until next purge");
 
-                scope.Dispose();
-                _userRepository.Dispose();
-
                 await Task.Delay(24 * 60 * 60 * 1000, stoppingToken);
             }
         }

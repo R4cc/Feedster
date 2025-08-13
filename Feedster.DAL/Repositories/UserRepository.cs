@@ -1,10 +1,11 @@
 using Feedster.DAL.Data;
 using Feedster.DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Feedster.DAL.Repositories;
 
-public class UserRepository
+public class UserRepository : IDisposable
 {
     private readonly ApplicationDbContext _db;
 
@@ -24,8 +25,16 @@ public class UserRepository
         await _db.SaveChangesAsync();
     }
 
-    internal void Dispose()
+    private bool _disposed;
+
+    public void Dispose()
     {
-        _db.Dispose();
+        if (!_disposed)
+        {
+            _db.Dispose();
+            _disposed = true;
+        }
+
+        GC.SuppressFinalize(this);
     }
 }

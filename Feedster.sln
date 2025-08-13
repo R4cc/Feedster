@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feedster.Web", "Feedster.We
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feedster.DAL", "Feedster.DAL\Feedster.DAL.csproj", "{B87CA8A3-BEC2-4134-8F0A-FE4F07576A95}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feedster.DAL.Tests", "Feedster.DAL.Tests\Feedster.DAL.Tests.csproj", "{7464AF72-C89C-4DE0-86C3-E2173BC00C31}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B87CA8A3-BEC2-4134-8F0A-FE4F07576A95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B87CA8A3-BEC2-4134-8F0A-FE4F07576A95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B87CA8A3-BEC2-4134-8F0A-FE4F07576A95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7464AF72-C89C-4DE0-86C3-E2173BC00C31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7464AF72-C89C-4DE0-86C3-E2173BC00C31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7464AF72-C89C-4DE0-86C3-E2173BC00C31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7464AF72-C89C-4DE0-86C3-E2173BC00C31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
