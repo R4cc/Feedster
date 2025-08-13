@@ -10,36 +10,31 @@ namespace Feedster.DAL.BackgroundServices;
 /// <summary>
 /// This service automatically runs every second and tries to dequeue tasks (fetching feeds) from the BackgroundJobs List
 /// </summary>
-public class FeedUpdateDequeueService : BackgroundService
+public class FeedUpdateDequeueService(
+    IServiceScopeFactory scopeFactory,
+    ILogger<FeedUpdateDequeueService> logger) : BackgroundService
 {
-    private  RssFetchService? _rssFetchService;
-    private  BackgroundJobs? _backgroundJobs;
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<FeedUpdateDequeueService> _logger;
-
-    public FeedUpdateDequeueService(IServiceScopeFactory scopeFactory, ILogger<FeedUpdateDequeueService> logger)
-    {
-        _scopeFactory = scopeFactory;
-        _logger = logger;
-    }
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+    private readonly ILogger<FeedUpdateDequeueService> _logger = logger;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Started FeedUpdateDequeueService");
-        
-        using IServiceScope scope = _scopeFactory.CreateScope();
-        _backgroundJobs = scope.ServiceProvider.GetRequiredService<BackgroundJobs>();   
-        _rssFetchService = scope.ServiceProvider.GetRequiredService<RssFetchService>();   
-        
+
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        var backgroundJobs = scope.ServiceProvider.GetRequiredService<BackgroundJobs>();
+        var rssFetchService = scope.ServiceProvider.GetRequiredService<RssFetchService>();
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            if(_backgroundJobs.BackgroundTasks.TryDequeue(out var feeds))
+            if (backgroundJobs.BackgroundTasks.TryDequeue(out var feeds))
             {
-                await _rssFetchService.RefreshFeeds(feeds); 
+                await rssFetchService.RefreshFeeds(feeds);
             }
-            await Task.Delay(1000, stoppingToken);
+
+            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
         }
-        scope.Dispose();
+
         _logger.LogInformation("Stopped FeedUpdateDequeueService");
     }
 }

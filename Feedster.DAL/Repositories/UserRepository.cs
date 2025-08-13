@@ -1,31 +1,38 @@
 using Feedster.DAL.Data;
 using Feedster.DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Feedster.DAL.Repositories;
 
-public class UserRepository
+public class UserRepository(ApplicationDbContext db) : IDisposable, IAsyncDisposable
 {
-    private readonly ApplicationDbContext _db;
-
-    public UserRepository(ApplicationDbContext db)
-    {
-        _db = db;
-    }
+    private bool _disposed;
 
     public async Task<UserSettings> Get()
     {
-        return await _db.UserSettings.FirstAsync();
+        return await db.UserSettings.FirstAsync();
     }
 
-    public async Task Update(UserSettings _userSettings)
+    public async Task Update(UserSettings userSettings)
     {
-        _db.UserSettings.Update(_userSettings);
-        await _db.SaveChangesAsync();
+        db.UserSettings.Update(userSettings);
+        await db.SaveChangesAsync();
     }
 
-    internal void Dispose()
+    public void Dispose()
     {
-        _db.Dispose();
+        if (_disposed) return;
+        db.Dispose();
+        _disposed = true;
+        GC.SuppressFinalize(this);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        await db.DisposeAsync();
+        _disposed = true;
+        GC.SuppressFinalize(this);
     }
 }

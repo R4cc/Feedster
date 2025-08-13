@@ -12,18 +12,19 @@ public class CustomValidationAttribute : ValidationAttribute
     {
         if (rssUrl is not null)
         {
-            string content = rssUrl!.ToString()!.ToLower();
+            string content = rssUrl.ToString()!.ToLower();
+            var httpClientFactory = (IHttpClientFactory?)validationContext.GetService(typeof(IHttpClientFactory));
 
-            if (TryParseFeed(content))
+            if (httpClientFactory != null && TryParseFeed(content, httpClientFactory))
             {
                 return null;
             }
         }
 
-        return new ValidationResult(ErrorMessage, new List<string> { validationContext!.MemberName! });
+        return new ValidationResult(ErrorMessage, new List<string> { validationContext.MemberName! });
     }
 
-    private bool TryParseFeed(string url)
+    private bool TryParseFeed(string url, IHttpClientFactory httpClientFactory)
     {
         try
         {
@@ -33,7 +34,7 @@ public class CustomValidationAttribute : ValidationAttribute
                 IgnoreWhitespace = true
             };
 
-            using HttpClient httpClient = new();
+            var httpClient = httpClientFactory.CreateClient();
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
             httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
             using var stream = httpClient.GetStreamAsync(url).Result;

@@ -1,48 +1,55 @@
-﻿using Feedster.DAL.Data;
+using Feedster.DAL.Data;
 using Feedster.DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Feedster.DAL.Repositories;
 
-public class FolderRepository
+public class FolderRepository(ApplicationDbContext db) : IDisposable, IAsyncDisposable
 {
-    private readonly ApplicationDbContext _db;
-
-    public FolderRepository(ApplicationDbContext db)
-    {
-        _db = db;
-    }
+    private bool _disposed;
 
     public async Task<List<Folder>> GetAll()
     {
-        return await _db.Folders.Include(g => g.Feeds).ToListAsync();
+        return await db.Folders.Include(g => g.Feeds).ToListAsync();
     }
 
     public async Task Create(Folder folder)
     {
-        await _db.Folders.AddAsync(folder);
-        await _db.SaveChangesAsync();
+        await db.Folders.AddAsync(folder);
+        await db.SaveChangesAsync();
     }
 
     public async Task<Folder?> Get(int id)
     {
-        return await _db.Folders.FirstOrDefaultAsync(f => f.FolderId == id);
+        return await db.Folders.FirstOrDefaultAsync(f => f.FolderId == id);
     }
 
     public async Task Update(Folder folder)
     {
-        _db.Folders.Update(folder);
-        await _db.SaveChangesAsync();
+        db.Folders.Update(folder);
+        await db.SaveChangesAsync();
     }
 
     public async Task Remove(Folder folder)
     {
-        _db.Folders.Remove(folder);
-        await _db.SaveChangesAsync();
+        db.Folders.Remove(folder);
+        await db.SaveChangesAsync();
     }
 
-    internal void Dispose()
+    public void Dispose()
     {
-        _db.Dispose();
+        if (_disposed) return;
+        db.Dispose();
+        _disposed = true;
+        GC.SuppressFinalize(this);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        await db.DisposeAsync();
+        _disposed = true;
+        GC.SuppressFinalize(this);
     }
 }

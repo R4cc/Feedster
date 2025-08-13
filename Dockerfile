@@ -47,5 +47,9 @@ WORKDIR /app
 # Copy the published app from the build stage
 COPY --from=build-env /app/publish .
 
+# Create and use a non-root user
+RUN useradd -m appuser && chown -R appuser /app
+USER appuser
+
 # Set the entry point for the container
 ENTRYPOINT ["dotnet", "Feedster.Web.dll"]

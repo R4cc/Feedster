@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 using Feedster.DAL.Models;
 using ImageMagick;
@@ -28,9 +29,13 @@ public class ImageService
     {
         foreach (var article in articles)
         {
-            if (!String.IsNullOrEmpty("./images/" + article.ImagePath) && File.Exists("./images/" + article.ImagePath))
+            if (!string.IsNullOrEmpty(article.ImagePath))
             {
-                File.Delete("./images/" + article.ImagePath);
+                var path = Path.Combine("images", article.ImagePath);
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
             }
         }
     }
