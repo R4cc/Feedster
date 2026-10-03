@@ -85,6 +85,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapStaticAssets();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
