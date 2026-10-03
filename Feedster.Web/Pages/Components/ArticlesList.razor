@@ -14,7 +14,7 @@ else
             <a href="@(string.IsNullOrEmpty(article.ArticleLink) ? null : article.ArticleLink)" target="_blank" style="min-width: 20em;" class="border border-3 border-black transition hover:bg-gray-200 block p-6 bg-gray-100 rounded-lg shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
                 @if (File.Exists("images/" + article.ImagePath) && _userSettings.ShowImages)
                 {
-                    <img src="@("/images/" + article.ImagePath)" class="rounded max-w-50 mb-2" alt="article image">
+                    <img src="@("/images/" + article.ImagePath)" class="rounded-sm max-w-50 mb-2" alt="article image" loading="lazy" decoding="async">
                 }
                 <p class="dark:brightness-[0.85] text-sm top-0 space-mono dark:text-gray-200">@article.Feed?.Name • @Convert.ToDateTime(article.PublicationDate).ToString("g")</p>
                 <h5 class="dark:brightness-[0.85] mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
@@ -28,13 +28,13 @@ else
 
 <!-- Naviation Buttons -->
 <div class="mb-8" style="width: 100%; text-align: center;">
-    <button @onclick="(() => ClickPagingButton(false))" disabled="@PrevBtnDisabled" class="@(PrevBtnDisabled ? "hidden" : " cursor-pointer") w-32 shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+    <button @onclick="(() => ClickPagingButton(false))" disabled="@PrevBtnDisabled" class="@(PrevBtnDisabled ? "hidden" : " cursor-pointer") w-32 shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
         <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="float-left w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
         </svg>
         <a class="align-middle" style="display:inline-block; margin-top: 2px">Previous</a>
     </button>
-    <button @onclick="(() => ClickPagingButton(true))" disabled="@NextBtnDisabled" class="@(NextBtnDisabled ? "hidden" : " cursor-pointer") w-32 shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
+    <button @onclick="(() => ClickPagingButton(true))" disabled="@NextBtnDisabled" class="@(NextBtnDisabled ? "hidden" : " cursor-pointer") w-32 shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
         <a class="align-middle" style="display:inline-block; margin-top: 2px">Next</a>
         <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class=" float-right w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" />

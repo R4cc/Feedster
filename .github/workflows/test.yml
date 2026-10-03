@@ -2,22 +2,53 @@ name: build-and-test
 
 on:
   push:
-    branches: [main]
+    branches: ['codex/**']
   pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: x64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '8.0.x'
-      - uses: actions/setup-node@v4
+          global-json-file: global.json
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '26'
           cache: npm
           cache-dependency-path: Feedster.Web/package-lock.json
-      - run: npm ci --prefix Feedster.Web
+      - run: npm ci --ignore-scripts --prefix Feedster.Web
+      - run: npm audit --prefix Feedster.Web --audit-level=low
       - run: dotnet build Feedster.sln --configuration Release
       - run: dotnet test Feedster.sln --configuration Release --no-build
+      - run: dotnet list Feedster.sln package --vulnerable --include-transitive
+      - uses: docker/setup-buildx-action@v4
+      - name: Build runtime image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: feedster:ci
+          cache-from: type=gha,scope=feedster-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=feedster-${{ matrix.arch }}
+      - name: Publish native smoke harness
+        run: dotnet publish Feedster.ContainerSmoke -c Release -r linux-${{ matrix.arch }} --self-contained false -p:UseAppHost=false -o artifacts/container-smoke
+      - name: Verify final image
+        run: bash scripts/container-smoke.sh feedster:ci artifacts/container-smoke
+      - name: Report image size
+        run: |
+          size=$(docker image inspect feedster:ci --format '{{.Size}}')
+          echo "Runtime image (${{ matrix.arch }}): $((size / 1024 / 1024)) MiB" >> "$GITHUB_STEP_SUMMARY"

@@ -1,51 +1,40 @@
-# Stage 1: Build the application
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
-WORKDIR /src
-
-# Install Node.js, NPM and build tools in a single layer then cleanup
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl gnupg build-essential \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g npm@11.5.2 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Verify Node.js and NPM installation
-RUN node -v && npm -v
-
-# Copy package files and install dependencies
-COPY Feedster.Web/package*.json ./Feedster.Web/
+# syntax=docker/dockerfile:1
+# Build browser assets without installing Node or compilers into the .NET stage.
+FROM --platform=$BUILDPLATFORM node:26-bookworm-slim AS assets
 WORKDIR /src/Feedster.Web
+COPY Feedster.Web/package*.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts
+COPY Feedster.Web/Styles ./Styles
+COPY Feedster.Web/Pages ./Pages
+COPY Feedster.Web/Shared ./Shared
+COPY Feedster.Web/scripts ./scripts
+RUN npm run buildcss:release
 
-# Set NODE_ENV to development for npm install
-ENV NODE_ENV=development
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0.401-noble AS build
+ARG TARGETARCH
+WORKDIR /src
+COPY global.json ./
+COPY Feedster.DAL/Feedster.DAL.csproj Feedster.DAL/
+COPY Feedster.Web/Feedster.Web.csproj Feedster.Web/
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    case "$TARGETARCH" in amd64) rid=linux-x64 ;; arm64) rid=linux-arm64 ;; *) exit 1 ;; esac \
+    && dotnet restore Feedster.Web/Feedster.Web.csproj --runtime "$rid"
+COPY Feedster.DAL/ Feedster.DAL/
+COPY Feedster.Web/ Feedster.Web/
+COPY --from=assets /src/Feedster.Web/wwwroot/css/app.css Feedster.Web/wwwroot/css/app.css
+COPY --from=assets /src/Feedster.Web/wwwroot/js/alpine.min.js Feedster.Web/wwwroot/js/alpine.min.js
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    case "$TARGETARCH" in amd64) rid=linux-x64 ;; arm64) rid=linux-arm64 ;; *) exit 1 ;; esac \
+    && dotnet publish Feedster.Web/Feedster.Web.csproj --configuration Release \
+       --runtime "$rid" --self-contained false --no-restore --output /app/publish \
+       -p:SkipCssBuild=true -p:UseAppHost=false -p:DebugType=None -p:DebugSymbols=false \
+    && mkdir -p /app/publish/data /app/publish/images
 
-# Install NPM dependencies including devDependencies and update browserslist data
-RUN npm ci && npx update-browserslist-db@latest
-
-# Reset NODE_ENV to production for the build
-ENV NODE_ENV=production
-
-# Copy the rest of your source code
-COPY . /src
-
-# Restore .NET dependencies
-RUN dotnet restore "Feedster.Web.csproj"
-
-# Publish the project (build + publish) without restoring again
-RUN dotnet publish "Feedster.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
-
-# Stage 2: Build the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+# Retain ICU, certificates, and time zones for feeds, SQLite, and image processing.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.12-noble-chiseled-extra AS final
 WORKDIR /app
+# Preserve compatibility with existing root-owned data/image bind mounts.
+USER 0
 EXPOSE 8080
-EXPOSE 8443
-
-FROM base AS final
-WORKDIR /app
-
-# Copy the published app from the build stage
-COPY --from=build-env /app/publish .
-
-# Set the entry point for the container
+COPY --from=build /app/publish ./
 ENTRYPOINT ["dotnet", "Feedster.Web.dll"]

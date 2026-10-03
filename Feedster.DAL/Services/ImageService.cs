@@ -1,4 +1,3 @@
-using System.Text;
 using Feedster.DAL.Models;
 using ImageMagick;
 
@@ -37,15 +36,15 @@ public class ImageService
 
     public byte[] ResizeImage(byte[] byteArr)
     {
-        var data = byteArr;
-        using (var image = new MagickImage(data))
+        using (var image = new MagickImage(byteArr))
         {
-            var size = new MagickGeometry(1280, 720);
-            image.Resize(size); ;
+            image.AutoOrient();
+            // Fit large images while keeping small thumbnails at their original size.
+            image.Resize(new MagickGeometry(1280, 720) { Greater = true });
+            image.Strip();
             image.Format = MagickFormat.WebP;
-            byteArr = image.ToByteArray();
+            image.Quality = 75;
+            return image.ToByteArray();
         }
-
-        return byteArr;
     }
 }

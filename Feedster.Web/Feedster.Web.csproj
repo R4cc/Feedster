@@ -1,67 +1,44 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-Feedster.Web-f4d4acc7-9645-4bbe-a6f1-6589fa8036df</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
 
-	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<UserSecretsId>aspnet-Feedster.Web-f4d4acc7-9645-4bbe-a6f1-6589fa8036df</UserSecretsId>
-		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	</PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+    <!-- Enable only for migration tooling; keep Roslyn and design assemblies out of publish. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12"
+                      PrivateAssets="all" Condition="'$(EnableEfTools)' == 'true'" />
+    <ProjectReference Include="..\Feedster.DAL\Feedster.DAL.csproj" />
+  </ItemGroup>
 
-	<ItemGroup>
-                <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.19" />
-                <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.19" />
-                <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.19" />
-                <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.19" />
-                <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.19" />
-                <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.19">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-                <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
-                <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
-        </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Styles\**;scripts\**;package*.json;postcss.config.js;tailwind.config.js" />
+    <Content Remove="wwwroot\css\open-iconic\**;wwwroot\fonts\**\*.eot;wwwroot\fonts\**\*.svg;wwwroot\fonts\**\*.ttf;wwwroot\fonts\**\*.woff" />
+    <None Remove="database.db" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Feedster.DAL\Feedster.DAL.csproj" />
-	</ItemGroup>
+  <Target Name="NpmInstall" Inputs="package.json;package-lock.json"
+          Outputs="node_modules/.package-lock.json">
+    <Exec Command="npm ci" />
+  </Target>
 
-	<ItemGroup>
-		<None Remove="database.db" />
-	</ItemGroup>
+  <Target Name="BuildCSS" BeforeTargets="BeforeBuild" DependsOnTargets="NpmInstall"
+          Condition="'$(SkipCssBuild)' != 'true' and '$(RestoreExecuting)' != 'true'">
+    <Exec Command="npm run buildcss:dev" Condition="'$(Configuration)' == 'Debug'" />
+    <Exec Command="npm run buildcss:release" Condition="'$(Configuration)' != 'Debug'" />
+  </Target>
 
-	<ItemGroup>
-		<_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css" />
-		<_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css.map" />
-		<_ContentIncludedByDefault Remove="wwwroot\manifest\icon-192x192.png" />
-		<_ContentIncludedByDefault Remove="wwwroot\manifest\icon-256x256.png" />
-		<_ContentIncludedByDefault Remove="wwwroot\manifest\icon-384x384.png" />
-		<_ContentIncludedByDefault Remove="wwwroot\manifest\icon-512x512.png" />
-		<_ContentIncludedByDefault Remove="wwwroot\manifest\manifest.webmanifest" />
-	</ItemGroup>
-
-	<!-- Add this PropertyGroup -->
-	<PropertyGroup>
-		<!-- Define a property to indicate if building inside Docker (optional) -->
-		<BuildingInDocker Condition="'$(BuildingInDocker)' == ''">false</BuildingInDocker>
-	</PropertyGroup>
-
-	<!-- Modify the custom targets to include conditions -->
-	<Target Name="CheckForNpm" BeforeTargets="NpmInstall" Condition="'$(RestoreExecuting)' != 'true'">
-		<Exec Command="npm -v" ContinueOnError="true">
-			<Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
-		</Exec>
-		<Error Condition="'$(ErrorCode)' != '0'" Text="You must install NPM to build this project" />
-	</Target>
-
-	<Target Name="NpmInstall" BeforeTargets="BuildCSS" Inputs="package.json" Outputs="$(NpmLastInstall)" Condition="'$(RestoreExecuting)' != 'true'">
-		<Exec Command="npm install" />
-		<Touch Files="$(NpmLastInstall)" AlwaysCreate="true" />
-	</Target>
-
-	<Target Name="BuildCSS" BeforeTargets="Compile" Condition="'$(RestoreExecuting)' != 'true'">
-		<Exec Command="npm run buildcss:dev" Condition=" '$(Configuration)' == 'Debug' " />
-		<Exec Command="npm run buildcss:release" Condition=" '$(Configuration)' == 'Release' " />
-	</Target>
-
+  <Target Name="RemovePublishSourceMaps" AfterTargets="Publish">
+    <ItemGroup>
+      <PublishSourceMap Include="$(PublishDir)**/*.map;$(PublishDir)**/*.map.br;$(PublishDir)**/*.map.gz" />
+    </ItemGroup>
+    <Delete Files="@(PublishSourceMap)" />
+  </Target>
 </Project>

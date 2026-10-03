@@ -1,14 +1,13 @@
 {
+  "private": true,
   "scripts": {
-    "buildcss:dev": "cross-env TAILWIND_MODE=build postcss ./Styles/app.css -o ./wwwroot/css/app.css",
-    "buildcss:release": "cross-env NODE_ENV=production postcss ./Styles/app.css -o ./wwwroot/css/app.css"
+    "buildcss:dev": "node scripts/build-assets.mjs",
+    "buildcss:release": "node scripts/build-assets.mjs --minify"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.21",
-    "cssnano": "^7.1.0",
-    "cross-env": "^10.0.0",
-    "postcss": "^8.5.6",
-    "postcss-cli": "^11.0.1",
-    "tailwindcss": "^3.4.17"
+    "@tailwindcss/postcss": "4.3.3",
+    "alpinejs": "3.17.4",
+    "postcss": "8.5.28",
+    "tailwindcss": "4.3.3"
   }
 }

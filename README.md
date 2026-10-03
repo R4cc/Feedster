@@ -22,9 +22,21 @@ Atom summaries or inline text/HTML/XHTML content are displayed as plain text. Ar
 categories, and publication dates are imported, with `updated` used when `published` is absent.
 
 ## Development checks
+Development requires the .NET SDK selected in `global.json` (.NET 10) and Node.js 26.
 Run `npm ci --prefix Feedster.Web`, `dotnet build Feedster.sln -c Release`, and
 `dotnet test Feedster.sln -c Release --no-build`. Tests use local HTTP fixtures and a temporary
 in-memory SQLite database, so they do not require live feeds.
+
+The CSS build uses Tailwind 4 and bundles Alpine locally. Release builds minify CSS, and
+publish excludes legacy font formats, unused icon assets, source maps, and migration tooling.
+For EF migration development, build with `-p:EnableEfTools=true`, then run a matching
+`dotnet-ef` 10 tool with `--no-build`. Normal builds and publishes omit those design dependencies.
+
+Docker builds browser assets in a separate Node stage and publishes for the target CPU, so
+each image includes only its own image-processing and SQLite native libraries. The runtime
+uses the .NET 10 chiseled image with ICU and time-zone data. Existing `/app/data` and
+`/app/images` bind mounts remain supported. CI verifies both amd64 and arm64 containers,
+including native WebP conversion, SQLite migrations, HTTP pages, compressed assets, and restart.
 
 ## To-Do
 The following features are planned for the future

@@ -323,7 +323,8 @@ namespace Feedster.DAL.Services
 
                     // download image and pass it to the drawer
                     using var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img));
-                    using var image = new MagickImage(imgStream);
+                    // Read dimensions without decoding every candidate's pixels.
+                    var image = new MagickImageInfo(imgStream);
                     
                     if (image.Height * image.Width <= highestResolution) continue;
                             

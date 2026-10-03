@@ -23,3 +23,13 @@
 **/values.dev.yaml
 LICENSE
 README.md
+**/data
+**/images
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/*.pdb
+**/TestResults
+Feedster.Tests
+Feedster.ContainerSmoke
+.github
