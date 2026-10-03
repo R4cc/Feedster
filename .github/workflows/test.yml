@@ -51,4 +51,4 @@ jobs:
       - name: Report image size
         run: |
           size=$(docker image inspect feedster:ci --format '{{.Size}}')
-          echo "Runtime image (${{ matrix.arch }}): $((size / 1024 / 1024)) MiB" >> "$GITHUB_STEP_SUMMARY"
+          echo "Runtime image (${{ matrix.arch }}): $((size / 1024 / 1024)) MiB" | tee -a "$GITHUB_STEP_SUMMARY"

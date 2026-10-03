@@ -23,7 +23,8 @@ check_http() {
 }
 check_http
 for route in feeds/manage folders/manage settings css/app.css css/site.css js/alpine.min.js _framework/blazor.server.js; do
-  curl --fail --silent "http://127.0.0.1:18080/$route" > /dev/null
+  echo "Checking /$route"
+  curl --fail --silent --show-error "http://127.0.0.1:18080/$route" > /dev/null
 done
 headers="$(mktemp)"
 curl --fail --silent --compressed -H 'Accept-Encoding: gzip' -D "$headers" \
