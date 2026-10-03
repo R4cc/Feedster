@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 // Run against the final runtime image to catch missing native OS dependencies.
 var publishPath = args.FirstOrDefault() ?? "/app";
+if (!File.Exists(Path.Combine(publishPath, "wwwroot", "_framework", "blazor.server.js")))
+    throw new InvalidOperationException("Blazor's browser runtime was not published.");
 if (Directory.EnumerateFiles(publishPath, "Magick.Native*", SearchOption.AllDirectories).Count() != 1)
     throw new InvalidOperationException("Publish must contain one platform's Magick native library.");
 if (Directory.EnumerateFiles(publishPath, "*.dll", SearchOption.AllDirectories)
