@@ -16,14 +16,14 @@ WORKDIR /src
 COPY global.json ./
 COPY Feedster.DAL/Feedster.DAL.csproj Feedster.DAL/
 COPY Feedster.Web/Feedster.Web.csproj Feedster.Web/
-RUN --mount=type=cache,target=/root/.nuget/packages \
+RUN \
     case "$TARGETARCH" in amd64) rid=linux-x64 ;; arm64) rid=linux-arm64 ;; *) exit 1 ;; esac \
     && dotnet restore Feedster.Web/Feedster.Web.csproj --runtime "$rid"
 COPY Feedster.DAL/ Feedster.DAL/
 COPY Feedster.Web/ Feedster.Web/
 COPY --from=assets /src/Feedster.Web/wwwroot/css/app.css Feedster.Web/wwwroot/css/app.css
 COPY --from=assets /src/Feedster.Web/wwwroot/js/alpine.min.js Feedster.Web/wwwroot/js/alpine.min.js
-RUN --mount=type=cache,target=/root/.nuget/packages \
+RUN \
     case "$TARGETARCH" in amd64) rid=linux-x64 ;; arm64) rid=linux-arm64 ;; *) exit 1 ;; esac \
     && dotnet publish Feedster.Web/Feedster.Web.csproj --configuration Release \
        --runtime "$rid" --self-contained false --no-restore --output /app/publish \
