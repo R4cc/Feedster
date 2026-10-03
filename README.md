@@ -1,6 +1,6 @@
 ![feedster-logo-full-transparent](https://user-images.githubusercontent.com/48733309/190857523-6192d8b0-cd5a-42ba-8c00-de1cb1d008c7.png)
 
-A semi-minimal RSS reader written in ASP.NET Blazor Server Side.
+A semi-minimal RSS and Atom reader written in ASP.NET Blazor Server Side.
 
 [![dockerpush](https://github.com/R4cc/feedster/actions/workflows/main.yml/badge.svg)](https://github.com/R4cc/feedster/actions/workflows/main.yml)
 
@@ -9,7 +9,7 @@ A semi-minimal RSS reader written in ASP.NET Blazor Server Side.
 
 ## Features
 The following features are built into the application
-- Regular auto-fetching of RSS feeds with adjustable timeframe
+- Regular auto-fetching of RSS and Atom 1.0 feeds with adjustable timeframe
 - Custom feed names
 - Dark Mode
 - Custom folders for creating custom feeds
@@ -17,10 +17,18 @@ The following features are built into the application
 - Mobile screen compatible.
 - Webp image conversion for optimal performance
 
+Add an Atom 1.0 URL in the same feed manager as RSS feeds; the format is detected automatically.
+Atom summaries or inline text/HTML/XHTML content are displayed as plain text. Article links,
+categories, and publication dates are imported, with `updated` used when `published` is absent.
+
+## Development checks
+Run `npm ci --prefix Feedster.Web`, `dotnet build Feedster.sln -c Release`, and
+`dotnet test Feedster.sln -c Release --no-build`. Tests use local HTTP fixtures and a temporary
+in-memory SQLite database, so they do not require live feeds.
+
 ## To-Do
 The following features are planned for the future
 - Different post layout modes (card, grid, list, compact).
-- ATOM support
 - User authentication and user management system.
 - Post title/description search
 

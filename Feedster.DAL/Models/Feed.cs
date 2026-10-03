@@ -13,7 +13,7 @@ public class Feed
     public List<Folder> Folders { get; set; } = new();
 
     [Required]
-    [StringLength(512, ErrorMessage = "URL is too long(0-512)."), CustomValidation()]
+    [StringLength(512, ErrorMessage = "URL is too long(0-512)."), CustomValidation(ErrorMessage = "Enter a valid RSS or Atom feed URL.")]
     public string RssUrl { get; set; } = string.Empty;
 
     public List<Article>? Articles { get; set; } = new();

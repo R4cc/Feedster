@@ -1,8 +1,7 @@
 ﻿using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Net;
 using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
-using System.Xml;
 using System.Xml.Linq;
 using Feedster.DAL.Models;
 using Feedster.DAL.Repositories;
@@ -53,29 +52,19 @@ namespace Feedster.DAL.Services
             return articles.Count;
         }
 
-        private static async Task<(bool Success, SyndicationFeed Feed)> ReadXml(string rssUrl)
+        private static async Task<(bool Success, SyndicationFeed Feed, bool IsAtom)> ReadXml(string rssUrl)
         {
             try
             {
-                XmlReaderSettings settings = new XmlReaderSettings();
-                settings.DtdProcessing = DtdProcessing.Ignore;
-                settings.IgnoreWhitespace = true;
-
-                using HttpClient httpClient = new();
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-                httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-                using var stream = await httpClient.GetStreamAsync(rssUrl);
-                using var reader = XmlReader.Create(stream, settings);
-
-                SyndicationFeed result = SyndicationFeed.Load(reader);
-                return (true, result);
+                var (result, isAtom) = await FeedReader.ReadAsync(rssUrl);
+                return (true, result, isAtom);
             }
             catch
             {
                 // ignored
             }
 
-            return (false, new SyndicationFeed());
+            return (false, new SyndicationFeed(), false);
         }
 
         private async Task<List<Article>?> FetchFeedArticles(Feed feed)
@@ -83,39 +72,54 @@ namespace Feedster.DAL.Services
             _userSettings = await _userRepo.Get();
 
             // get existing articles to match
-            Dictionary<string, Article> existingArticles =
-                (feed!.Articles!).ToDictionary(keySelector: x => x.ArticleLink,
-                    elementSelector: x => x);
+            var existingArticles = (feed.Articles ?? new())
+                .Where(x => !string.IsNullOrEmpty(x.ArticleLink))
+                .GroupBy(x => x.ArticleLink).ToDictionary(x => x.Key, x => x.First());
+            var existingIds = (feed.Articles ?? new())
+                .Where(x => !string.IsNullOrEmpty(x.Guid))
+                .GroupBy(x => x.Guid!).ToDictionary(x => x.Key, x => x.First());
 
             List<Article> articlesToUpdate = new();
 
-            var (success, result) = await ReadXml(feed.RssUrl);
+            var (success, result, isAtom) = await ReadXml(feed.RssUrl);
             if (!success)
             {
                 return null;
             }
+            var feedUri = new Uri(feed.RssUrl);
 
             // loop through all results and add them to a list
             foreach (var itm in result.Items)
             {
                 try
                 {
-                    // Checks if article is older than max expiration setting
-                    if (itm.PublishDate.DateTime != DateTime.MinValue
-                        && _userSettings.ArticleExpirationAfterDays != 0 
-                        && itm.PublishDate.DateTime < DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays))
+                    var publicationDate = itm.PublishDate != DateTimeOffset.MinValue
+                        ? itm.PublishDate.LocalDateTime
+                        : itm.LastUpdatedTime != DateTimeOffset.MinValue
+                            ? itm.LastUpdatedTime.LocalDateTime
+                            : DateTime.Now;
+
+                    // Atom's published date is optional; use updated for expiry too.
+                    if (_userSettings.ArticleExpirationAfterDays != 0
+                        && publicationDate < DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays))
                     {
                         continue;
                     }
 
-                    string articleLink = itm.Links.ToList()[0].Uri.ToString();
-
-                    // article already exists in DB
-                    if (existingArticles.ContainsKey(articleLink) && articleLink != string.Empty)
+                    string articleLink = GetArticleLink(itm, feedUri);
+                    if (string.IsNullOrEmpty(articleLink) && string.IsNullOrEmpty(itm.Id))
                     {
-                        Article? article = existingArticles.GetValueOrDefault(articleLink);
+                        continue;
+                    }
 
-                        if (article is null || string.IsNullOrEmpty(article.ImageUrl))
+                    // Atom IDs remain stable even when a permalink changes or is absent.
+                    Article? article = isAtom && !string.IsNullOrEmpty(itm.Id)
+                        ? existingIds.GetValueOrDefault(itm.Id)
+                        : null;
+                    article ??= existingArticles.GetValueOrDefault(articleLink);
+                    if (article is not null)
+                    {
+                        if (string.IsNullOrEmpty(article.ImageUrl))
                         {
                             continue;
                         }
@@ -140,7 +144,7 @@ namespace Feedster.DAL.Services
                         continue;
                     }
 
-                    List<string> imageUrls = GetAllImageUrls(itm);
+                    List<string> imageUrls = GetAllImageUrls(itm, feedUri);
                     string highestResImageUrl = string.Empty;
                     string highestResImagePath = string.Empty;
 
@@ -153,18 +157,21 @@ namespace Feedster.DAL.Services
                         //await _imageService.CompressImage(highestResImagePath);
                     }
 
-                    articlesToUpdate.Add(new Article()
+                    var newArticle = new Article()
                     {
                         Guid = itm.Id,
-                        Description = StripTagsRegex(itm.Summary.Text),
-                        Title = itm.Title.Text,
+                        Description = GetPlainText(itm.Summary ?? itm.Content as TextSyndicationContent, !isAtom),
+                        Title = GetPlainText(itm.Title),
                         ImagePath = highestResImagePath,
                         ImageUrl = highestResImageUrl,
-                        PublicationDate = (itm.PublishDate.DateTime == DateTime.MinValue ? DateTime.Now : itm.PublishDate.DateTime),
+                        PublicationDate = publicationDate,
                         ArticleLink = articleLink,
                         FeedId = feed.FeedId,
                         Tags = itm.Categories.Select(x => x.Name).ToArray()
-                    });
+                    };
+                    articlesToUpdate.Add(newArticle);
+                    if (!string.IsNullOrEmpty(articleLink)) existingArticles[articleLink] = newArticle;
+                    if (isAtom && !string.IsNullOrEmpty(itm.Id)) existingIds[itm.Id] = newArticle;
                 }
                 catch
                 {
@@ -180,7 +187,7 @@ namespace Feedster.DAL.Services
         /// </summary>
         /// <param name="itm">SyndicationItem</param>
         /// <returns>String list of all image URLs</returns>
-        private static List<string> GetAllImageUrls(SyndicationItem itm)
+        private static List<string> GetAllImageUrls(SyndicationItem itm, Uri feedUri)
         {
             List<string> imageUrls = new();
 
@@ -202,10 +209,12 @@ namespace Feedster.DAL.Services
 
             foreach (var link in itm.Links)
             {
-                if (link.RelationshipType == "enclosure" || (link.MediaType?.StartsWith("image") ?? false))
+                if (link.RelationshipType == "enclosure"
+                    || (link.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) ?? false))
                 {
-                    string url = link.Uri.ToString();
-                    if (IsImageUrl(url))
+                    string url = GetHttpUrl(link.Uri, link.BaseUri, feedUri);
+                    if (!string.IsNullOrEmpty(url) && (IsImageUrl(url)
+                        || (link.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) ?? false)))
                     {
                         imageUrls.Add(url);
                     }
@@ -217,9 +226,42 @@ namespace Feedster.DAL.Services
 
         private static bool IsImageUrl(string value)
         {
-            string lower = value.ToLower();
-            return lower.StartsWith("http") && (lower.EndsWith(".jpg") || lower.EndsWith(".png") || lower.EndsWith(".gif") ||
-                                                lower.EndsWith(".jpeg") || lower.EndsWith(".webp"));
+            if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)
+                || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)) return false;
+            string extension = Path.GetExtension(uri.AbsolutePath).ToLowerInvariant();
+            return extension is ".jpg" or ".png" or ".gif" or ".jpeg" or ".webp";
+        }
+
+        private static string GetArticleLink(SyndicationItem item, Uri feedUri)
+        {
+            // Prefer the human-readable alternate, never self or enclosure links.
+            foreach (var link in item.Links
+                .Where(x => string.IsNullOrEmpty(x.RelationshipType) || x.RelationshipType == "alternate")
+                .OrderBy(x => x.MediaType is "text/html" or "application/xhtml+xml" ? 0
+                    : string.IsNullOrEmpty(x.MediaType) ? 1 : 2))
+            {
+                var url = GetHttpUrl(link.Uri, link.BaseUri ?? item.BaseUri, feedUri);
+                if (!string.IsNullOrEmpty(url)) return url;
+            }
+
+            return Uri.TryCreate(item.Id, UriKind.Absolute, out var id)
+                ? GetHttpUrl(id, null, feedUri) : string.Empty;
+        }
+
+        private static string GetHttpUrl(Uri? uri, Uri? baseUri, Uri feedUri)
+        {
+            if (uri is null) return string.Empty;
+            var resolvedBase = baseUri is null ? feedUri
+                : baseUri.IsAbsoluteUri ? baseUri : new Uri(feedUri, baseUri);
+            var resolved = uri.IsAbsoluteUri ? uri : new Uri(resolvedBase, uri);
+            return resolved.Scheme is "http" or "https" ? resolved.AbsoluteUri : string.Empty;
+        }
+
+        private static string GetPlainText(TextSyndicationContent? content, bool stripPlainText = false)
+        {
+            if (content is null) return string.Empty;
+            return content.Type == "text" && !stripPlainText
+                ? content.Text : WebUtility.HtmlDecode(StripTagsRegex(content.Text));
         }
 
         private async Task<string> DownloadFileAsync(string uri, string outputPath)
