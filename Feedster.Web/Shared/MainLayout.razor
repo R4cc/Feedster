@@ -1,33 +1,28 @@
-﻿@inherits LayoutComponentBase
-@inject UserRepository _userRepo
+@inherits LayoutComponentBase
+@inject UserRepository UserRepository
 
 <PageTitle>Feedster</PageTitle>
-
-<div class="page @(IsDarkMode ? "dark" : "")" style="min-height: 100vh">
-    <div class="sidebar top-0 border-end border-bottom">
-        <NavMenu/>
+<CascadingValue Value="this" IsFixed="true">
+    <div class="app-shell @(_isDarkMode ? "dark" : "")">
+        <a href="#main-content" class="skip-link">Skip to content</a>
+        <aside class="sidebar"><NavMenu @ref="_navMenu" /></aside>
+        <main id="main-content" class="main-content" tabindex="-1" aria-busy="@(_interactive ? "false" : "true")">@Body</main>
     </div>
-    <main class="dark:bg-slate-900 @(IsDarkMode ? "dark" : "")">
-        <article class="content px-4 max-w-(--breakpoint-sm) roboto">
-            @Body
-        </article>
-    </main>
-</div>
+</CascadingValue>
 
-
-<style>
-    html,
-    body
+@code {
+    private bool _isDarkMode = true;
+    private bool _interactive;
+    protected override void OnAfterRender(bool firstRender)
     {
-        min-height: 100vh;
+        if (firstRender) { _interactive = true; StateHasChanged(); }
     }
-</style>
-
-@code{
-    bool IsDarkMode = true;
-    protected override async Task OnInitializedAsync()
+    private NavMenu? _navMenu;
+    public async Task RefreshNavigation() { if (_navMenu is not null) await _navMenu.Refresh(); }
+    protected override async Task OnInitializedAsync() => _isDarkMode = (await UserRepository.Get()).IsDarkMode;
+    public void SetTheme(bool isDarkMode)
     {
-        IsDarkMode = (await _userRepo.Get()).IsDarkMode;
+        _isDarkMode = isDarkMode;
+        StateHasChanged();
     }
 }
-

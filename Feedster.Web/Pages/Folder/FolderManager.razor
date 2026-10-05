@@ -1,246 +1,80 @@
 @page "/folders/manage"
+@inject FolderRepository FolderRepository
+@inject FeedRepository FeedRepository
+@inject IJSRuntime Js
 
-@inject NavigationManager NavigationManager
-@inject FolderRepository _folderRepo
-@inject FeedRepository _feedRepo
-@inject IJSRuntime js
-
-<PageTitle>Feedster - Folders</PageTitle>
-    
-<h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 3.5em">Manage Folders</h5>
-<button type="button" @onclick="StartFolderCreate" class="dark:border-gray-400 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-2 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
-    <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <a class="align-middle" style="display:inline-block">Add Folder</a>
-</button>
-
-@if (!_folders.Any())
+<PageTitle>Feedster · Manage folders</PageTitle>
+<PageHeader Title="Manage folders"><button type="button" class="button button-primary" disabled="@_isSaving" @onclick="StartCreate"><Icon Name="plus" />Add folder</button></PageHeader>
+@if (_folders.Count == 0)
 {
-    <br/>
-    <a class="dark:brightness-[0.75] dark:text-white">No Folders to display...</a>
+    <EmptyState IconName="folder" Title="No folders yet" Description="Create a folder and select its feeds. A feed can belong to more than one folder."><button type="button" class="button button-primary" @onclick="StartCreate"><Icon Name="plus" />Create your first folder</button></EmptyState>
 }
-else{
-<div class="break-normal overflow-x-auto relative shadow-md rounded-lg desktop-table-width border border-3 border-black">
-    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-                <th scope="col" class="py-3 px-6">
-                    Name
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    Number of Feeds
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    Controls
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach(var folder in _folders)
+else
+{
+    <div class="collection-summary"><span>@_folders.Count @(_folders.Count == 1 ? "folder" : "folders")</span></div>
+    <div class="table-surface"><table class="management-table"><caption class="sr-only">Your folders</caption><thead><tr><th scope="col">Folder</th><th scope="col">Sources</th><th scope="col">Actions</th></tr></thead><tbody>
+        @foreach (var folder in _folders)
         {
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 ">
-            <td class="py-4 px-6 string-char-length">
-                @folder.Name
-            </td>
-            <td class="py-4 px-6 string-char-length">
-                    @folder.Feeds.Count
-            </td>
-            <td class="py-4 px-6">
-                <div class="inline-flex rounded-md shadow-xs dark:brightness-[0.85]" role="folder">
-                    <button @onclick="() => StartFolderEdit(folder)" type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-l-lg border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                        </svg>
-                        Edit
-                    </button>
-                    <button @onclick="() => StartDeleteFeed(folder)" type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-r-md border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                        </svg>
-                        Delete
-                    </button>
-                </div>
-            </td>
-        </tr>
+            <tr @key="folder.FolderId"><td data-label="Folder"><a class="table-name" href="@($"folder/{folder.FolderId}")">@folder.Name</a></td><td data-label="Sources"><span class="count-badge">@folder.Feeds.Count @(folder.Feeds.Count == 1 ? "feed" : "feeds")</span></td><td data-label="Actions"><div class="row-actions"><button type="button" class="button button-small button-secondary" disabled="@_isSaving" aria-label="@($"Edit {folder.Name}")" @onclick="() => StartEdit(folder)"><Icon Name="edit" />Edit</button><button type="button" class="icon-button danger-text" disabled="@_isSaving" aria-label="@($"Delete {folder.Name}")" title="Delete folder" @onclick="() => _folderToRemove = folder"><Icon Name="trash" /></button></div></td></tr>
         }
-        </tbody>
-    </table>
-</div>
+    </tbody></table></div>
 }
-
-
-<!-- SLIDEOVER FOR EDITING NAME / FOLDER FEEDS -->
-<SlideOver>
-    <EditForm Model="_folder" OnValidSubmit="SaveChanges">
-        <DataAnnotationsValidator/>
-        
-        <DataAnnotationsValidator/>
-            
-        <h5 class="mb-4 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 2em">Manage your Folder</h5>
-        <h5 class="mb-2 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 1.5em">Name</h5>
-        <div class="relative">
-            <InputText @bind-Value="_folder!.Name" type="text" id="input-group-0" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Tech News'" />
-            <ValidationMessage For="@(() => _folder.Name)" />
-        </div>
-    
-        <h5 class="mb-2 mt-5 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 1.5em">Folder feeds</h5>
-        @if (!_folder.Feeds.Any())
-        {
-            <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3 align-middle dark:bg-gray-700">
-                <a class="dark:brightness-[0.75] dark:text-white">No feeds...</a>
-            </div>
-        }
-        @foreach (var feed in _folder.Feeds)
-        {
-            <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3 dark:bg-gray-700">
-                <a class="dark:brightness-[0.75] dark:text-white">@feed.Name</a>
-                <button @onclick="@(() => RemoveFeedFromFolder(feed))" type="button" class="dark:hover:bg-indigo-600 dark:hover:text-white float-right hover:bg-red-600 hover:text-white text-red-600 border border-red-600 hover:bg-red-600 focus:ring-2 focus:outline-hidden focus:ring-black font-medium rounded-sm text-sm px-3 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:focus:ring-gray-800">
-                    <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle  w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6"/>
-                    </svg>
-                    <a class="align-middle dark:text-white dark:brightness-[0.75]" style="display:inline-block">Remove Feed</a>
-                </button>
-            </div>
-        }
-            <h5 class="mb-2 mt-5 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 1.5em; display: inline-block">Available Feeds</h5>
-            <a href="/feeds/manage" class="text-blue-500 float-right bottom-0 mt-7" @onclick="@(() => NavigationManager.NavigateTo("/feeds/manage"))" >
-                <a class="text-blue-500 cursor-pointer" style="display: inline-block">Create new feed</a>
-                <svg style="display: inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-1 w-5 h-5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                </svg>
-            </a>
-    
-        @if (!_feeds.Any())
-        {
-            <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3 align-middle dark:bg-gray-700">
-                <a class="dark:brightness-[0.75] dark:text-white">No feeds to add...</a>
-            </div>
-        }
-        @foreach (var feed in _feeds)
-        {
-            <div class="bg-gray-100 rounded-lg border border-gray-400 px-5 py-3 mb-3 dark:bg-gray-700">
-                <a class="dark:brightness-[0.75] dark:text-white">@feed.Name</a>
-                <button @onclick="@(() => AddFeedToFolder(feed))" type="button" class="dark:hover:bg-indigo-600 dark:hover:text-white float-right hover:bg-green-600 hover:text-white text-green-600 border border-green-600 hover:bg-green-600 focus:ring-2 focus:outline-hidden focus:ring-black font-medium rounded-sm text-sm px-3 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-green dark:focus:ring-gray-800">
-                    <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/>
-                    </svg>
-                    <a class="align-middle dark:text-white dark:brightness-[0.75]" style="display:inline-block">Add Feed</a>
-                </button>
-            </div>
-        }
-        <button type="submit" class="dark:border-gray-400 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-32 float-right mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Save</button>
-        </EditForm>
+<SlideOver Title="@(_editor.FolderId == -1 ? "Create a folder" : "Edit folder")">
+    <EditForm Model="_editor" OnValidSubmit="SaveChanges" @key="_editor"><DataAnnotationsValidator /><p class="form-intro">Give your folder a name and choose the feeds you want to read together.</p><FolderFields Model="_editor" Feeds="_feeds" /><div class="form-actions"><button type="button" class="button button-secondary" onclick="closeSlideover()" disabled="@_isSaving">Cancel</button><button type="submit" class="button button-primary" disabled="@_isSaving">@(_isSaving ? "Saving…" : "Save folder")</button></div></EditForm>
 </SlideOver>
-
-
-@_confirmationModalFragment
-@Notification
+@if (_folderToRemove is not null) { <ConfirmationModal Title="Delete folder?" Summary="@($"Remove “{_folderToRemove.Name}”? Your feeds and articles will stay in your library.")" OnUserSelection="DeleteConfirmed" /> }
+@_notification
 
 @code {
+    [CascadingParameter] public MainLayout? Layout { get; set; }
     private List<Folder> _folders = new();
-    private Folder _folder = new(){FolderId = -1};
-    private Folder? _folderToRemove;
-    private string _folderDisplayName = String.Empty;
-    private RenderFragment? _confirmationModalFragment = null;
-    private RenderFragment? Notification = null;
-    
     private List<Feed> _feeds = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadFolders();
-    }
-
+    private Folder _editor = new() { FolderId = -1 };
+    private Folder? _folderToRemove;
+    private bool _isSaving;
+    private RenderFragment? _notification;
+    protected override async Task OnInitializedAsync() { await LoadFolders(); _feeds = await FeedRepository.GetAll(); }
+    private async Task LoadFolders() => _folders = (await FolderRepository.GetAll()).OrderBy(f => f.Name).ToList();
+    private async Task StartCreate() { if (_isSaving) return; _editor = new() { FolderId = -1 }; await Js.InvokeVoidAsync("toggleSlideover"); }
+    private async Task StartEdit(Folder folder) { if (_isSaving) return; _editor = new() { FolderId = folder.FolderId, Name = folder.Name, Feeds = folder.Feeds.ToList() }; await Js.InvokeVoidAsync("toggleSlideover"); }
     private async Task SaveChanges()
     {
-        if (_folder.FolderId  == -1)
+        if (_isSaving) return;
+        _isSaving = true;
+        try
         {
-            _folder.FolderId = 0;
-            await _folderRepo.Create(_folder);
-            ShowNotification("Folder created!", "The folder was created successfully.", NotificationType.Success);
+            if (_editor.FolderId == -1)
+            {
+                var folder = new Folder { Name = _editor.Name.Trim(), Feeds = _editor.Feeds.ToList() };
+                await FolderRepository.Create(folder); _editor.FolderId = folder.FolderId;
+            }
+            else
+            {
+                var folder = _folders.Single(f => f.FolderId == _editor.FolderId);
+                folder.Name = _editor.Name.Trim(); folder.Feeds = _editor.Feeds.ToList();
+                await FolderRepository.Update(folder);
+            }
+            await LoadFolders();
+            if (Layout is not null) await Layout.RefreshNavigation();
+            await Js.InvokeVoidAsync("closeSlideover");
+            Notify("Folder saved", "The folder was saved.", NotificationType.Success);
         }
-        else
+        catch { Notify("Could not save the folder", "Please try again.", NotificationType.Error); }
+        finally { _isSaving = false; }
+    }
+    private async Task DeleteConfirmed(bool confirmed)
+    {
+        var folder = _folderToRemove; _folderToRemove = null;
+        if (!confirmed || folder is null || _isSaving) return;
+        _isSaving = true;
+        try
         {
-            _folder.Name = _folderDisplayName;
-            
-            await _folderRepo.Update(_folder);
-            _folderDisplayName = String.Empty;
-            ShowNotification("Folder updated!", "The folder was updated successfully.", NotificationType.Success);
+            await FolderRepository.Remove(folder); await LoadFolders();
+            if (Layout is not null) await Layout.RefreshNavigation();
+            Notify("Folder deleted", "Your feeds and articles are still in your library.", NotificationType.Success);
         }
-        
-        // force refresh of sidebar; else the name and folders are not refreshed
-        NavigationManager.NavigateTo("/folders/manage", forceLoad: true);
-        
-        await js.InvokeVoidAsync("toggleSlideover");
-        await LoadFolders();
-    }    
-    
-    private async Task StartFolderEdit(Folder folder)
-    {
-        _folderDisplayName = folder.Name;
-        _folder = folder;
-        await LoadFeeds();
-        await js.InvokeVoidAsync("toggleSlideover");
-    }    
-    
-    private async Task StartFolderCreate()
-    {
-        _folder = new(){FolderId = -1};
-        await LoadFeeds();
-        await js.InvokeVoidAsync("toggleSlideover");
+        catch { Notify("Could not delete the folder", "Please try again.", NotificationType.Error); }
+        finally { _isSaving = false; }
     }
-
-    private async Task LoadFolders()
-    {
-        _folders = await _folderRepo.GetAll();
-    }
-    
-    private async Task ConfirmationModalResult(bool IsConfirmation)
-    {
-        if (IsConfirmation && _folderToRemove is not null)
-        {
-            await DeleteFeed(_folderToRemove);
-        }
-        _folderToRemove = null;
-        _confirmationModalFragment = null;
-    }
-
-    private void StartDeleteFeed(Folder folderToRemove)
-    {
-        _folderToRemove = folderToRemove;
-        _confirmationModalFragment = @<ConfirmationModal
-                                         Title="Delete Folder"
-                                         Summary="Are you sure you want to delete this folder?"
-                                         OnUserSelection=ConfirmationModalResult/>;
-    }
-
-    private async Task DeleteFeed(Folder feedToRemove)
-    {
-        await _folderRepo.Remove(feedToRemove);
-        await LoadFolders();
-        NavigationManager.NavigateTo("/folders/manage", forceLoad: true);
-    }
-    
-    private async Task LoadFeeds()
-    {
-        _feeds = (await _feedRepo.GetAll()).Except(_folder.Feeds).ToList();
-    }    
-    
-    private void RemoveFeedFromFolder(Feed feed)
-    {
-        _folder.Feeds.Remove(feed);
-        _feeds.Add(feed);
-    }    
-    
-    private void AddFeedToFolder(Feed feed)
-    {
-        _folder.Feeds.Add(feed);
-        _feeds.Remove(feed);
-    }    
-    
-    private void ShowNotification(string title, string summary, NotificationType type = NotificationType.Info)
-    {
-        Notification = @<Notification Title="@title" Summary="@summary" Type="@type" IsShown="true"/>;
-    }
+    private void Notify(string title, string summary, NotificationType type) { var key = Guid.NewGuid(); _notification = @<Notification @key="key" Title="@title" Summary="@summary" Type="@type" />; }
 }

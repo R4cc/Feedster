@@ -4,6 +4,20 @@ using ImageMagick;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
+// Initialize an isolated browser-test database without starting feed workers.
+if (args.Length == 2 && args[0] == "--initialize-ui-database")
+{
+    await using var fixtureConnection = new SqliteConnection($"Data Source={args[1]}");
+    await fixtureConnection.OpenAsync();
+    await using var fixtureDb = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(fixtureConnection).Options);
+    await fixtureDb.Database.MigrateAsync();
+    var settings = await fixtureDb.UserSettings.SingleAsync();
+    settings.ArticleRefreshAfterMinutes = 0;
+    await fixtureDb.SaveChangesAsync();
+    Console.WriteLine("Browser fixture database initialized.");
+    return;
+}
+
 // Run against the final runtime image to catch missing native OS dependencies.
 var publishPath = args.FirstOrDefault() ?? "/app";
 if (!File.Exists(Path.Combine(publishPath, "wwwroot", "_framework", "blazor.server.js")))

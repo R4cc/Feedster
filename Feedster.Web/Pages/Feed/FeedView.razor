@@ -1,44 +1,20 @@
 @page "/feed/{feedId:int}"
-@inject FeedRepository _feedRepo
+@inject FeedRepository FeedRepository
 
-@if(_feed is not null)
+@if (_feed is not null)
 {
-    <PageTitle>Feedster - @_feed?.Name</PageTitle>
-    <h5 class="mb-2 font-bold tracking-tight dark:text-white dark:brightness-[0.85]" style="font-size: 3.5em">@_feed?.Name</h5>
-
-    <!-- ARTICLE CARDS -->
-    <ArticlesList AllArticles=@_articles />
+    <PageTitle>Feedster · @_feed.Name</PageTitle>
+    <PageHeader Title="@_feed.Name"><a href="feeds/manage" class="button button-secondary"><Icon Name="rss" />Manage feeds</a></PageHeader>
+    <ArticlesList AllArticles="@(_feed.Articles ?? new())" />
 }
 else
 {
-    <br/>
-    <a class="dark:brightness-[0.75] dark:text-white">Feed not found...</a>
+    <PageTitle>Feedster · Feed not found</PageTitle>
+    <PageHeader Title="Feed not found" />
+    <EmptyState Title="Feed unavailable" Description="Browse your feeds or head back to all articles."><a href="feeds/manage" class="button button-primary">Manage feeds</a></EmptyState>
 }
-
 @code {
-    [Parameter]
-    public int FeedId { get; set; }
-    
-    // FOR ARTICLE DISPLAY
-    private List<Article> _articles = new();
+    [Parameter] public int FeedId { get; set; }
     private Feed? _feed;
-    
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadFeed();
-        LoadArticles();
-    }
-    
-    private async Task LoadFeed()
-    {
-        _feed = await _feedRepo.Get(FeedId);
-    }
-    
-    private void LoadArticles()
-    {
-        if (_feed is not null)
-        {
-            _articles = _feed.Articles!;
-        }
-    }
+    protected override async Task OnParametersSetAsync() => _feed = await FeedRepository.Get(FeedId);
 }

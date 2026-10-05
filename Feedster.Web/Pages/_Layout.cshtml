@@ -8,8 +8,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="~/" />
-    <link href="css/site.css" rel="stylesheet" />
-    <link href="Feedster.Web.styles.css" rel="stylesheet" />
+    <link href="~/css/app.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
+    <link rel="icon" href="~/favicon.ico" />
+    <meta name="description" content="An RSS and Atom feed reader." />
     
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
@@ -24,9 +26,10 @@
             An unhandled exception has occurred. See browser dev tools for details.
         </environment>
         <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
+        <button type="button" class="dismiss" aria-label="Dismiss error">×</button>
     </div>
 
+<script src="~/js/app.js" asp-append-version="true"></script>
 <script src="_framework/blazor.server.js"></script>
 </body>
 </html>

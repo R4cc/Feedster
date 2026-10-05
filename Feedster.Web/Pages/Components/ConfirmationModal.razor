@@ -1,44 +1,38 @@
-<div class="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-  <div class="fixed inset-0 z-10 overflow-y-auto">
-    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-      <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-slate-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-        <div class="bg-white dark:bg-slate-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-          <div class="sm:flex sm:items-start">
-            <div class="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-              <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5v3.75m-9.303 3.376C1.83 19.126 2.914 21 4.645 21h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 4.88c-.866-1.501-3.032-1.501-3.898 0L2.697 17.626zM12 17.25h.007v.008H12v-.008z" />
-              </svg>
-            </div>
-            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-              <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white dark:brightness-[0.85]" id="modal-title">@Title</h3>
-              <div class="mt-2">
-                <p class="text-sm text-gray-500 dark:text-white dark:brightness-[0.75]">@Summary</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="bg-gray-50 dark:bg-slate-800 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-          <button @onclick="() => ClickButton(true)" type="button" class="dark:brightness-90 inline-flex w-full justify-center rounded-md border border-transparent dark:border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-xs hover:bg-red-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"><a class="dark:brightness-90">Confirm</a></button>
-          <button @onclick="() => ClickButton(false)" type="button" class="dark:hover:bg-slate-600 dark:text-white mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 dark:border-transparent bg-white dark:bg-slate-700 px-4 py-2 text-base font-medium text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"><a class="dark:brightness-[0.85]">Cancel</a></button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
+@implements IAsyncDisposable
+@inject IJSRuntime Js
+<dialog @ref="_dialog" class="confirmation-dialog" aria-labelledby="confirmation-title" aria-describedby="confirmation-summary">
+    <div class="dialog-body"><span class="danger-icon"><Icon Name="trash" /></span><h2 id="confirmation-title">@Title</h2><p id="confirmation-summary">@Summary</p></div>
+    <div class="dialog-actions"><button type="button" class="button button-secondary" autofocus @onclick="() => ClickButton(false)">Cancel</button><button type="button" class="button button-danger" disabled="@_isBusy" @onclick="() => ClickButton(true)">@(_isBusy ? "Please wait…" : "Confirm")</button></div>
+</dialog>
 @code {
-  [Parameter]
-  public string Title { get; set; } = "Default Title";
-  
-  [Parameter]
-  public string Summary { get; set; } = "Default Title";
-
-  [Parameter]
-  public EventCallback<bool> OnUserSelection { get; set; }
-
-  private async Task ClickButton(bool IsConfirmation)
-  {
-    await OnUserSelection.InvokeAsync(IsConfirmation);
-  }
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Summary { get; set; } = string.Empty;
+    [Parameter] public EventCallback<bool> OnUserSelection { get; set; }
+    private ElementReference _dialog;
+    private DotNetObjectReference<ConfirmationModal>? _reference;
+    private bool _isBusy;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _reference = DotNetObjectReference.Create(this);
+        await Js.InvokeVoidAsync("feedster.openConfirmation", _dialog, _reference);
+    }
+    [JSInvokable] public Task Cancel() => ClickButton(false);
+    private async Task ClickButton(bool confirmed)
+    {
+        if (_isBusy) return;
+        _isBusy = true;
+        try
+        {
+            await Js.InvokeVoidAsync("feedster.closeDialog", _dialog);
+            await OnUserSelection.InvokeAsync(confirmed);
+        }
+        finally { _isBusy = false; }
+    }
+    public async ValueTask DisposeAsync()
+    {
+        try { await Js.InvokeVoidAsync("feedster.closeDialog", _dialog); }
+        catch (JSDisconnectedException) { }
+        _reference?.Dispose();
+    }
 }

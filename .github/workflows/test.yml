@@ -34,6 +34,19 @@ jobs:
       - run: npm audit --prefix Feedster.Web --audit-level=low
       - run: dotnet build Feedster.sln --configuration Release
       - run: dotnet test Feedster.sln --configuration Release --no-build
+      - name: Publish UI smoke app
+        if: matrix.arch == 'x64'
+        run: dotnet publish Feedster.Web -c Release --no-build -o artifacts/ui-publish
+      - name: Install browser for UI checks
+        if: matrix.arch == 'x64'
+        working-directory: Feedster.Web
+        run: npx playwright install --with-deps chromium
+      - name: Verify frontend behavior and responsive layouts
+        if: matrix.arch == 'x64'
+        working-directory: Feedster.Web
+        run: npm run test:ui -- ../artifacts/ui-publish
+        env:
+          UI_ARTIFACTS: ${{ github.workspace }}/artifacts/ui-screenshots
       - run: dotnet list Feedster.sln package --vulnerable --include-transitive
       - uses: docker/setup-buildx-action@v4
       - name: Build runtime image

@@ -1,24 +1,11 @@
-﻿@page "/"
+@page "/"
+@inject ArticleRepository ArticleRepository
 
-@inject ArticleRepository _articleRepository
-
-<PageTitle>Feedster - Home</PageTitle>
-<h5 class="mb-2 font-bold tracking-tight dark:text-white dark:brightness-[0.85] space-mono" style="font-size: 3.5em; display:inline-block;">Home</h5>
-<a class=" text-gray-300 ml-2 dark:text-gray-300" style="display:inline-block">v0.10.3</a>
-
-<!-- All article cards -->
-<ArticlesList AllArticles=@_articles />
-
+<PageTitle>Feedster · All articles</PageTitle>
+<PageHeader Title="All articles"><a href="feeds/manage" class="button button-secondary"><Icon Name="plus" />Add a feed</a></PageHeader>
+<ArticlesList AllArticles="@_articles" />
 
 @code {
     private List<Article> _articles = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadArticles();
-    }
-    private async Task LoadArticles()
-    {
-        _articles = (await _articleRepository.GetAll()).OrderByDescending(x => x.PublicationDate).ToList();
-    }
+    protected override async Task OnInitializedAsync() => _articles = await ArticleRepository.GetAll();
 }

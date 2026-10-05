@@ -1,0 +1,8 @@
+<header class="page-header">
+    <h1 tabindex="-1">@Title</h1>
+    @if (ChildContent is not null) { <div class="page-actions">@ChildContent</div> }
+</header>
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

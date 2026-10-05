@@ -1,0 +1,20 @@
+<div class="form-field"><label for="folder-name">Folder name</label><InputText id="folder-name" @bind-Value="Model.Name" maxlength="64" placeholder="e.g. Technology" autocomplete="off" /><ValidationMessage For="@(() => Model.Name)" /></div>
+<div class="form-field">
+    <h3>Choose feeds <span class="count-badge">@Model.Feeds.Count</span></h3><p class="field-help">A feed can belong to more than one folder.</p>
+    @if (Feeds.Count == 0) { <p class="inline-empty">No feeds yet. <a href="feeds/manage">Add a feed</a> to get started.</p> }
+    <div class="feed-picker">
+        @foreach (var feed in Feeds.OrderBy(f => f.Name))
+        {
+            <label class="feed-choice" @key="feed.FeedId"><input type="checkbox" checked="@Model.Feeds.Any(f => f.FeedId == feed.FeedId)" @onchange="e => ToggleFeed(feed, e)" /><span>@feed.Name</span></label>
+        }
+    </div>
+</div>
+@code {
+    [Parameter, EditorRequired] public Folder Model { get; set; } = new();
+    [Parameter] public List<Feed> Feeds { get; set; } = new();
+    private void ToggleFeed(Feed feed, ChangeEventArgs e)
+    {
+        Model.Feeds.RemoveAll(f => f.FeedId == feed.FeedId);
+        if (e.Value is true) Model.Feeds.Add(feed);
+    }
+}

@@ -1,0 +1,10 @@
+<div class="empty-state">
+    <span class="empty-icon"><Icon Name="@IconName" /></span><h2>@Title</h2><p>@Description</p>
+    @if (ChildContent is not null) { <div class="empty-actions">@ChildContent</div> }
+</div>
+@code {
+    [Parameter] public string IconName { get; set; } = "rss";
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

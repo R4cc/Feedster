@@ -2,11 +2,12 @@
   "private": true,
   "scripts": {
     "buildcss:dev": "node scripts/build-assets.mjs",
-    "buildcss:release": "node scripts/build-assets.mjs --minify"
+    "buildcss:release": "node scripts/build-assets.mjs --minify",
+    "test:ui": "node scripts/ui-smoke.mjs"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
-    "alpinejs": "3.17.4",
+    "playwright": "1.63.0",
     "postcss": "8.5.28",
     "tailwindcss": "4.3.3"
   }

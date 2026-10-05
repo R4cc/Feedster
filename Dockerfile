@@ -22,7 +22,6 @@ RUN \
 COPY Feedster.DAL/ Feedster.DAL/
 COPY Feedster.Web/ Feedster.Web/
 COPY --from=assets /src/Feedster.Web/wwwroot/css/app.css Feedster.Web/wwwroot/css/app.css
-COPY --from=assets /src/Feedster.Web/wwwroot/js/alpine.min.js Feedster.Web/wwwroot/js/alpine.min.js
 RUN \
     case "$TARGETARCH" in amd64) rid=linux-x64 ;; arm64) rid=linux-arm64 ;; *) exit 1 ;; esac \
     && dotnet publish Feedster.Web/Feedster.Web.csproj --configuration Release \

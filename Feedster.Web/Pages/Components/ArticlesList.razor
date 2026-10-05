@@ -1,125 +1,84 @@
-@inject IJSRuntime js
-@inject UserRepository _userRepo
+@inject IJSRuntime Js
+@inject UserRepository UserRepository
 
-@if (!AllArticles.Any())
+@if (AllArticles.Count == 0)
 {
-    <br/>
-    <a class="dark:brightness-[0.75] dark:text-white">No articles found...</a>
+    <EmptyState Title="No articles yet" Description="Add an RSS or Atom feed to start receiving articles. Existing feeds can be refreshed from Manage feeds."><a href="feeds/manage" class="button button-primary"><Icon Name="plus" />Manage feeds</a></EmptyState>
 }
 else
 {
-    @foreach (var article in _currentPageArticles.OrderByDescending(a => a.PublicationDate))
+    <div class="reading-toolbar">
+        <p class="result-count" role="status">@_filtered.Count @(_filtered.Count == 1 ? "article" : "articles")<span> · Newest first</span></p>
+        <div class="search-field"><Icon Name="search" /><input type="search" aria-label="Search articles" placeholder="Search your articles…" value="@_query" @oninput="SearchChanged" /></div>
+    </div>
+    @if (_filtered.Count == 0)
     {
-        <div class="mb-5">
-            <a href="@(string.IsNullOrEmpty(article.ArticleLink) ? null : article.ArticleLink)" target="_blank" style="min-width: 20em;" class="border border-3 border-black transition hover:bg-gray-200 block p-6 bg-gray-100 rounded-lg shadow-xl hover:bg-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-                @if (File.Exists("images/" + article.ImagePath) && _userSettings.ShowImages)
-                {
-                    <img src="@("/images/" + article.ImagePath)" class="rounded-sm max-w-50 mb-2" alt="article image" loading="lazy" decoding="async">
-                }
-                <p class="dark:brightness-[0.85] text-sm top-0 space-mono dark:text-gray-200">@article.Feed?.Name • @Convert.ToDateTime(article.PublicationDate).ToString("g")</p>
-                <h5 class="dark:brightness-[0.85] mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">@article.Title</h5>
-                @if (article.Description is not null)
-                {
-                    <p class="dark:brightness-[0.75] mb-2 font-normal text-gray-700 dark:text-gray-400 line-clamp">@article.Description</p>
-                }
-            </a>
-        </div>
+        <EmptyState IconName="search" Title="No matching articles" Description="Try another title, source, or word from the article."><button type="button" class="button button-secondary" @onclick="ClearSearch">Clear search</button></EmptyState>
     }
-
-<!-- Naviation Buttons -->
-<div class="mb-8" style="width: 100%; text-align: center;">
-    <button @onclick="(() => ClickPagingButton(false))" disabled="@PrevBtnDisabled" class="@(PrevBtnDisabled ? "hidden" : " cursor-pointer") w-32 shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
-        <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="float-left w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" />
-        </svg>
-        <a class="align-middle" style="display:inline-block; margin-top: 2px">Previous</a>
-    </button>
-    <button @onclick="(() => ClickPagingButton(true))" disabled="@NextBtnDisabled" class="@(NextBtnDisabled ? "hidden" : " cursor-pointer") w-32 shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800">
-        <a class="align-middle" style="display:inline-block; margin-top: 2px">Next</a>
-        <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class=" float-right w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5" />
-        </svg>
-    </button>
-</div>
+    else
+    {
+        <div class="article-list">
+            @foreach (var article in _filtered.Skip((_page - 1) * PageSize).Take(PageSize))
+            {
+                <article class="article-card" @key="article.ArticleId">
+                    <div class="article-copy">
+                        <div class="article-meta"><span class="source-badge">@(article.Feed?.Name ?? "Your feed")</span><time datetime="@article.PublicationDate.ToString("O")">@article.PublicationDate.ToString("MMM d, yyyy · HH:mm")</time></div>
+                        <h2>
+                            @if (HasSafeLink(article.ArticleLink))
+                            {
+                                <a href="@article.ArticleLink" target="_blank" rel="noopener noreferrer" class="article-link">@(!string.IsNullOrWhiteSpace(article.Title) ? article.Title : "Untitled article")<span class="sr-only"> (opens in a new tab)</span></a>
+                            }
+                            else { @(!string.IsNullOrWhiteSpace(article.Title) ? article.Title : "Untitled article") }
+                        </h2>
+                        @if (!string.IsNullOrWhiteSpace(article.Description)) { <p class="article-description">@article.Description</p> }
+                        @if (HasSafeLink(article.ArticleLink)) { <span class="article-read-hint" aria-hidden="true">Read article <Icon Name="external" /></span> }
+                    </div>
+                    @if (_settings.ShowImages && !string.IsNullOrEmpty(article.ImagePath) && File.Exists("images/" + article.ImagePath))
+                    {
+                        <img src="@("images/" + article.ImagePath)" class="article-image" alt="" loading="lazy" decoding="async" />
+                    }
+                </article>
+            }
+        </div>
+        @if (PageCount > 1)
+        {
+            <nav class="pagination" aria-label="Article pages">
+                <button type="button" class="button button-secondary" disabled="@(_page <= 1)" @onclick="() => ChangePage(-1)"><span aria-hidden="true">←</span> Previous</button>
+                <p role="status">Page @_page of @PageCount</p>
+                <button type="button" class="button button-secondary" disabled="@(_page >= PageCount)" @onclick="() => ChangePage(1)">Next <Icon Name="arrow" /></button>
+            </nav>
+        }
+    }
 }
 
 @code {
-    [Parameter]
-    public List<Article> AllArticles { get; set; } = new();
-
-    List<Article> _currentPageArticles = new();
-    UserSettings _userSettings = new();
-    int _articlesPerPage = 20;
-    int _pageNum = 1;
-    
-    private bool NextBtnDisabled { get; set; }= false;
-    private bool PrevBtnDisabled {
-        get
-        {
-            if (_pageNum <= 1)
-                return true;
-
-            return false;
-        }
-    }
-
-    protected override async Task OnInitializedAsync()
+    [Parameter] public List<Article> AllArticles { get; set; } = new();
+    private UserSettings _settings = new();
+    private List<Article> _filtered = new();
+    private string _query = string.Empty;
+    private int _page = 1;
+    private List<Article>? _previousArticles;
+    private int PageSize => _settings.ArticleCountOnPage <= 0 ? Math.Max(1, _filtered.Count) : _settings.ArticleCountOnPage;
+    private int PageCount => Math.Max(1, (int)Math.Ceiling((double)_filtered.Count / PageSize));
+    protected override async Task OnInitializedAsync() => _settings = await UserRepository.Get();
+    protected override void OnParametersSet()
     {
-        _userSettings = await _userRepo.Get();
-        _articlesPerPage = _userSettings.ArticleCountOnPage;
-
-        if (_articlesPerPage == 0)
-        {
-            _articlesPerPage = AllArticles.Count;
-        }
-        
-        if(AllArticles.Count <= _articlesPerPage)
-            NextBtnDisabled = true;
-        
-        RefreshArticles(0);
+        if (!ReferenceEquals(AllArticles, _previousArticles)) { _page = 1; _query = string.Empty; _previousArticles = AllArticles; }
+        FilterArticles();
     }
-    private async Task ClickPagingButton(bool IsNext)
+    private void SearchChanged(ChangeEventArgs e) { _query = e.Value?.ToString() ?? string.Empty; _page = 1; FilterArticles(); }
+    private void ClearSearch() { _query = string.Empty; _page = 1; FilterArticles(); }
+    private void FilterArticles()
     {
-        if (IsNext)
-        {
-            _pageNum++;
-        }
-        else
-        {
-            _pageNum--;
-        }
-        
-        PageChanged(_pageNum);
-        await js.InvokeVoidAsync("OnScrollEvent");
-        await js.InvokeVoidAsync("blurActive");
+        var query = _query.Trim();
+        _filtered = AllArticles.Where(a => query.Length == 0 || Contains(a.Title, query) || Contains(a.Description, query) || Contains(a.Feed?.Name, query)).OrderByDescending(a => a.PublicationDate).ThenByDescending(a => a.ArticleId).ToList();
+        _page = Math.Clamp(_page, 1, PageCount);
     }
-    
-    // Calculate where the startindex is depending on the current page number and usersettings
-    private void PageChanged(int newPage)
+    private static bool Contains(string? text, string query) => text?.Contains(query, StringComparison.OrdinalIgnoreCase) == true;
+    private static bool HasSafeLink(string link) => Uri.TryCreate(link, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+    private async Task ChangePage(int direction)
     {
-        int startIndex = 0;
-        for (int i = 1; i < newPage; i++)
-        {
-            startIndex += _articlesPerPage;
-        }
-        RefreshArticles(startIndex);
-        _pageNum = newPage;
-    }
-
-    private void RefreshArticles(int startIndex)
-    {
-        int count = _articlesPerPage;
-        
-        if (startIndex + _articlesPerPage > AllArticles?.Count)
-        {
-            count = AllArticles.Count - startIndex;
-            NextBtnDisabled = true;
-        }
-        else
-        {
-            NextBtnDisabled = false;
-        }
-
-        _currentPageArticles = AllArticles!.GetRange(startIndex, count);
+        _page = Math.Clamp(_page + direction, 1, PageCount);
+        await Js.InvokeVoidAsync("OnScrollEvent");
     }
 }

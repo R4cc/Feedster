@@ -2,10 +2,3 @@
 @source "../Pages";
 @source "../Shared";
 @custom-variant dark (&:where(.dark, .dark *));
-
-/* Match the previous default border color after Tailwind's v4 preflight change. */
-@layer base {
-    *, ::before, ::after, ::backdrop, ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
-    }
-}

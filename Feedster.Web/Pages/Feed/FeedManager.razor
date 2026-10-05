@@ -1,214 +1,121 @@
 @page "/feeds/manage"
-@inject FeedRepository _feedRepo
-@inject IJSRuntime js
+@inject FeedRepository FeedRepository
+@inject IJSRuntime Js
 
-<PageTitle>Feedster - Feeds</PageTitle>
-<h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 3.5em">Manage Feeds</h5>
-<button type="button" @onclick="StartFeedCreate" class="dark:border-gray-400 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white shadow-md mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-2 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 ">
-    <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <a class="align-middle" style="display:inline-block">Add Feed</a>
-</button>
-
-@if (!_feeds.Any())
+<PageTitle>Feedster · Manage feeds</PageTitle>
+<PageHeader Title="Manage feeds"><button type="button" class="button button-primary" disabled="@_isBusy" @onclick="StartCreate"><Icon Name="plus" />Add feed</button></PageHeader>
+@if (_feeds.Count == 0)
 {
-    <br/>
-    <a class="dark:brightness-[0.75] dark:text-white">No Feeds to display...</a>
+    <EmptyState Title="No feeds yet" Description="Add an RSS or Atom feed URL to start receiving articles."><button type="button" class="button button-primary" @onclick="StartCreate"><Icon Name="plus" />Add your first feed</button></EmptyState>
 }
-else{
-<div class="break-normal overflow-x-auto relative shadow-md rounded-lg border border-3 border-black desktop-table-width">
-    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-                <th scope="col" class="py-3 px-6">
-                    Name
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    URL
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    Controls
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach(var feed in _feeds)
+else
+{
+    <div class="collection-summary"><span>@_feeds.Count @(_feeds.Count == 1 ? "source" : "sources")</span><span>Updated automatically</span></div>
+    <div class="table-surface"><table class="management-table"><caption class="sr-only">Your feed subscriptions</caption><thead><tr><th scope="col">Source</th><th scope="col">Feed URL</th><th scope="col">Actions</th></tr></thead><tbody>
+        @foreach (var feed in _feeds)
         {
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50">
-            <td class="py-4 px-6 string-char-length">
-                @feed.Name
-            </td>
-            <td class="py-4 px-6 string-char-length">
-                    @feed.RssUrl
-            </td>
-            <td class="py-4 px-6">
-                <div class="flex flex-col space-y-2">
-                    <div class="inline-flex rounded-md shadow-xs dark:brightness-[0.85]" role="folder">
-                        <button @onclick="() => StartFeedEdit(feed)" type="button" class=" inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-l-lg border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                            </svg>
-                            Edit
-                        </button>
-                        <button @onclick="() => FetchFeed(feed)" disabled="@_updatingFeeds.Contains(feed.FeedId)" type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700 @(_updatingFeeds.Contains(feed.FeedId) ? "opacity-50 cursor-not-allowed" : string.Empty)">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.712A8.973 8.973 0 0112 3c2.525 0 4.815.99 6.517 2.583m1.504 2.012a8.954 8.954 0 011.5 4.905 8.964 8.964 0 01-7.086 8.886m-1.513-.134A8.954 8.954 0 013 11.318" />
-                            </svg>
-                            Update
-                        </button>
-                        <button @onclick="() => StartDeleteFeed(feed)" type="button" class="inline-flex items-center py-2 px-4 text-sm font-medium text-gray-900 bg-transparent rounded-r-md border border-gray-900 hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                            </svg>
-                            Delete
-                        </button>
-                    </div>
-                </div>
-            </td>
-        </tr>
+            <tr @key="feed.FeedId">
+                <td data-label="Source"><a href="@($"feed/{feed.FeedId}")" class="table-name">@feed.Name</a></td>
+                <td data-label="Feed URL"><span class="feed-url" title="@feed.RssUrl">@feed.RssUrl</span></td>
+                <td data-label="Actions"><div class="row-actions">
+                    <button type="button" class="button button-small button-secondary" disabled="@_isBusy" aria-label="@($"Edit {feed.Name}")" @onclick="() => StartEdit(feed)"><Icon Name="edit" />Edit</button>
+                    <button type="button" class="button button-small button-secondary" disabled="@_isBusy" aria-label="@($"Update {feed.Name}")" @onclick="() => FetchFeed(feed)"><Icon Name="refresh" />@(_updatingId == feed.FeedId ? "Updating…" : "Update")</button>
+                    <button type="button" class="icon-button danger-text" disabled="@_isBusy" aria-label="@($"Delete {feed.Name}")" title="Delete feed" @onclick="() => _feedToRemove = feed"><Icon Name="trash" /></button>
+                </div></td>
+            </tr>
         }
-        </tbody>
-    </table>
-</div>
+    </tbody></table></div>
 }
-
-<!-- Slideover for editing / creation -->
-<SlideOver>
-    <EditForm Model="_feed" OnValidSubmit="SaveChanges">
-        <DataAnnotationsValidator/>
-        
-        <h5 class="mb-2 font-bold tracking-tight dark:text-white" style="font-size: 1.5em">Create a new Feed</h5>
-        <label for="Name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Name</label>
-        <div class="relative mb-6">
-            <InputText @bind-Value="_feed.Name" type="text" id="Name" class="form-control mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'Hacker News'"/>
-            <ValidationMessage For="@(() => _feed.Name)" />
-        </div>
-        <label for="RssUrl" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">RSS / Atom URL</label>
-        <div class="relative mb-6">
-            <InputText  @bind-Value="_feed.RssUrl" type="text" id="RssUrl" class="form-control mb-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="e.g. 'https://news.ycombinator.com/rss'"/>
-            <ValidationMessage For="@(() => _feed.RssUrl)" />
-            </div>
-        <button type="submit" class="dark:border-gray-400 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white float-right mb-4 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">Save</button>
+<SlideOver Title="@(_editor.FeedId == -1 ? "Add a feed" : "Edit feed")">
+    <EditForm Model="_editor" OnValidSubmit="SaveChanges" @key="_editor">
+        <DataAnnotationsValidator />
+        <p class="form-intro">Add the RSS or Atom URL for a source you want to follow.</p>
+        <div class="form-field"><label for="feed-name">Name</label><InputText id="feed-name" @bind-Value="_editor.Name" maxlength="64" placeholder="e.g. Hacker News" autocomplete="off" /><ValidationMessage For="@(() => _editor.Name)" /></div>
+        <div class="form-field"><label for="feed-url">RSS or Atom URL</label><InputText id="feed-url" @bind-Value="_editor.RssUrl" type="url" maxlength="512" placeholder="https://example.com/feed.xml" autocomplete="url" /><p class="field-help">Use the feed URL, rather than the website's home page.</p><ValidationMessage For="@(() => _editor.RssUrl)" /></div>
+        <div class="form-actions"><button type="button" class="button button-secondary" onclick="closeSlideover()" disabled="@_isBusy">Cancel</button><button type="submit" class="button button-primary" disabled="@_isBusy">@(_isBusy ? "Saving…" : "Save feed")</button></div>
     </EditForm>
 </SlideOver>
-
-@_confirmationModalFragment
+@if (_feedToRemove is not null) { <ConfirmationModal Title="Delete feed?" Summary="@($"Remove “{_feedToRemove.Name}” and its articles? This cannot be undone.")" OnUserSelection="DeleteConfirmed" /> }
 @_notification
 
 @code {
+    [CascadingParameter] public MainLayout? Layout { get; set; }
     private List<Feed> _feeds = new();
-    private Feed _feed = new(){FeedId = -1};
-    private Feed? _feedToRemove = null;
-    private RenderFragment? _confirmationModalFragment = null;
-    private RenderFragment? _notification = null;
-    private HashSet<int> _updatingFeeds = new();
-
-    protected override async Task OnInitializedAsync()
+    private Feed _editor = new() { FeedId = -1 };
+    private Feed? _feedToRemove;
+    private RenderFragment? _notification;
+    private bool _isBusy;
+    private int? _updatingId;
+    protected override async Task OnInitializedAsync() => await LoadFeeds();
+    private async Task LoadFeeds() => _feeds = (await FeedRepository.GetAll()).OrderBy(f => f.Name).ToList();
+    private async Task StartCreate()
     {
-        await LoadFeeds();
+        if (_isBusy) return;
+        _editor = new() { FeedId = -1 };
+        await Js.InvokeVoidAsync("toggleSlideover");
     }
-
+    private async Task StartEdit(Feed feed)
+    {
+        if (_isBusy) return;
+        _editor = new() { FeedId = feed.FeedId, Name = feed.Name, RssUrl = feed.RssUrl };
+        await Js.InvokeVoidAsync("toggleSlideover");
+    }
     private async Task SaveChanges()
     {
-        if (_feed.FeedId  == -1)
+        if (_isBusy) return;
+        _isBusy = true;
+        try
         {
-            _feed.FeedId = 0;
-            await _feedRepo.Create(_feed);
-            ShowNotification("Feed added!", "It can take up to 2 minutes until all the information has been fetched.", NotificationType.Success);
+            Feed saved;
+            if (_editor.FeedId == -1)
+            {
+                saved = new() { Name = _editor.Name.Trim(), RssUrl = _editor.RssUrl.Trim() };
+                await FeedRepository.Create(saved);
+                _editor.FeedId = saved.FeedId;
+            }
+            else
+            {
+                saved = _feeds.Single(f => f.FeedId == _editor.FeedId);
+                saved.Name = _editor.Name.Trim(); saved.RssUrl = _editor.RssUrl.Trim();
+                await FeedRepository.Update(saved);
+            }
+            await Js.InvokeVoidAsync("closeSlideover");
+            await LoadFeeds();
+            if (Layout is not null) await Layout.RefreshNavigation();
+            Notify("Feed saved", "Fetching articles from your source…");
+            var count = await FeedRepository.FetchFeed(saved);
+            await LoadFeeds();
+            ReportFetch(saved.Name, count);
         }
-        else
-        {
-            await _feedRepo.Update(_feed); 
-            ShowNotification("Feed updated!", "The feed was updated successfully.", NotificationType.Success);
-        }
-
-        var articleCount = await _feedRepo.FetchFeed(_feed);
-
-        if (articleCount is null)
-        {
-            ShowNotification("Feed update failed!", $"Could not fetch '{_feed.Name}'.", NotificationType.Error);
-        }
-        else if (articleCount == 0)
-        {
-            ShowNotification("No new articles found!", $"No new articles were found for '{_feed.Name}'.", NotificationType.Info);
-        }
-        else
-        {
-            ShowNotification("Feed updated!", $"Fetched {articleCount} articles for '{_feed.Name}'.", NotificationType.Success);
-        }
-
-        await js.InvokeVoidAsync("toggleSlideover");
-        await LoadFeeds();
-    }    
-    
-    private async Task StartFeedEdit(Feed feed)
-    {
-        _feed = feed;
-        await js.InvokeVoidAsync("toggleSlideover");
-    }    
-    
-    private async Task StartFeedCreate()
-    {
-        _feed = new(){FeedId = -1};
-        await js.InvokeVoidAsync("toggleSlideover");
+        catch { Notify("Could not save the feed", "Please try again. If the feed was saved, you can update it from the list.", NotificationType.Error); }
+        finally { _isBusy = false; }
     }
-
-    private async Task LoadFeeds()
-    {
-        _feeds = await _feedRepo.GetAll();
-    }
-    
-    private async Task ConfirmationModalResult(bool isConfirmation)
-    {
-        if (isConfirmation && _feedToRemove is not null)
-        {
-            await DeleteFeed(_feedToRemove);
-        }
-        _feedToRemove = null;
-        _confirmationModalFragment = null;
-    }
-
-    private void StartDeleteFeed(Feed feedToRemove)
-    {
-        _feedToRemove = feedToRemove;
-        _confirmationModalFragment = @<ConfirmationModal
-                                         Title="Delete Feed"
-                                         Summary="Are you sure you want to delete this feed?"
-                                         OnUserSelection=ConfirmationModalResult/>;
-    }
-
-    private async Task DeleteFeed(Feed feedToRemove)
-    {
-        await _feedRepo.Remove(feedToRemove);
-        await LoadFeeds();
-        ShowNotification("Feed deleted!", "The feed was deleted successfully.", NotificationType.Success);
-    }
-
     private async Task FetchFeed(Feed feed)
     {
-        _updatingFeeds.Add(feed.FeedId);
-        ShowNotification("Feed update started!", $"Fetching '{feed.Name}'.", NotificationType.Info);
-        StateHasChanged();
-        var articleCount = await _feedRepo.FetchFeed(feed);
-        _updatingFeeds.Remove(feed.FeedId);
-
-        if (articleCount is null)
-        {
-            ShowNotification("Feed update failed!", $"Could not fetch '{feed.Name}'.", NotificationType.Error);
-        }
-        else if (articleCount == 0)
-        {
-            ShowNotification("No new articles found!", $"No new articles were found for '{feed.Name}'.", NotificationType.Info);
-        }
-        else
-        {
-            ShowNotification("Feed updated!", $"Fetched {articleCount} articles for '{feed.Name}'.", NotificationType.Success);
-        }
+        if (_isBusy) return;
+        _isBusy = true; _updatingId = feed.FeedId;
+        try { ReportFetch(feed.Name, await FeedRepository.FetchFeed(feed)); await LoadFeeds(); }
+        catch { Notify("Update failed", "Please try again in a moment.", NotificationType.Error); }
+        finally { _isBusy = false; _updatingId = null; }
     }
-    
-    private void ShowNotification(string title, string summary, NotificationType type = NotificationType.Info)
+    private async Task DeleteConfirmed(bool confirmed)
     {
-        _notification = @<Notification Title="@title" Summary="@summary" Type="@type" IsShown="true"/>;
+        var feed = _feedToRemove; _feedToRemove = null;
+        if (!confirmed || feed is null || _isBusy) return;
+        _isBusy = true;
+        try
+        {
+            await FeedRepository.Remove(feed); await LoadFeeds();
+            if (Layout is not null) await Layout.RefreshNavigation();
+            Notify("Feed deleted", $"“{feed.Name}” was removed.", NotificationType.Success);
+        }
+        catch { Notify("Could not delete the feed", "Please try again.", NotificationType.Error); }
+        finally { _isBusy = false; }
     }
+    private void ReportFetch(string name, int? count)
+    {
+        if (count is null) Notify("Could not update the feed", $"“{name}” could not be fetched. Try again later.", NotificationType.Error);
+        else Notify(count == 0 ? "You're up to date" : "New articles fetched", count == 0 ? $"No new articles from “{name}”." : $"{count} new articles from “{name}”.", NotificationType.Success);
+    }
+    private void Notify(string title, string summary, NotificationType type = NotificationType.Info) { var key = Guid.NewGuid(); _notification = @<Notification @key="key" Title="@title" Summary="@summary" Type="@type" />; }
 }

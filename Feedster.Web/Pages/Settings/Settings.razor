@@ -1,267 +1,146 @@
 @page "/settings"
-@inject UserRepository _userRepository
-@inject ImageService _imageService
-@inject ArticleRepository _articleRepository
-@inject NavigationManager _navManager
-@inject HttpClient _httpClient
+@implements IDisposable
+@inject UserRepository UserRepository
+@inject ImageService ImageService
+@inject ArticleRepository ArticleRepository
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
 
-<PageTitle>Feedster - Settings</PageTitle>
-
-<div class="container mx-auto w-full sm:border-2 sm:p-5 sm:rounded-xl sm:dark:bg-slate-800 sm:dark:border-gray-600 sm:bg-gray-100 md:max-w-2xl lg:max-w-4xl">
+<PageTitle>Feedster · Settings</PageTitle>
+<PageHeader Title="Settings" />
+@if (_editContext is not null)
+{
     <EditForm EditContext="_editContext" OnValidSubmit="SaveChanges">
-        <DataAnnotationsValidator/>
-        <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 3.5em">Settings</h5>
-        
-        <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono  dark:brightness-[0.85]" style="font-size: 2em">Articles</h5>
-        
-        <label class="dark:text-gray-200">Refresh articles every...</label>
-        <select @bind=_userSettings.ArticleRefreshAfterMinutes class="w-full mb-5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-            <option selected>Select interval</option>
-            <option value=5>5 Minutes</option>
-            <option value=10>10 Minutes</option>
-            <option value=15>15 Minutes</option>
-            <option value=30>30 Minutes</option>
-            <option value=60>1 Hour</option>
-            <option value=360>6 Hours</option>
-            <option value=1440>24 Hours</option>
-            <option value=0>Never</option>
-        </select>
-        
-        <label class="dark:text-gray-200">Remove articles older than...</label>
-        <select @bind=_userSettings.ArticleExpirationAfterDays class="mb-5 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-            <option selected>Select duration</option>
-            <option value=7>1 Week</option>
-            <option value=14>2 Weeks</option>
-            <option value=30>1 Month</option>
-            <option value=90>3 Months</option>
-            <option value=180>6 Months</option>
-            <option value=365>1 Year</option>
-            <option value=0>Never</option>
-        </select>
-        
-        <label class="dark:text-gray-200">Articles per page (0 = unlimited)</label>
-        <div class="relative mb-5">
-            <InputNumber @bind-Value=_userSettings.ArticleCountOnPage maxlength="4" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
-            <ValidationMessage For="@(() => _userSettings.ArticleCountOnPage)" />
+        <DataAnnotationsValidator />
+        <div class="settings-grid">
+            <section class="settings-section"><div class="section-heading"><Icon Name="rss" /><div><h2>Reading preferences</h2></div></div>
+                <div class="form-field"><label for="refresh-interval">Check for new articles</label><InputSelect id="refresh-interval" @bind-Value="_settings.ArticleRefreshAfterMinutes">
+                    @if (!new[] { 0, 5, 10, 15, 30, 60, 360, 1440 }.Contains(_settings.ArticleRefreshAfterMinutes)) { <option value="@_settings.ArticleRefreshAfterMinutes">Every @_settings.ArticleRefreshAfterMinutes minutes</option> }
+                    <option value="5">Every 5 minutes</option><option value="10">Every 10 minutes</option><option value="15">Every 15 minutes</option><option value="30">Every 30 minutes</option><option value="60">Every hour</option><option value="360">Every 6 hours</option><option value="1440">Every day</option><option value="0">Manually only</option>
+                </InputSelect></div>
+                <div class="form-field"><label for="article-expiration">Remove articles older than</label><InputSelect id="article-expiration" @bind-Value="_settings.ArticleExpirationAfterDays">
+                    @if (!new[] { 0, 7, 14, 30, 90, 180, 365 }.Contains(_settings.ArticleExpirationAfterDays)) { <option value="@_settings.ArticleExpirationAfterDays">@_settings.ArticleExpirationAfterDays days</option> }
+                    <option value="7">1 week</option><option value="14">2 weeks</option><option value="30">1 month</option><option value="90">3 months</option><option value="180">6 months</option><option value="365">1 year</option><option value="0">Keep all articles</option>
+                </InputSelect></div>
+                <div class="form-field"><label for="page-size">Articles per page</label><InputNumber id="page-size" @bind-Value="_settings.ArticleCountOnPage" min="0" step="1" aria-describedby="page-size-help" /><p id="page-size-help" class="field-help">Set to 0 to show all articles on one page.</p><ValidationMessage For="@(() => _settings.ArticleCountOnPage)" /></div>
+            </section>
+            <section class="settings-section"><div class="section-heading"><Icon Name="settings" /><div><h2>Appearance &amp; images</h2></div></div>
+                <label class="setting-toggle" for="dark-mode"><span><strong>Dark mode</strong><small>Preview your theme as you switch.</small></span><InputCheckbox id="dark-mode" class="switch" @bind-Value="_settings.IsDarkMode" /></label>
+                <label class="setting-toggle" for="show-images"><span><strong>Show article images</strong><small>Display thumbnails in your reading list.</small></span><InputCheckbox id="show-images" class="switch" @bind-Value="_settings.ShowImages" /></label>
+                <label class="setting-toggle" for="download-images"><span><strong>Download article images</strong><small>Cache images locally when feeds update.</small></span><InputCheckbox id="download-images" class="switch" @bind-Value="_settings.DownloadImages" /></label>
+                <p class="field-help">Save your changes to keep these preferences.</p>
+            </section>
+            <section class="settings-section"><div class="section-heading"><Icon Name="folder" /><div><h2>Storage</h2></div></div>
+                <div class="storage-row"><div><strong>Image cache</strong><span class="storage-size">@FormatSize(_imageSize)</span></div><button type="button" class="button button-small button-secondary" disabled="@_isBusy" @onclick="() => _clearTarget = ClearTarget.Images"><Icon Name="trash" />Clear</button></div>
+                <div class="storage-row"><div><strong>Article database</strong><span class="storage-size">@FormatSize(_databaseSize)</span></div><button type="button" class="button button-small button-secondary" disabled="@_isBusy" @onclick="() => _clearTarget = ClearTarget.Articles"><Icon Name="trash" />Clear articles</button></div>
+                <p class="field-help">Database size includes settings and subscriptions. Clearing articles may leave reusable space in the database file.</p>
+            </section>
+            <section class="settings-section"><div class="section-heading"><Icon Name="upload" /><div><h2>Import &amp; export</h2></div></div>
+                <div class="form-field"><label for="opml-file">Import subscriptions</label><InputFile id="opml-file" OnChange="ImportOpml" accept=".opml,.xml" disabled="@_isBusy" /><p class="field-help">Choose an OPML file, up to 10 MB.</p></div>
+                <a href="api/Opml/export" class="button button-secondary" download><Icon Name="download" />Export OPML</a>
+            </section>
         </div>
-        
-        <label class="dark:text-gray-200">Maximum articles stored (0 = unlimited)</label>
-        <div class="relative mb-5">
-            <InputNumber disabled @bind-Value=_userSettings.MaxArticleCountInDb maxlength="5" class="disabled cursor-not-allowed w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
-            <ValidationMessage For="@(() => _userSettings.MaxArticleCountInDb)" />
-        </div>
-        
-        <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono  dark:brightness-[0.85]" style="font-size: 2em">Appearance</h5>
-        
-        <div class="w-full md:max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
-            <label class="inline-block align-middle text-base dark:text-gray-200">Dark Mode</label>
-            <div class="inline-block align-middle float-right block">
-                <input checked="@_isDarkMode" @onchange="ToggleDarkMode" class="switch" type="checkbox">
-            </div>
-        </div>
-        
-        <div class="w-full md:max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700 rounded-lg h-[3.75em]">
-            <label class="inline-block align-middle text-base dark:text-gray-200 ">Display article images</label>
-            <div class="inline-block align-middle float-right block">
-                <InputCheckbox @bind-Value=_userSettings.ShowImages class="switch" />
-            </div>
-        </div>
-
-        <div class="w-full md:max-w-sm mb-5 align-middle border-2 border-gray-200 dark:border-gray-500 p-3 dark:bg-slate-700 bg-gray-200 rounded-lg h-[3.75em]">
-            <label class="inline-block align-middle text-base dark:text-gray-200">Download article images</label>
-            <div class="inline-block align-middle float-right block rounded-sm">
-                <InputCheckbox @bind-Value=_userSettings.DownloadImages class="switch" />
-            </div>
-        </div>
-        
-        <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85]" style="font-size: 1.5em">Cache Sizes</h5>
-        
-        <div class="w-full md:max-w-sm grid grid-cols-3 gap-4 mb-5 ">
-            <div class="col-span-2 inline-block align-middle border-2 dark:border-gray-500 border-gray-200 p-3 bg-gray-200 dark:bg-slate-700  rounded-lg h-15">
-                <p class="inline-block align-middle text-base dark:text-gray-200">Image Cache: </p>
-                <div class="inline-block align-middle float-right block space-mono dark:text-gray-200">
-                    <p>@(_imageFolderSize.ToString("0.##") == "0" ? "<1" : _imageFolderSize.ToString("0.##"))MB</p>
-                </div>
-            </div>
-            <button @onclick="ClearImageCache" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col shadow-md max-w-full h-15 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2">
-                <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle  w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                    </svg>
-                    <a class="align-middle" style="display:inline-block">Clear</a>
-            </button>
-        </div>
-        
-        <div class="w-full md:max-w-sm grid grid-cols-3 gap-4 mb-5">
-            <div class="col-span-2 inline-block align-middle border-2 border-gray-200 dark:border-gray-500 p-3 bg-gray-200 dark:bg-slate-700  rounded-lg h-15">
-                <label class="inline-block align-middle text-base dark:text-gray-200">Article Cache: </label>
-                <div class="inline-block align-middle float-right block space-mono dark:text-gray-200">
-                    <p>@(_databaseSize.ToString("0.##") == "0" ? "<1" : _databaseSize.ToString("0.##"))MB</p>
-                </div>
-            </div>
-            <button @onclick="ClearArticles" class="ddark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col shadow-md max-w-full h-15 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2">
-                <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="align-middle  w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                </svg>
-                <a class="align-middle" style="display:inline-block">Clear</a>
-            </button>
-        </div>
-
-        <h5 class="mb-2 font-bold tracking-tight dark:text-white space-mono dark:brightness-[0.85] flex items-center" style="font-size: 1.5em">
-            Import / Export OPML File
-            <button type="button" @onclick="ShowOpmlInfo" class="ml-2" aria-label="What is OPML?">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.518c1.171-1.025 3.07-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.204.178-.43.325-.671.441-.746.361-1.45.998-1.45 1.826v.75m0 4.5h.008v.008H12v-.008zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </button>
-        </h5>
-
-        <div class="w-full md:max-w-sm grid grid-cols-2 gap-4 mb-5">
-            <div class="col shadow-md max-w-full h-15">
-                <InputFile id="opmlFileInput" OnChange="ImportOpml" accept=".opml" class="hidden" />
-                <label for="opmlFileInput" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col inline-flex items-center justify-center w-full h-full shadow-md text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 cursor-pointer">
-                    <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                    </svg>
-                    <span class="align-middle">Import OPML File</span>
-                </label>
-            </div>
-            <button @onclick="ExportOpml" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white col shadow-md max-w-full h-15 text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center">
-                <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
-                <span class="align-middle">Export OPML File</span>
-            </button>
-        </div>
-        
-    <button type="submit" disabled="@(!_hasUnsavedChanges || _isSaving)" class="dark:border-gray-600 dark:hover:text-white dark:hover:bg-indigo-700 dark:focus:ring-gray-800 dark:bg-indigo-600 dark:text-white w-full sm:w-1/2 shadow-md mb-4 text-green-600 hover:text-white border border-green-600 hover:bg-green-600 focus:ring-4 focus:outline-hidden focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 disabled:opacity-50">
-        <svg style="display:inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <a class="align-middle" style="display:inline-block">Save Settings</a>
-    </button>
+        <div class="settings-savebar"><p role="status">@(_isSaving ? "Saving your preferences…" : _hasChanges ? "You have unsaved changes." : "Your preferences are up to date.")</p><button type="submit" class="button button-primary" disabled="@(!_hasChanges || _isBusy)"><Icon Name="check" />@(_isSaving ? "Saving…" : "Save changes")</button></div>
     </EditForm>
-    </div>
-
+}
+@if (_clearTarget is not null) { <ConfirmationModal Title="@(_clearTarget == ClearTarget.Images ? "Clear image cache?" : "Clear all articles?")" Summary="@(_clearTarget == ClearTarget.Images ? "Downloaded images will be removed. Your feeds and articles will stay in your library." : "All saved articles will be removed. Your feeds and folders will stay in your library. This cannot be undone.")" OnUserSelection="ClearConfirmed" /> }
 @_notification
 
 @code {
-    UserSettings _userSettings = new();
-    long _imageFolderSize;
-    long _databaseSize;
-    bool _isDarkMode;
-    RenderFragment? _notification;
-    EditContext? _editContext;
-    bool _hasUnsavedChanges;
-    bool _isSaving;
-
+    [CascadingParameter] public MainLayout? Layout { get; set; }
+    private UserSettings _settings = new();
+    private UserSettings? _storedSettings;
+    private EditContext? _editContext;
+    private bool _hasChanges;
+    private bool _isSaving;
+    private bool _isBusy;
+    private bool _savedDarkMode;
+    private long _imageSize;
+    private long _databaseSize;
+    private ClearTarget? _clearTarget;
+    private RenderFragment? _notification;
+    private enum ClearTarget { Images, Articles }
     protected override async Task OnInitializedAsync()
     {
-        await LoadUserSettings();
+        _storedSettings = await UserRepository.Get();
+        _savedDarkMode = _storedSettings.IsDarkMode;
+        _settings = new() {
+            UserSettingsId = _storedSettings.UserSettingsId, ArticleRefreshAfterMinutes = _storedSettings.ArticleRefreshAfterMinutes,
+            ArticleExpirationAfterDays = _storedSettings.ArticleExpirationAfterDays, ArticleCountOnPage = _storedSettings.ArticleCountOnPage,
+            MaxArticleCountInDb = _storedSettings.MaxArticleCountInDb, ShowImages = _storedSettings.ShowImages,
+            DownloadImages = _storedSettings.DownloadImages, IsDarkMode = _storedSettings.IsDarkMode
+        };
+        _editContext = new(_settings);
+        _editContext.OnFieldChanged += FieldChanged;
+        LoadSizes();
     }
-
-    private async Task LoadUserSettings()
+    private void FieldChanged(object? sender, FieldChangedEventArgs args)
     {
-        _userSettings = await _userRepository.Get();
-        _isDarkMode = _userSettings.IsDarkMode;
-        _editContext = new EditContext(_userSettings);
-        _editContext.OnFieldChanged += EditContext_OnFieldChanged;
-        LoadCacheSizes();
+        _hasChanges = true;
+        if (args.FieldIdentifier.FieldName == nameof(UserSettings.IsDarkMode)) Layout?.SetTheme(_settings.IsDarkMode);
     }
-
-    private void EditContext_OnFieldChanged(object? sender, FieldChangedEventArgs e)
-    {
-        if (_isSaving)
-            return;
-        if (!_hasUnsavedChanges)
-        {
-            ShowNotification("Unsaved changes", "You have unsaved changes. Don't forget to save.");
-        }
-        _hasUnsavedChanges = true;
-        InvokeAsync(StateHasChanged);
-    }
-
-    private void LoadCacheSizes()
-    {
-        _imageFolderSize = _imageService.GetImageCacheFolderSize();
-        _databaseSize = _imageService.GetDatabaseSize();
-    }
-
-    private async Task ToggleDarkMode(ChangeEventArgs e)
-    {
-        _isDarkMode = e.Value is bool b && b;
-        _userSettings.IsDarkMode = _isDarkMode;
-        await _userRepository.Update(_userSettings);
-        _navManager.NavigateTo(_navManager.Uri, forceLoad: true);
-    }
-
+    private void LoadSizes() { _imageSize = ImageService.GetImageCacheFolderSize(); _databaseSize = ImageService.GetDatabaseSize(); }
+    private static string FormatSize(long size) => size == 0 ? "< 1 MB" : $"{size:N0} MB";
     private async Task SaveChanges()
     {
-        _isSaving = true;
-        StateHasChanged();
-
-        await _userRepository.Update(_userSettings);
-        await LoadUserSettings();
-
-        _isSaving = false;
-        _hasUnsavedChanges = false;
-        ShowNotification("Changes Saved!", "All changes have been saved. Some settings can take up to 10 minutes to take effect.", NotificationType.Success);
-        StateHasChanged();
-    }
-
-    private void ClearImageCache()
-    {
-        _imageService.ClearImageCache();
-        LoadCacheSizes();
-        ShowNotification("Images cleared!", "All images have been successfully cleared.", NotificationType.Success);
-    }
-
-    private void ExportOpml()
-    {
-        _navManager.NavigateTo("api/Opml/export", forceLoad: true);
-    }
-
-    private void ShowOpmlInfo()
-    {
-        ShowNotification("About OPML", "OPML files let you import and export your feed subscriptions.", NotificationType.Info);
-    }
-
-    private async Task ImportOpml(InputFileChangeEventArgs e)
-    {
+        if (_isBusy || _storedSettings is null) return;
+        _isBusy = true; _isSaving = true;
         try
         {
-            var file = e.File;
+            _storedSettings.ArticleRefreshAfterMinutes = _settings.ArticleRefreshAfterMinutes;
+            _storedSettings.ArticleExpirationAfterDays = _settings.ArticleExpirationAfterDays;
+            _storedSettings.ArticleCountOnPage = _settings.ArticleCountOnPage;
+            _storedSettings.ShowImages = _settings.ShowImages; _storedSettings.DownloadImages = _settings.DownloadImages;
+            _storedSettings.IsDarkMode = _settings.IsDarkMode;
+            await UserRepository.Update(_storedSettings);
+            _savedDarkMode = _settings.IsDarkMode; _hasChanges = false; _editContext?.MarkAsUnmodified();
+            Notify("Preferences saved", "Your changes are saved. Scheduling changes may take up to 10 minutes to apply.", NotificationType.Success);
+        }
+        catch { Notify("Could not save preferences", "Your changes are still here. Please try again.", NotificationType.Error); }
+        finally { _isBusy = false; _isSaving = false; }
+    }
+    private async Task ClearConfirmed(bool confirmed)
+    {
+        var target = _clearTarget; _clearTarget = null;
+        if (!confirmed || target is null || _isBusy) return;
+        _isBusy = true;
+        try
+        {
+            if (target == ClearTarget.Images) ImageService.ClearImageCache(); else await ArticleRepository.ClearAllArticles();
+            LoadSizes();
+            Notify(target == ClearTarget.Images ? "Image cache cleared" : "Articles cleared", "Your subscriptions and folders are unchanged.", NotificationType.Success);
+        }
+        catch { Notify("Could not clear the cache", "Please try again.", NotificationType.Error); }
+        finally { _isBusy = false; }
+    }
+    private async Task ImportOpml(InputFileChangeEventArgs args)
+    {
+        if (_isBusy) return;
+        _isBusy = true;
+        try
+        {
             using var content = new MultipartFormDataContent();
-            await using var stream = file.OpenReadStream(10 * 1024 * 1024);
-            content.Add(new StreamContent(stream), "file", file.Name);
-
-            var uri = _navManager.ToAbsoluteUri("api/Opml/import");
-            var response = await _httpClient.PostAsync(uri, content);
+            await using var stream = args.File.OpenReadStream(10 * 1024 * 1024);
+            content.Add(new StreamContent(stream), "file", args.File.Name);
+            using var response = await HttpClient.PostAsync(NavigationManager.ToAbsoluteUri("api/Opml/import"), content);
             if (response.IsSuccessStatusCode)
             {
-                ShowNotification("Import completed!", "Feeds imported successfully.", NotificationType.Success);
+                if (Layout is not null) await Layout.RefreshNavigation();
+                Notify("Subscriptions imported", "Your feeds are ready in the library.", NotificationType.Success);
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                ShowNotification("Import failed!", string.IsNullOrWhiteSpace(error) ? "Failed to import feeds." : error, NotificationType.Error);
+                Notify("Import failed", string.IsNullOrWhiteSpace(error) ? "Check your OPML file and try again." : error, NotificationType.Error);
             }
         }
-        catch (Exception ex)
-        {
-            ShowNotification("Import failed!", ex.Message, NotificationType.Error);
-        }
+        catch { Notify("Import failed", "Choose a valid OPML file smaller than 10 MB and try again.", NotificationType.Error); }
+        finally { _isBusy = false; }
     }
-
-    private async Task ClearArticles()
+    private void Notify(string title, string summary, NotificationType type) { var key = Guid.NewGuid(); _notification = @<Notification @key="key" Title="@title" Summary="@summary" Type="@type" />; }
+    public void Dispose()
     {
-        await _articleRepository.ClearAllArticles();
-        LoadCacheSizes();
-        ShowNotification("Articles cleared!", "All articles have been successfully cleared.", NotificationType.Success);
-    }
-
-    private void ShowNotification(string title, string summary, NotificationType type = NotificationType.Info)
-    {
-        _notification = @<Notification Title="@title" Summary="@summary" Type="@type" IsShown="true"/>;
-        InvokeAsync(StateHasChanged);
+        if (_editContext is not null) _editContext.OnFieldChanged -= FieldChanged;
+        if (_hasChanges) Layout?.SetTheme(_savedDarkMode);
     }
 }

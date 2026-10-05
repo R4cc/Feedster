@@ -14,7 +14,9 @@ The following features are built into the application
 - Dark Mode
 - Custom folders for creating custom feeds
 - Ready-to-use docker image.
-- Mobile screen compatible.
+- Responsive desktop, tablet, and mobile layouts.
+- Search article titles, descriptions, and source names.
+- Keyboard-accessible navigation and dialogs.
 - Webp image conversion for optimal performance
 
 Add an Atom 1.0 URL in the same feed manager as RSS feeds; the format is detected automatically.
@@ -27,7 +29,7 @@ Run `npm ci --prefix Feedster.Web`, `dotnet build Feedster.sln -c Release`, and
 `dotnet test Feedster.sln -c Release --no-build`. Tests use local HTTP fixtures and a temporary
 in-memory SQLite database, so they do not require live feeds.
 
-The CSS build uses Tailwind 4 and bundles Alpine locally. Release builds minify CSS, and
+The CSS build uses Tailwind 4. Dialog behavior uses a small local script without Alpine. Release builds minify CSS, and
 publish excludes legacy font formats, unused icon assets, source maps, and migration tooling.
 For EF migration development, build with `-p:EnableEfTools=true`, then run a matching
 `dotnet-ef` 10 tool with `--no-build`. Normal builds and publishes omit those design dependencies.
@@ -38,62 +40,51 @@ uses the .NET 10 chiseled image with ICU and time-zone data. Existing `/app/data
 `/app/images` bind mounts remain supported. CI verifies both amd64 and arm64 containers,
 including native WebP conversion, SQLite migrations, HTTP pages, compressed assets, and restart.
 
+### Frontend browser checks
+
+After building the solution, publish the app and run the Chromium smoke suite:
+
+```sh
+dotnet publish Feedster.Web -c Release --no-build -o artifacts/ui-publish
+cd Feedster.Web
+npx playwright install chromium
+npm run test:ui -- ../artifacts/ui-publish
+```
+
+The suite uses a disposable database and a local RSS fixture. It checks article search and
+pagination, route changes, feed and folder edits, draft cancellation, settings, OPML,
+keyboard focus, and all main screens at 1440, 820, 390, and 320 pixels in both themes.
+Set `UI_ARTIFACTS` to retain screenshots outside the temporary workspace.
+Set `README_SCREENSHOTS` to an absolute path to `docs/screenshots` to regenerate the README images.
+CI also runs these browser checks before publishing the Docker image.
+
 ## To-Do
 The following features are planned for the future
 - Different post layout modes (card, grid, list, compact).
 - User authentication and user management system.
-- Post title/description search
 
 ## Screenshots
-### Home / Folder View
-<table>
-	<tbody>
-		<tr>
-			<td width="50%">
-                <img width="500" alt="home-view" src="https://user-images.githubusercontent.com/48733309/192523278-1a8cb97a-ed8b-4768-b883-5d8914b88290.png">
-			</td>
-			<td width="50%">
-                <img width="500" alt="2022-09-27 14_09_03-" src="https://user-images.githubusercontent.com/48733309/193017828-dbd7a11f-6b6e-4d11-9b80-36c9720b899b.png">
-			</td>
-		</tr>
-	</tbody>
-</table>
+
+Screenshots show the current interface with sample feeds and articles.
+
+### All articles
+
+| Light | Dark |
+| --- | --- |
+| ![Articles in light mode](docs/screenshots/articles-light.png) | ![Articles in dark mode](docs/screenshots/articles-dark.png) |
 
 ### Settings
-<table>
-	<tbody>
-		<tr>
-			<td width="50%">
-                <img width="500" alt="2022-09-27 14_09_03-" src="https://user-images.githubusercontent.com/48733309/192523891-dcde046a-c946-4dfc-ae4a-a7060c93a478.png">
-			</td>
-            <td width="50%">
-                <img width="500" alt="2022-09-27 14_09_03-" src="https://user-images.githubusercontent.com/48733309/193020202-47dd5095-6ec4-4502-b0c3-7602b4b5d265.png">
-			</td>
-		</tr>
-	</tbody>
-</table>
 
-### Mobile View
-<table>
-	<tbody>
-        <tr>
-            <td width="auto">
-                <img width="220px" src="https://user-images.githubusercontent.com/48733309/192523932-5e6ba4e3-46d8-4f5c-828a-12b31f0f059b.png">
-            </td>
-            <td width="auto">
-                <img width="220px" src="https://user-images.githubusercontent.com/48733309/193018439-ad197743-26ff-4453-be46-c9b4b9bc96da.png">
-            </td>
-            <td width="auto">
-                <img width="220px" src="https://user-images.githubusercontent.com/48733309/193018593-2a45969a-06a1-4426-98d6-3e2d1ede8365.png">
-            </td>
-            <td width="auto">
-                <img width="220px"src="https://user-images.githubusercontent.com/48733309/193018127-17a050b5-0d99-4b62-b1cf-6fa0a0c86293.png">
-            </td>
-        </tr>
-    </tbody>
-</table>
+| Light | Dark |
+| --- | --- |
+| ![Settings in light mode](docs/screenshots/settings-light.png) | ![Settings in dark mode](docs/screenshots/settings-dark.png) |
 
+### Mobile
 
+<p>
+  <img width="260" alt="Mobile articles in light mode" src="docs/screenshots/mobile-light.png" />
+  <img width="260" alt="Mobile articles in dark mode" src="docs/screenshots/mobile-dark.png" />
+</p>
 
 ## Docker
 
