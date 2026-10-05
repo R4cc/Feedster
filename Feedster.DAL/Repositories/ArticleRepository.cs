@@ -18,35 +18,73 @@ public class ArticleRepository
 
     public async Task<List<Article>> GetAll()
     {
-        var list = await _db.Articles.Include(a => a.Feed).ToListAsync();
-        return list;
+        return await _db.Articles.AsNoTrackingWithIdentityResolution().Include(a => a.Feed).ToListAsync();
     }
 
-    public async Task UpdateRange(List<Article> articles)
+    public async Task SaveFetchedArticles(List<Article> articles, CancellationToken cancellationToken = default)
     {
-        _db.Articles.UpdateRange(articles);
-        await _db.SaveChangesAsync();
+        if (articles.Count == 0) return;
+        foreach (var article in articles)
+        {
+            // Avoid walking and updating the feed's entire tracked navigation graph.
+            if (article.ArticleId == 0)
+                _db.Entry(article).State = EntityState.Added;
+            else
+            {
+                // Existing imports only repair cache paths. Keep article content untouched.
+                var tracked = await _db.Articles.FindAsync([article.ArticleId], cancellationToken);
+                if (tracked is not null) tracked.ImagePath = article.ImagePath;
+            }
+        }
+        await _db.SaveChangesAsync(cancellationToken);
     }
+
+    public Task<List<Article>> GetForFeed(int feedId, CancellationToken cancellationToken = default) =>
+        _db.Articles.Where(article => article.FeedId == feedId)
+            .Select(article => new Article
+            {
+                ArticleId = article.ArticleId,
+                FeedId = article.FeedId,
+                Guid = article.Guid,
+                ArticleLink = article.ArticleLink,
+                ImageUrl = article.ImageUrl,
+                ImagePath = article.ImagePath
+            }).ToListAsync(cancellationToken);
 
     public async Task<List<Article>> GetFromFolderId(int id)
     {
-        return (await _db.Folders.Include(f => f.Feeds).ThenInclude(f => f.Articles)
-            .FirstOrDefaultAsync(f => f.FolderId == id))?.Feeds.SelectMany(f => f.Articles!).ToList() ?? new();
+        return await _db.Articles.AsNoTrackingWithIdentityResolution().Include(article => article.Feed)
+            .Where(article => article.Feed!.Folders.Any(folder => folder.FolderId == id)).ToListAsync();
     }
 
     public async Task ClearAllArticles()
     {
-        _db.Articles.RemoveRange(_db.Articles);
+        await _db.Articles.ExecuteDeleteAsync();
+        DetachDeletedArticles(_ => true);
         _imageService.ClearImageCache();
-        await _db.SaveChangesAsync();
     }
 
     public async Task ClearArticlesOlderThan(DateTime dateTime)
     {
-        var articlesToDelete = await _db.Articles.Where(x => x.PublicationDate < dateTime).ToListAsync();
-        _db.Articles.RemoveRange(articlesToDelete);
-        await _db.SaveChangesAsync();
-        _imageService.ClearArticleImages(articlesToDelete);
+        // Snapshot only cache paths and delete the same expired set in one SQL command.
+        using var transaction = await _db.Database.BeginTransactionAsync();
+        var expired = _db.Articles.Where(article => article.PublicationDate < dateTime);
+        var imagePaths = await expired.Select(article => article.ImagePath).ToListAsync();
+        await expired.ExecuteDeleteAsync();
+        await transaction.CommitAsync();
+        DetachDeletedArticles(article => article.PublicationDate < dateTime);
+        _imageService.ClearArticleImages(imagePaths);
+    }
+
+    private void DetachDeletedArticles(Func<Article, bool> predicate)
+    {
+        var entries = _db.ChangeTracker.Entries<Article>().Where(entry => predicate(entry.Entity)).ToList();
+        foreach (var group in entries.Where(entry => entry.Entity.Feed is not null).GroupBy(entry => entry.Entity.Feed!))
+        {
+            var deleted = group.Select(entry => entry.Entity).ToHashSet();
+            group.Key.Articles?.RemoveAll(deleted.Contains);
+        }
+        foreach (var entry in entries) entry.State = EntityState.Detached;
     }
 
     internal void Dispose()

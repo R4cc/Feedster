@@ -10,12 +10,11 @@ using Feed = Feedster.DAL.Models.Feed;
 
 namespace Feedster.DAL.Services
 {
-    public class RssFetchService
+    public partial class RssFetchService
     {
         private readonly ArticleRepository _articleRepository;
         private readonly UserRepository _userRepo;
         private readonly ImageService _imageService;
-        private UserSettings? _userSettings;
 
         public RssFetchService(ArticleRepository articleRepository, UserRepository userRepo, ImageService imageSerivce)
         {
@@ -24,41 +23,40 @@ namespace Feedster.DAL.Services
             _imageService = imageSerivce;
         }
 
-        public async Task RefreshFeeds(List<Feed> feeds)
+        public async Task RefreshFeeds(List<Feed> feeds, CancellationToken cancellationToken = default)
         {
-            List<Article> articlesToUpdate = new();
-
+            var settings = await _userRepo.GetSnapshot(cancellationToken);
             foreach (var feed in feeds)
             {
-                var articles = await FetchFeedArticles(feed);
+                var articles = await FetchFeedArticles(feed, settings, cancellationToken);
                 if (articles is not null)
                 {
-                    articlesToUpdate.AddRange(articles);
+                    await _articleRepository.SaveFetchedArticles(articles, cancellationToken);
                 }
             }
-
-            await _articleRepository.UpdateRange(articlesToUpdate);
         }
 
-        public async Task<int?> RefreshFeed(Feed feed)
+        public async Task<int?> RefreshFeed(Feed feed, CancellationToken cancellationToken = default)
         {
-            var articles = await FetchFeedArticles(feed);
+            var settings = await _userRepo.GetSnapshot(cancellationToken);
+            var articles = await FetchFeedArticles(feed, settings, cancellationToken);
             if (articles is null)
             {
                 return null;
             }
 
-            await _articleRepository.UpdateRange(articles);
+            await _articleRepository.SaveFetchedArticles(articles, cancellationToken);
             return articles.Count;
         }
 
-        private static async Task<(bool Success, SyndicationFeed Feed, bool IsAtom)> ReadXml(string rssUrl)
+        private static async Task<(bool Success, SyndicationFeed Feed, bool IsAtom)> ReadXml(string rssUrl, CancellationToken cancellationToken)
         {
             try
             {
-                var (result, isAtom) = await FeedReader.ReadAsync(rssUrl);
+                var (result, isAtom) = await FeedReader.ReadAsync(rssUrl, cancellationToken);
                 return (true, result, isAtom);
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
             catch
             {
                 // ignored
@@ -67,41 +65,43 @@ namespace Feedster.DAL.Services
             return (false, new SyndicationFeed(), false);
         }
 
-        private async Task<List<Article>?> FetchFeedArticles(Feed feed)
+        private async Task<List<Article>?> FetchFeedArticles(Feed feed, UserSettings settings, CancellationToken cancellationToken)
         {
-            _userSettings = await _userRepo.Get();
-
-            // get existing articles to match
-            var existingArticles = (feed.Articles ?? new())
-                .Where(x => !string.IsNullOrEmpty(x.ArticleLink))
-                .GroupBy(x => x.ArticleLink).ToDictionary(x => x.Key, x => x.First());
-            var existingIds = (feed.Articles ?? new())
-                .Where(x => !string.IsNullOrEmpty(x.Guid))
-                .GroupBy(x => x.Guid!).ToDictionary(x => x.Key, x => x.First());
-
             List<Article> articlesToUpdate = new();
-
-            var (success, result, isAtom) = await ReadXml(feed.RssUrl);
+            var (success, result, isAtom) = await ReadXml(feed.RssUrl, cancellationToken);
             if (!success)
             {
                 return null;
             }
             var feedUri = new Uri(feed.RssUrl);
 
+            // Read current DB state instead of stale navigation lists carried by callers.
+            var savedArticles = await _articleRepository.GetForFeed(feed.FeedId, cancellationToken);
+            var existingArticles = new Dictionary<string, Article>(savedArticles.Count, StringComparer.Ordinal);
+            var existingIds = new Dictionary<string, Article>(isAtom ? savedArticles.Count : 0, StringComparer.Ordinal);
+            foreach (var saved in savedArticles)
+            {
+                if (!string.IsNullOrEmpty(saved.ArticleLink)) existingArticles.TryAdd(saved.ArticleLink, saved);
+                if (isAtom && !string.IsNullOrEmpty(saved.Guid)) existingIds.TryAdd(saved.Guid, saved);
+            }
+            var now = DateTime.Now;
+            var expiration = settings.ArticleExpirationAfterDays == 0
+                ? DateTime.MinValue : now.AddDays(-settings.ArticleExpirationAfterDays);
+
             // loop through all results and add them to a list
             foreach (var itm in result.Items)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
                     var publicationDate = itm.PublishDate != DateTimeOffset.MinValue
                         ? itm.PublishDate.LocalDateTime
                         : itm.LastUpdatedTime != DateTimeOffset.MinValue
                             ? itm.LastUpdatedTime.LocalDateTime
-                            : DateTime.Now;
+                            : now;
 
                     // Atom's published date is optional; use updated for expiry too.
-                    if (_userSettings.ArticleExpirationAfterDays != 0
-                        && publicationDate < DateTime.Now.AddDays(-_userSettings.ArticleExpirationAfterDays))
+                    if (publicationDate < expiration)
                     {
                         continue;
                     }
@@ -130,9 +130,9 @@ namespace Feedster.DAL.Services
                         }
 
                         // download the image if it doesnt exist in the cache
-                        if (!File.Exists("images/" + article.ImagePath) && _userSettings.DownloadImages)
+                        if (settings.DownloadImages && !File.Exists("images/" + article.ImagePath))
                         {
-                            article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath);
+                            article.ImagePath = await DownloadFileAsync(article.ImageUrl, article.ImagePath, null, cancellationToken);
 
                             if (!string.IsNullOrEmpty(article.ImagePath))
                             {
@@ -149,12 +149,12 @@ namespace Feedster.DAL.Services
                     string highestResImagePath = string.Empty;
 
                     // Find the highest Resolution image in array of multiple images
-                    if (_userSettings.DownloadImages && imageUrls.Any())
+                    if (settings.DownloadImages && imageUrls.Count > 0)
                     {
-                        highestResImageUrl = await GetHighestResolutionImage(imageUrls);
-                        highestResImagePath = await DownloadFileAsync(highestResImageUrl, Path.GetFileName(highestResImageUrl));
-
-                        //await _imageService.CompressImage(highestResImagePath);
+                        var selected = await GetHighestResolutionImage(imageUrls, cancellationToken);
+                        highestResImageUrl = selected.Url;
+                        highestResImagePath = await DownloadFileAsync(highestResImageUrl,
+                            Path.GetFileName(highestResImageUrl), selected.Bytes, cancellationToken);
                     }
 
                     var newArticle = new Article()
@@ -173,6 +173,7 @@ namespace Feedster.DAL.Services
                     if (!string.IsNullOrEmpty(articleLink)) existingArticles[articleLink] = newArticle;
                     if (isAtom && !string.IsNullOrEmpty(itm.Id)) existingIds[itm.Id] = newArticle;
                 }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
                 catch
                 {
                     // ignored
@@ -221,7 +222,7 @@ namespace Feedster.DAL.Services
                 }
             }
 
-            return imageUrls;
+            return imageUrls.Distinct(StringComparer.Ordinal).ToList();
         }
 
         private static bool IsImageUrl(string value)
@@ -264,7 +265,7 @@ namespace Feedster.DAL.Services
                 ? content.Text : WebUtility.HtmlDecode(StripTagsRegex(content.Text));
         }
 
-        private async Task<string> DownloadFileAsync(string uri, string outputPath)
+        private async Task<string> DownloadFileAsync(string uri, string outputPath, byte[]? fileBytes, CancellationToken cancellationToken)
         {
             try
             {
@@ -274,27 +275,23 @@ namespace Feedster.DAL.Services
                 }
 
                 // Remove special chars
-                var normalizedFilename = Regex.Replace(Path.GetFileNameWithoutExtension(outputPath), "(?:[^a-z0-9 ]|(?<=['\"])s)", "");
+                var normalizedFilename = FilenameRegex().Replace(Path.GetFileNameWithoutExtension(outputPath), "");
 
-                // add "seed" to differentiate between images with the same filename
-                normalizedFilename += "-" + new Random().Next(10000, 100000);
-                //outputPath = normalizedFilename + Path.GetExtension(outputPath);
+                // Avoid cache collisions between images with the same filename.
+                normalizedFilename += "-" + Guid.NewGuid().ToString("N");
                 outputPath = normalizedFilename + ".webp";
-
-                using HttpClient httpClient = new();
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-                httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
                 if (!Uri.TryCreate(uri, UriKind.Absolute, out _))
                     throw new InvalidOperationException("URI is invalid.");
 
-                byte[] fileBytes = await httpClient.GetByteArrayAsync(uri);
+                fileBytes ??= await GetImageBytes(uri, cancellationToken);
 
                 // Resize image, then save it to disk
-                await File.WriteAllBytesAsync("./images/" + outputPath, _imageService.ResizeImage(fileBytes));
+                await File.WriteAllBytesAsync("./images/" + outputPath, _imageService.ResizeImage(fileBytes), cancellationToken);
 
                 return outputPath;
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
             catch
             {
                 // most likely 403 No access so ignore
@@ -303,45 +300,61 @@ namespace Feedster.DAL.Services
             return String.Empty;
         }
 
-        private async Task<string> GetHighestResolutionImage(List<string> Images)
+        private static async Task<(string Url, byte[]? Bytes)> GetHighestResolutionImage(List<string> images, CancellationToken cancellationToken)
         {
-            if (Images.Count == 1)
+            if (images.Count == 1)
             {
-                return Images.First();
+                return (images[0], null);
             }
 
             string highestResolutionImage = String.Empty;
-            int highestResolution = 0;
+            ulong highestResolution = 0;
+            byte[]? selectedBytes = null;
 
-            foreach (var img in Images)
+            foreach (var img in images)
             {
                 try
                 {
-                    using var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-                    httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-
                     // download image and pass it to the drawer
-                    using var imgStream = new MemoryStream(await httpClient.GetByteArrayAsync(img));
+                    var bytes = await GetImageBytes(img, cancellationToken);
+                    using var imgStream = new MemoryStream(bytes);
                     // Read dimensions without decoding every candidate's pixels.
                     var image = new MagickImageInfo(imgStream);
                     
-                    if (image.Height * image.Width <= highestResolution) continue;
+                    var resolution = (ulong)image.Height * image.Width;
+                    if (resolution <= highestResolution) continue;
                             
-                    highestResolution = (int)(image.Height * image.Width);
+                    highestResolution = resolution;
                     highestResolutionImage = img;
+                    selectedBytes = bytes;
                 }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
                 catch
                 {
                     // img download probably failed; continue
                 }
             }
-            return highestResolutionImage;
+            return (highestResolutionImage, selectedBytes);
+        }
+
+        private static async Task<byte[]> GetImageBytes(string url, CancellationToken cancellationToken)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            using var response = await FeedReader.Client.SendAsync(request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsByteArrayAsync(cancellationToken);
         }
 
         private static string StripTagsRegex(string source)
         {
-            return Regex.Replace(source, "<.*?>", string.Empty);
+            return HtmlTagsRegex().Replace(source, string.Empty);
         }
+
+        [GeneratedRegex("<.*?>")]
+        private static partial Regex HtmlTagsRegex();
+
+        [GeneratedRegex("(?:[^a-z0-9 ]|(?<=['\"])s)")]
+        private static partial Regex FilenameRegex();
     }
 }

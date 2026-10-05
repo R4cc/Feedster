@@ -20,16 +20,21 @@ public class ImageService
     public void ClearImageCache()
     {
         DirectoryInfo info = new DirectoryInfo(@"./images");
-        foreach (FileInfo file in info.GetFiles()) file.Delete();
+        foreach (FileInfo file in info.EnumerateFiles()) file.Delete();
     }
 
     public void ClearArticleImages(List<Article> articles)
     {
-        foreach (var article in articles)
+        ClearArticleImages(articles.Select(article => article.ImagePath));
+    }
+
+    public void ClearArticleImages(IEnumerable<string?> imagePaths)
+    {
+        foreach (var imagePath in imagePaths)
         {
-            if (!String.IsNullOrEmpty("./images/" + article.ImagePath) && File.Exists("./images/" + article.ImagePath))
+            if (!string.IsNullOrEmpty(imagePath))
             {
-                File.Delete("./images/" + article.ImagePath);
+                File.Delete(Path.Combine("images", imagePath));
             }
         }
     }

@@ -1,24 +1,25 @@
 using System.Xml.Linq;
+using Feedster.DAL.Data;
 using Feedster.DAL.Models;
-using Feedster.DAL.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Feedster.DAL.Services;
 
 public class OpmlService
 {
-    private readonly FeedRepository _feedRepo;
-    private readonly FolderRepository _folderRepo;
+    private readonly ApplicationDbContext _db;
 
-    public OpmlService(FeedRepository feedRepo, FolderRepository folderRepo)
+    public OpmlService(ApplicationDbContext db)
     {
-        _feedRepo = feedRepo;
-        _folderRepo = folderRepo;
+        _db = db;
     }
 
     public async Task<string> ExportAsync()
     {
-        var folders = await _folderRepo.GetAll();
-        var feeds = await _feedRepo.GetAll();
+        var folders = await _db.Folders.AsNoTracking().ToListAsync();
+        var feeds = await _db.Feeds.AsNoTracking().Include(feed => feed.Folders).ToListAsync();
+        var feedsByFolder = feeds.SelectMany(feed => feed.Folders.Select(folder => (folder.FolderId, Feed: feed)))
+            .ToLookup(entry => entry.FolderId, entry => entry.Feed);
 
         var body = new XElement("body");
 
@@ -28,7 +29,7 @@ public class OpmlService
                 new XAttribute("text", folder.Name),
                 new XAttribute("title", folder.Name));
 
-            foreach (var feed in folder.Feeds)
+            foreach (var feed in feedsByFolder[folder.FolderId])
             {
                 folderElement.Add(FeedToOutline(feed));
             }
@@ -56,34 +57,37 @@ public class OpmlService
         var body = doc.Root?.Element("body");
         if (body == null) return;
 
-        var existingFolders = await _folderRepo.GetAll();
-        var existingFeeds = await _feedRepo.GetAll();
+        var existingFolders = new Dictionary<string, Folder>(StringComparer.Ordinal);
+        foreach (var folder in await _db.Folders.ToListAsync()) existingFolders.TryAdd(folder.Name, folder);
+        var existingUrls = (await _db.Feeds.Select(feed => feed.RssUrl).ToListAsync())
+            .ToHashSet(StringComparer.Ordinal);
 
         foreach (var outline in body.Elements("outline"))
         {
             var xmlUrl = outline.Attribute("xmlUrl")?.Value;
             if (!string.IsNullOrEmpty(xmlUrl))
             {
-                await CreateFeed(outline, null, existingFeeds);
+                CreateFeed(outline, null, existingUrls);
                 continue;
             }
 
             var folderName = outline.Attribute("title")?.Value ?? outline.Attribute("text")?.Value;
             if (string.IsNullOrWhiteSpace(folderName)) continue;
 
-            var folder = existingFolders.FirstOrDefault(f => f.Name == folderName);
-            if (folder == null)
+            if (!existingFolders.TryGetValue(folderName, out var folder))
             {
                 folder = new Folder { Name = folderName };
-                await _folderRepo.Create(folder);
-                existingFolders.Add(folder);
+                _db.Folders.Add(folder);
+                existingFolders.Add(folderName, folder);
             }
 
             foreach (var feedOutline in outline.Elements("outline"))
             {
-                await CreateFeed(feedOutline, folder, existingFeeds);
+                CreateFeed(feedOutline, folder, existingUrls);
             }
         }
+        // One transaction and change-detection pass for the entire import.
+        await _db.SaveChangesAsync();
     }
 
     private static XElement FeedToOutline(Feed feed)
@@ -95,12 +99,12 @@ public class OpmlService
             new XAttribute("xmlUrl", feed.RssUrl));
     }
 
-    private async Task CreateFeed(XElement outline, Folder? folder, List<Feed> existingFeeds)
+    private void CreateFeed(XElement outline, Folder? folder, HashSet<string> existingUrls)
     {
         var url = outline.Attribute("xmlUrl")?.Value;
         if (string.IsNullOrEmpty(url)) return;
 
-        if (existingFeeds.Any(f => f.RssUrl == url)) return;
+        if (!existingUrls.Add(url)) return;
 
         var name = outline.Attribute("title")?.Value ?? outline.Attribute("text")?.Value ?? url;
 
@@ -115,7 +119,6 @@ public class OpmlService
             feed.Folders.Add(folder);
         }
 
-        await _feedRepo.Create(feed);
-        existingFeeds.Add(feed);
+        _db.Feeds.Add(feed);
     }
 }

@@ -18,6 +18,9 @@ public class UserRepository
         return await _db.UserSettings.FirstAsync();
     }
 
+    public Task<UserSettings> GetSnapshot(CancellationToken cancellationToken = default) =>
+        _db.UserSettings.AsNoTracking().FirstAsync(cancellationToken);
+
     public async Task Update(UserSettings _userSettings)
     {
         _db.UserSettings.Update(_userSettings);

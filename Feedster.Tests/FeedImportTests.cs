@@ -1,18 +1,23 @@
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Feedster.DAL.Data;
+using Feedster.DAL.BackgroundServices;
 using Feedster.DAL.Models;
 using Feedster.DAL.Repositories;
 using Feedster.DAL.Services;
 using ImageMagick;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Feedster.Tests;
 
+[Collection("Image cache")]
 public class FeedImportTests
 {
     private static string Atom(string entries, string attributes = "") => $"""
@@ -214,6 +219,102 @@ public class FeedImportTests
         Assert.Equal("urn:recent", Assert.Single(await fixture.Articles()).Guid);
     }
 
+    [Fact]
+    public async Task Image_candidates_are_downloaded_once_and_cache_repair_keeps_article_content()
+    {
+        await using var fixture = await ImportFixture.Create(Atom(Entry("""
+            <link href="https://example.org/article"/>
+            <link rel="enclosure" type="image/png" href="small.png"/>
+            <link rel="enclosure" type="image/png" href="large.png"/>
+            <link rel="enclosure" type="image/png" href="large.png"/>
+            <content>Keep body</content><category term="keep"/>
+            """)));
+        using var small = new MagickImage(MagickColors.Red, 2, 2);
+        using var large = new MagickImage(MagickColors.Blue, 8, 8);
+        fixture.Server.Images["/small.png"] = small.ToByteArray(MagickFormat.Png);
+        fixture.Server.Images["/large.png"] = large.ToByteArray(MagickFormat.Png);
+        (await fixture.Db.UserSettings.FirstAsync()).DownloadImages = true;
+        await fixture.Db.SaveChangesAsync();
+        Directory.CreateDirectory("images");
+        string? path = null;
+        try
+        {
+            Assert.Equal(1, await fixture.Refresh());
+            var article = Assert.Single(await fixture.Articles());
+            Assert.Equal(new Uri(fixture.Server.BaseUri, "large.png").AbsoluteUri, article.ImageUrl);
+            Assert.Equal(1, fixture.Server.RequestCounts["/small.png"]);
+            Assert.Equal(1, fixture.Server.RequestCounts["/large.png"]);
+            path = Path.Combine("images", article.ImagePath!);
+            using (var cached = new MagickImage(path)) Assert.Equal(8u, cached.Width);
+            Assert.Equal(0, await fixture.Refresh());
+            Assert.Equal(1, fixture.Server.RequestCounts["/large.png"]);
+
+            File.Delete(path);
+            Assert.Equal(1, await fixture.Refresh());
+            article = Assert.Single(await fixture.Articles());
+            path = Path.Combine("images", article.ImagePath!);
+            Assert.True(File.Exists(path));
+            Assert.Equal("Test entry", article.Title);
+            Assert.Equal("Keep body", article.Description);
+            Assert.Equal(new[] { "keep" }, article.Tags);
+            Assert.Equal(1, fixture.Server.RequestCounts["/small.png"]);
+            Assert.Equal(2, fixture.Server.RequestCounts["/large.png"]);
+        }
+        finally
+        {
+            if (path is not null) File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task Cancelled_refresh_propagates_cancellation_without_downloading_or_saving()
+    {
+        await using var fixture = await ImportFixture.Create(Atom(Entry("<content>Body</content>")));
+        using var stop = new CancellationTokenSource();
+        stop.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => fixture.Refresh(stop.Token));
+        Assert.Empty(fixture.Server.RequestCounts);
+        Assert.Empty(await fixture.Articles());
+    }
+
+    [Fact]
+    public async Task Background_worker_uses_and_disposes_a_fresh_context_per_feed_and_skips_deleted_feeds()
+    {
+        await using var fixture = await ImportFixture.Create(Atom(Entry("<content>Body</content>")));
+        var contexts = new ConcurrentBag<ApplicationDbContext>();
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(fixture.Db.Database.GetDbConnection()).Options;
+        await using var services = new ServiceCollection()
+            .AddScoped(_ =>
+            {
+                var db = new ApplicationDbContext(options);
+                contexts.Add(db);
+                return db;
+            })
+            .AddTransient<FeedRepository>().AddTransient<ArticleRepository>().AddTransient<UserRepository>()
+            .AddTransient<ImageService>().AddTransient<RssFetchService>()
+            .BuildServiceProvider();
+        var jobs = new BackgroundJobs();
+        using var worker = new FeedUpdateDequeueService(services.GetRequiredService<IServiceScopeFactory>(),
+            jobs, NullLogger<FeedUpdateDequeueService>.Instance);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await worker.StartAsync(timeout.Token);
+        try
+        {
+            jobs.Enqueue([fixture.Feed.FeedId, 9999, 8888]);
+            while (contexts.Count < 3) await Task.Delay(10, timeout.Token);
+        }
+        finally
+        {
+            await worker.StopAsync(timeout.Token);
+        }
+        Assert.Equal(3, contexts.Count);
+        Assert.Single(await fixture.Articles());
+        Assert.Single(fixture.Server.RequestCounts);
+        foreach (var context in contexts)
+            await Assert.ThrowsAsync<ObjectDisposedException>(() => context.Articles.CountAsync());
+    }
+
     private const string Rss = """
         <rss version="2.0"><channel><title>RSS feed</title><link>https://example.org</link>
           <description>RSS feed</description><item><guid isPermaLink="false">rss-1</guid>
@@ -307,11 +408,11 @@ public class FeedImportTests
             return new ImportFixture(server, connection, db, feed);
         }
 
-        public async Task<int?> Refresh()
+        public async Task<int?> Refresh(CancellationToken cancellationToken = default)
         {
             Db.ChangeTracker.Clear();
-            Feed = await Db.Feeds.Include(feed => feed.Articles).SingleAsync(feed => feed.FeedId == Feed.FeedId);
-            return await _fetchService.RefreshFeed(Feed);
+            Feed = await Db.Feeds.SingleAsync(feed => feed.FeedId == Feed.FeedId);
+            return await _fetchService.RefreshFeed(Feed, cancellationToken);
         }
 
         public Task<List<Article>> Articles() => Db.Articles.Where(article => article.FeedId == Feed.FeedId).ToListAsync();
@@ -335,6 +436,8 @@ public class FeedImportTests
         public int Status { get; set; } = 200;
         public string? Redirect { get; set; }
         public byte[]? ImageBytes { get; set; }
+        public Dictionary<string, byte[]> Images { get; } = [];
+        public ConcurrentDictionary<string, int> RequestCounts { get; } = new();
         public string? LastPath { get; private set; }
         public string LastHeaders { get; private set; } = "";
 
@@ -357,13 +460,16 @@ public class FeedImportTests
                     using var reader = new StreamReader(stream, leaveOpen: true);
                     var request = await reader.ReadLineAsync(_stop.Token);
                     LastPath = request?.Split(' ')[1];
+                    if (LastPath is not null) RequestCounts.AddOrUpdate(LastPath, 1, (_, count) => count + 1);
                     var headers = new StringBuilder();
                     string? line;
                     while (!string.IsNullOrEmpty(line = await reader.ReadLineAsync(_stop.Token))) headers.AppendLine(line);
                     LastHeaders = headers.ToString();
                     var redirect = Redirect is not null && LastPath != Redirect;
-                    var isImage = ImageBytes is not null && LastPath?.StartsWith("/image?") == true;
-                    var body = isImage ? ImageBytes! : Encoding.UTF8.GetBytes(Xml);
+                    var imageBytes = ImageBytes is not null && LastPath?.StartsWith("/image?") == true
+                        ? ImageBytes : Images.GetValueOrDefault(LastPath ?? "");
+                    var isImage = imageBytes is not null;
+                    var body = imageBytes ?? Encoding.UTF8.GetBytes(Xml);
                     var response = $"HTTP/1.1 {(redirect ? 302 : Status)} Response\r\n" +
                         (redirect ? $"Location: {Redirect}\r\n" : "") +
                         $"Content-Type: {(isImage ? "image/png" : "application/xml")}\r\nContent-Length: {body.Length}\r\nConnection: close\r\n\r\n";

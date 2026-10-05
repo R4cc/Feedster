@@ -18,8 +18,15 @@ public class FeedRepository
 
     public async Task<List<Feed>> GetAll()
     {
-        return await _db.Feeds.Include(f => f.Articles).ToListAsync();
+        // Feed management and OPML need metadata, not the entire article history.
+        return await _db.Feeds.ToListAsync();
     }
+
+    public Task<List<int>> GetIds(CancellationToken cancellationToken = default) =>
+        _db.Feeds.Select(feed => feed.FeedId).ToListAsync(cancellationToken);
+
+    public Task<Feed?> GetMetadata(int id, CancellationToken cancellationToken = default) =>
+        _db.Feeds.AsNoTracking().FirstOrDefaultAsync(feed => feed.FeedId == id, cancellationToken);
 
     public async Task Create(Feed feed)
     {
@@ -35,7 +42,7 @@ public class FeedRepository
 
     public async Task<Feed?> Get(int id)
     {
-        return await _db.Feeds.Include(f => f.Articles).FirstOrDefaultAsync(f => f.FeedId == id);
+        return await _db.Feeds.AsNoTracking().Include(f => f.Articles).FirstOrDefaultAsync(f => f.FeedId == id);
     }
 
     public async Task Remove(Feed feed)

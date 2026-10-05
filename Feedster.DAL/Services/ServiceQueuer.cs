@@ -14,6 +14,6 @@ public class ServiceQueuer
 
     public void FireAndForgetEndPoint(List<Feed> feeds)
     {
-        _backgroundJobs.BackgroundTasks.Enqueue(feeds);
+        _backgroundJobs.Enqueue(feeds.Select(feed => feed.FeedId));
     }
 }

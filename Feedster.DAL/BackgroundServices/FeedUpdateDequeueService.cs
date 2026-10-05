@@ -1,4 +1,3 @@
-using Feedster.DAL.Models;
 using Feedster.DAL.Repositories;
 using Feedster.DAL.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,39 +6,34 @@ using Microsoft.Extensions.Logging;
 
 namespace Feedster.DAL.BackgroundServices;
 
-/// <summary>
-/// This service automatically runs every second and tries to dequeue tasks (fetching feeds) from the BackgroundJobs List
-/// </summary>
-public class FeedUpdateDequeueService : BackgroundService
+public class FeedUpdateDequeueService(
+    IServiceScopeFactory scopeFactory,
+    BackgroundJobs backgroundJobs,
+    ILogger<FeedUpdateDequeueService> logger) : BackgroundService
 {
-    private  RssFetchService? _rssFetchService;
-    private  BackgroundJobs? _backgroundJobs;
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<FeedUpdateDequeueService> _logger;
-
-    public FeedUpdateDequeueService(IServiceScopeFactory scopeFactory, ILogger<FeedUpdateDequeueService> logger)
-    {
-        _scopeFactory = scopeFactory;
-        _logger = logger;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Started FeedUpdateDequeueService");
-        
-        using IServiceScope scope = _scopeFactory.CreateScope();
-        _backgroundJobs = scope.ServiceProvider.GetRequiredService<BackgroundJobs>();   
-        _rssFetchService = scope.ServiceProvider.GetRequiredService<RssFetchService>();   
-        
-        while (!stoppingToken.IsCancellationRequested)
+        logger.LogInformation("Started FeedUpdateDequeueService");
+        await foreach (var feedId in backgroundJobs.ReadAllAsync(stoppingToken))
         {
-            if(_backgroundJobs.BackgroundTasks.TryDequeue(out var feeds))
+            try
             {
-                await _rssFetchService.RefreshFeeds(feeds); 
+                // Bound the EF change tracker and read current metadata for each job.
+                using var scope = scopeFactory.CreateScope();
+                var repository = scope.ServiceProvider.GetRequiredService<FeedRepository>();
+                var feed = await repository.GetMetadata(feedId, stoppingToken);
+                if (feed is not null)
+                    await scope.ServiceProvider.GetRequiredService<RssFetchService>().RefreshFeed(feed, stoppingToken);
             }
-            await Task.Delay(1000, stoppingToken);
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { throw; }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Failed to refresh feed {FeedId}", feedId);
+            }
+            finally
+            {
+                backgroundJobs.Complete(feedId);
+            }
         }
-        scope.Dispose();
-        _logger.LogInformation("Stopped FeedUpdateDequeueService");
     }
 }
